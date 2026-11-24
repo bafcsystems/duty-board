@@ -48,6 +48,23 @@ html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font-family
 .slide.on{opacity:1;z-index:1}
 #slides{position:relative;flex:1}
 .body{flex:1;overflow:hidden;padding:2vh 2vw}
+.body.flush{padding:0}.body.flush iframe.fill{border-radius:0}
+/* apparatus */
+.app{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1.6vh 1.4vw;align-content:start}
+.unit{background:var(--panel);border-radius:1.2vh;padding:1.6vh 1.2vw;border-top:1vh solid var(--green);display:grid;gap:.6vh}
+.unit.oos{border-top-color:var(--red)}.unit.lim{border-top-color:var(--amber)}
+.unit .id{font:700 5vh/1 "Barlow Condensed"}.unit .ty{color:var(--mute);font-size:1.9vh}
+.unit .stt{font:700 2.6vh "Barlow Condensed";letter-spacing:.04em;color:#7fd39b}.unit.oos .stt{color:#ff8a80}.unit.lim .stt{color:#ffd27a}
+.unit .nt{font-size:1.9vh;color:#cfd6dd}
+/* announcements */
+.ann{height:100%;display:grid;grid-template-columns:auto 1fr;gap:3vw;align-items:center;padding:2vh 3vw}
+.ann .ic{width:26vh;height:26vh;border-radius:50%;display:grid;place-items:center;font-size:13vh;background:var(--panel)}
+.ann.training .ic{background:#163f73}.ann.birthday .ic{background:#5a2a6e}.ann.notice .ic{background:#6b4d0e}.ann.meeting .ic{background:#1f4d3a}
+.ann .ty{font:700 3vh "Barlow Condensed";letter-spacing:.12em;color:var(--gold);text-transform:uppercase}
+.ann .tt{font:700 9vh/1.02 "Barlow Condensed";margin:.6vh 0 1.4vh}
+.ann .wh{font:600 3.6vh "Barlow Condensed";color:#fff}
+.ann .dt2{font-size:2.8vh;color:#cfd6dd;margin-top:1.2vh;white-space:pre-wrap;max-width:60vw}
+.sample{display:inline-block;font:700 1.5vh Barlow;background:var(--amber);color:#1a1300;padding:.2vh .6vw;border-radius:.6vh;letter-spacing:.06em;vertical-align:middle}
 .prog{height:.5vh;background:var(--gold);width:0}
 
 /* roster */
@@ -106,7 +123,7 @@ iframe.fill{border:0;width:100%;height:100%;border-radius:1vh;background:#111}
 
 /* ---------- overlays ---------- */
 .overlay{position:fixed;inset:0;z-index:80;display:grid;place-items:center;background:#000c}
-.box{background:var(--panel);border:1px solid var(--line);border-radius:1.2vh;padding:3vh 2.4vw;width:min(560px,92vw);display:grid;gap:1.4vh;font-size:16px}
+.box{max-height:94vh;overflow:auto;background:var(--panel);border:1px solid var(--line);border-radius:1.2vh;padding:3vh 2.4vw;width:min(560px,92vw);display:grid;gap:1.4vh;font-size:16px}
 .box h2{margin:0;font:700 30px "Barlow Condensed"}
 .box p{margin:0;color:var(--mute)}
 .box input,.box select{font:16px Barlow;min-height:42px;padding:0 10px;border-radius:6px;border:1px solid var(--line);background:#0e1216;color:var(--ink);width:100%}
@@ -177,6 +194,9 @@ body.mouse #gear{opacity:1}
     <label>Volume<input type="range" id="sVol" min="0" max="1" step="0.05"></label>
     <label>Screen name<input id="sName" placeholder="Station 19-1"></label>
   </div>
+  <label>Apparatus Google Sheet (published CSV link)<input id="sApp" placeholder="Leave blank to show samples"></label>
+  <label>Announcements Google Sheet (published CSV link)<input id="sAnn" placeholder="Leave blank to show samples"></label>
+  <label>Google Slides deck link (optional)<input id="sDeck" placeholder="https://docs.google.com/presentation/d/..."></label>
   <label>Test</label>
   <div class="acts" style="justify-content:flex-start">
     <button type="button" class="btn blue" id="tEms">EMS run screen</button>
@@ -199,8 +219,16 @@ const RADAR='https://radar.weather.gov/ridge/standard/KDIX_loop.gif';
 const TOWNS={BRYA:'Bryn Athyn',LMOR:'Lower Moreland Township',UMOR:'Upper Moreland Township',ABGN:'Abington Township',CHEL:'Cheltenham Township',UDUB:'Upper Dublin Township',HATB:'Hatboro',SHAM:'Upper Southampton Township',PHIL:'Philadelphia'};
 const DEMO=new URLSearchParams(location.search).has('demo');
 const MEMBER_COLS='id,eso_id,name,eso_name,title,ems_level,fire_quals,member_type,is_officer,active';
-const SLIDES={roster:'On duty',calls:'Recent calls',weather:'Weather',traffic:'Traffic'};
-const DEF={rot:20,run:120,vol:0.8,name:'Station 19-1',slides:{roster:true,calls:true,weather:true,traffic:true}};
+const SLIDES={roster:'On duty',apparatus:'Apparatus status',announce:'Announcements',calls:'Recent calls',weather:'Weather',traffic:'Traffic',deck:'Google Slides deck'};
+const DEF={rot:20,run:120,vol:0.8,name:'Station 19-1',appCsv:'',annCsv:'',deckUrl:'',slides:{roster:true,apparatus:true,announce:true,calls:true,weather:true,traffic:true,deck:false}};
+// Samples shown until a Google Sheet is connected (Settings > sheet links)
+const SAMPLE_APP=[
+  {unit:'E19-1',type:'Engine',status:'In Service'},{unit:'SD19-1',type:'Squad',status:'In Service'},{unit:'SS19-1',type:'Support',status:'Out of Service',note:'Sample: body damage repair',ret:'Dec 2'},
+  {unit:'U19-1',type:'Utility',status:'In Service'},{unit:'319-2',type:'Ambulance (ALS)',status:'In Service'},{unit:'319-3',type:'Ambulance (BLS)',status:'Limited',note:'Sample: stretcher service due',ret:'Today 1800'}];
+const SAMPLE_ANN=[
+  {type:'Training',title:'Monday Night Drill: Vehicle Extrication',when:'Monday 1900 · Station 19-1',details:'Sample: bring full PPE. Hands-on with new spreaders and cutters.'},
+  {type:'Birthday',title:'Happy Birthday!',when:'This week',details:'Sample: names would come from the Google Sheet.'},
+  {type:'Notice',title:'Monthly Company Meeting',when:'First Tuesday · 1930',details:'Sample: all members encouraged to attend.'}];
 const H=36e5,EMS=['EMT','AEMT','Paramedic','MD'],FIRE=['FF','INT','EXT','AO','Fire Police'];
 
 const $=s=>document.querySelector(s);
@@ -308,6 +336,22 @@ function roster(){
   return {cmd,lts,rest,sup,ps,vl,ev,onNow,meds,platoon,unList};
 }
 
+// ================= Google Sheets (published CSV) =================
+let appData=null,annData=null;
+function parseCsv(t){const rows=[];let r=[],f='',q=false;for(let i=0;i<t.length;i++){const c=t[i];
+  if(q){if(c=='"'){if(t[i+1]=='"'){f+='"';i++}else q=false}else f+=c}
+  else if(c=='"')q=true;else if(c==','){r.push(f);f=''}else if(c=='\n'){r.push(f);rows.push(r);r=[];f=''}else if(c!='\r')f+=c}
+  if(f||r.length){r.push(f);rows.push(r)}
+  const h=(rows.shift()||[]).map(x=>x.trim().toLowerCase());
+  return rows.filter(x=>x.some(v=>v.trim())).map(x=>Object.fromEntries(h.map((k,i)=>[k,(x[i]||'').trim()])))}
+async function loadSheets(){
+  try{if(cfg.appCsv){const r=parseCsv(await fetch(cfg.appCsv,{cache:'no-store'}).then(x=>x.text()));
+    appData=r.map(x=>({unit:x.unit,type:x.type,status:x.status||'In Service',note:x.note||x.notes,ret:x['expected return']||x.return}))}else appData=null}catch(e){console.warn('apparatus sheet',e);appData=null}
+  try{if(cfg.annCsv){const r=parseCsv(await fetch(cfg.annCsv,{cache:'no-store'}).then(x=>x.text())),now=new Date();
+    annData=r.filter(x=>(!x.start||D(x.start)<=now)&&(!x.end||D(x.end)>now)).map(x=>({type:x.type||'Notice',title:x.title,when:x.when,details:x.details}))}else annData=null}catch(e){console.warn('announcement sheet',e);annData=null}
+}
+const apps=()=>appData||SAMPLE_APP, anns=()=>annData||SAMPLE_ANN;
+
 // ================= sidebar =================
 function renderSide(R){
   const t=new Date();
@@ -367,7 +411,15 @@ function slideHtml(k){
     const p=wx.periods.slice(0,6);
     return {h:'Weather',sub:'National Weather Service · Bryn Athyn',body:`<div class="wxgrid"><div class="fc">${p.map(x=>`<div class="fcp"><div class="pn">${esc(x.name)}</div><div class="pt">${x.temperature}°</div><div class="ps">${esc(x.shortForecast)} · ${esc(x.windSpeed)}</div></div>`).join('')||'<div class="empty">Weather unavailable</div>'}</div>
       <div class="radar"><img src="${RADAR}?t=${Date.now()}" alt="Radar loop, Mount Holly NJ"></div></div>`}}
-  if(k==='traffic') return {h:'Traffic',sub:'Live from Waze',body:`<iframe class="fill" src="https://embed.waze.com/iframe?zoom=13&lat=${LAT}&lon=${LON}&ct=livemap" loading="lazy" title="Traffic map"></iframe>`};
+  if(k==='traffic') return {h:'Traffic',sub:'Live from Waze · centered on Bryn Athyn',flush:true,body:`<iframe class="fill" src="https://embed.waze.com/iframe?zoom=13&lat=${LAT}&lon=${LON}&pin=1&ct=livemap" loading="lazy" title="Traffic map"></iframe>`};
+  if(k==='apparatus'){const L=apps(),smp=!appData;
+    const cls=s=>/out/i.test(s)?'oos':/limit|reserve|restrict/i.test(s)?'lim':'';
+    return {h:'Apparatus Status',sub:(smp?'<span class="sample">SAMPLE</span> ':'')+'Updated by officers',raw:true,body:`<div class="app">${L.map(a=>`<div class="unit ${cls(a.status)}"><div class="id">${esc(a.unit)}</div><div class="ty">${esc(a.type||'')}</div><div class="stt">${esc((a.status||'').toUpperCase())}</div>${a.note?`<div class="nt">${esc(a.note)}</div>`:''}${a.ret?`<div class="nt">Expected: ${esc(a.ret)}</div>`:''}</div>`).join('')}</div>`}}
+  if(k.startsWith('ann:')){const a=anns()[+k.slice(4)]||{},smp=!annData,ty=(a.type||'Notice').toLowerCase();
+    const icon={training:'🎓',birthday:'🎂',meeting:'📋',notice:'📣'}[ty]||'📣';
+    return {h:a.type||'Announcement',sub:smp?'<span class="sample">SAMPLE</span>':'',raw:true,body:`<div class="ann ${esc(ty)}"><div class="ic">${icon}</div><div><div class="ty">${esc(a.type||'')}</div><div class="tt">${esc(a.title||'')}</div>${a.when?`<div class="wh">${esc(a.when)}</div>`:''}${a.details?`<div class="dt2">${esc(a.details)}</div>`:''}</div></div>`}}
+  if(k==='deck'){const u=cfg.deckUrl.replace(/\/(edit|pub|embed).*$/,'');
+    return {h:'Slides',sub:'',flush:true,body:u?`<iframe class="fill" src="${esc(u)}/embed?start=true&loop=true&delayms=10000&rm=minimal" title="Slides"></iframe>`:'<div class="empty">No Google Slides deck linked yet.</div>'}}
   if(k==='calls'){
     const L=calls.filter(c=>c.first_dispatch_email).slice(0,9);
     return {h:'Recent Calls',sub:'Last 24 hours · BAFC units highlighted',body:`<div class="calls">${L.map(c=>{const ours=[...(c.ems_units||[]),...(c.fire_units||[])];
@@ -377,11 +429,12 @@ function slideHtml(k){
       <div>${(c.units||[]).map(u=>`<span class="chip${ours.includes(u)?' ours':''}">${esc(u)}</span>`).join('')}</div></div>`}).join('')||'<div class="empty">No calls in the last 24 hours.</div>'}</div>`}}
   return {h:k,sub:'',body:''};
 }
-function buildOrder(){order=Object.keys(SLIDES).filter(k=>cfg.slides[k]&&(k!=='calls'||canCalls||DEMO));if(!order.length)order=['roster']}
+function buildOrder(){order=[];for(const k of Object.keys(SLIDES)){if(!cfg.slides[k])continue;if(k==='calls'&&!canCalls&&!DEMO)continue;if(k==='deck'&&!cfg.deckUrl)continue;
+  if(k==='announce')anns().forEach((_,i)=>order.push('ann:'+i));else order.push(k)}if(!order.length)order=['roster']}
 function showSlide(i){
   buildOrder();idx=(i+order.length)%order.length;const k=order[idx],s=slideHtml(k);
   const el=document.createElement('section');el.className='slide';
-  el.innerHTML=`<div class="slidehead"><h1>${esc(s.h)}</h1><span class="sub">${esc(s.sub)}</span><span class="dots">${order.map((_,j)=>`<i class="dot${j===idx?' on':''}"></i>`).join('')}</span></div><div class="prog" id="prog"></div><div class="body">${s.body}</div>`;
+  el.innerHTML=`<div class="slidehead"><h1>${esc(s.h)}</h1><span class="sub">${s.raw?s.sub:esc(s.sub)}</span><span class="dots">${order.map((_,j)=>`<i class="dot${j===idx?' on':''}"></i>`).join('')}</span></div><div class="prog" id="prog"></div><div class="body${s.flush?' flush':''}">${s.body}</div>`;
   const box=$('#slides');box.appendChild(el);requestAnimationFrame(()=>el.classList.add('on'));
   [...box.children].slice(0,-1).forEach(o=>{o.classList.remove('on');setTimeout(()=>o.remove(),700)});
   const pr=el.querySelector('#prog');pr.style.transition='none';pr.style.width='0';requestAnimationFrame(()=>{pr.style.transition=`width ${cfg.rot}s linear`;pr.style.width='100%'});
@@ -446,15 +499,15 @@ let mouseT;document.addEventListener('mousemove',()=>{document.body.classList.ad
 document.addEventListener('keydown',e=>{if(e.target.matches('input'))return;if(e.key==='s'||e.key==='S')openSettings();if(e.key==='Escape'){$('#settings').classList.add('hide');$('#run').classList.add('hide')}if(e.key==='ArrowRight')showSlide(idx+1);if(e.key==='ArrowLeft')showSlide(idx-1)});
 $('#gear').onclick=openSettings;
 function openSettings(){
-  $('#sRot').value=cfg.rot;$('#sRun').value=cfg.run;$('#sVol').value=cfg.vol;$('#sName').value=cfg.name;
+  $('#sApp').value=cfg.appCsv;$('#sAnn').value=cfg.annCsv;$('#sDeck').value=cfg.deckUrl;$('#sRot').value=cfg.rot;$('#sRun').value=cfg.run;$('#sVol').value=cfg.vol;$('#sName').value=cfg.name;
   $('#sSlides').innerHTML=Object.entries(SLIDES).map(([k,l])=>`<label><input type="checkbox" data-s="${k}"${cfg.slides[k]?' checked':''}${k==='calls'&&!canCalls&&!DEMO?' disabled':''}> ${esc(l)}${k==='calls'&&!canCalls&&!DEMO?' (no access)':''}</label>`).join('');
   $('#sMsg').textContent=DEMO?'Demo mode: sample data only.':(me?`Signed in as ${me.name}.`:'');
   $('#settings').classList.remove('hide');
 }
 $('#sf').addEventListener('submit',e=>{e.preventDefault();
-  cfg.rot=Math.max(5,+$('#sRot').value||20);cfg.run=Math.max(15,+$('#sRun').value||120);cfg.vol=+$('#sVol').value;cfg.name=$('#sName').value.trim()||DEF.name;
+  cfg.rot=Math.max(5,+$('#sRot').value||20);cfg.run=Math.max(15,+$('#sRun').value||120);cfg.vol=+$('#sVol').value;cfg.name=$('#sName').value.trim()||DEF.name;cfg.appCsv=$('#sApp').value.trim();cfg.annCsv=$('#sAnn').value.trim();cfg.deckUrl=$('#sDeck').value.trim();
   document.querySelectorAll('#sSlides [data-s]').forEach(c=>cfg.slides[c.dataset.s]=c.checked);
-  saveCfg();$('#settings').classList.add('hide');renderAll();showSlide(0);
+  saveCfg();$('#settings').classList.add('hide');loadSheets().then(()=>{renderAll();showSlide(0)});
 });
 $('#sClose').onclick=()=>$('#settings').classList.add('hide');
 $('#sOut').onclick=()=>DEMO?location.href=location.pathname:sb.auth.signOut();
@@ -472,7 +525,8 @@ function boot(){
   $('#app').classList.remove('hide');
   const go=()=>{$('#soundGate').classList.add('hide');try{ac=ac||new (window.AudioContext||window.webkitAudioContext)();ac.resume()}catch(e){}};
   try{const probe=new (window.AudioContext||window.webkitAudioContext)();if(probe.state==='suspended'){$('#soundGate').classList.remove('hide');$('#soundGo').onclick=go}else{ac=probe}}catch(e){}
-  load().then(()=>{booted=true;showSlide(0)});loadWx();
+  Promise.all([load(),loadSheets()]).then(()=>{booted=true;showSlide(0)});loadWx();
+  setInterval(loadSheets,5*60*1000);
   if(!DEMO){subscribe();setInterval(load,30*1000)}
   setInterval(loadWx,10*60*1000);
   setInterval(()=>renderSide(roster()),15*1000);
