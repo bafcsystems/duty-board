@@ -19,6 +19,7 @@ html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font-family
 #side{background:var(--panel);border-right:1px solid var(--line);display:flex;flex-direction:column;padding:2.2vh 1.4vw;gap:2vh}
 #main{position:relative;display:flex;flex-direction:column;overflow:hidden}
 .brand{text-align:center}
+.brand .logo{display:block;margin:0 auto;height:22vh;width:auto;max-width:100%;filter:drop-shadow(0 .4vh 1vh #0008)}
 .brand .n1{font:700 2.9vh/1.05 "Barlow Condensed";letter-spacing:.03em}
 .brand .n2{font:600 2.2vh/1.2 "Barlow Condensed";color:var(--gold);letter-spacing:.12em;margin-top:.4vh}
 .plt{text-align:center;font:700 4.4vh/1 "Barlow Condensed";letter-spacing:.04em;padding:1vh 0;border-block:1px solid var(--line)}
@@ -150,7 +151,7 @@ body.mouse #gear{opacity:1}
 
 <div id="app" class="hide">
   <aside id="side">
-    <div class="brand"><div class="n1">BRYN ATHYN FIRE CO.</div><div class="n2">STATION 19-1</div></div>
+    <div class="brand"><img class="logo" src="logo.png" alt="Bryn Athyn Fire Company"></div>
     <div class="plt" id="plt">&nbsp;</div>
     <div class="staffbox" id="staffbox"><div class="big" id="staffBig">-</div><div class="lbl" id="staffLbl"></div></div>
     <div class="wx" id="wxSide"></div>
