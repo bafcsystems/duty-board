@@ -164,7 +164,10 @@ iframe.fill{border:0;width:100%;height:100%;border-radius:1vh;background:#111}
 .box{max-height:94vh;overflow:auto;background:var(--panel);border:1px solid var(--line);border-radius:1.2vh;padding:3vh 2.4vw;width:min(560px,92vw);display:grid;gap:1.4vh;font-size:16px}
 .box h2{margin:0;font:700 30px "Barlow Condensed"}
 .box p{margin:0;color:var(--mute)}
-.box input,.box select{font:16px Barlow;min-height:42px;padding:0 10px;border-radius:6px;border:1px solid var(--line);background:#0e1216;color:var(--ink);width:100%}
+.box input,.box select{font:16px Barlow;min-height:42px;padding:0 10px;border-radius:6px;border:1px solid var(--line);background:var(--bg);color:var(--ink);width:100%}
+.box input::placeholder{color:var(--mute);opacity:.8}
+.box select option{background:var(--panel);color:var(--ink)}
+body.day .box input,body.day .box select{background:#fff;border-color:#9aa6b2}
 .box label{display:grid;gap:4px;color:var(--mute);font-size:14px}
 .box .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .btn{font:600 16px Barlow;min-height:42px;padding:0 16px;border-radius:6px;border:1px solid var(--line);background:transparent;color:var(--ink);cursor:pointer}
