@@ -460,7 +460,7 @@ function checkNewCalls(){
   firstCheck=false;
 }
 const fullAddr=c=>(c.address||'')+', '+(TOWNS[c.mun]||'Montgomery County')+', PA';
-const routeUrl=c=>`https://maps.google.com/maps?saddr=${encodeURIComponent(cfg.station||DEF.station)}&daddr=${encodeURIComponent(fullAddr(c))}&output=embed`;
+const routeUrl=c=>`https://maps.google.com/maps?saddr=${encodeURIComponent(cfg.station||DEF.station)}&daddr=${encodeURIComponent(fullAddr(c))}&dirflg=d&output=embed`;
 const pinUrl=c=>`https://maps.google.com/maps?q=${encodeURIComponent(fullAddr(c))}&t=k&z=18&output=embed`;
 const geoCache={};
 async function geocode(c){ // OpenStreetMap lookup (free, light use) for the street view position
