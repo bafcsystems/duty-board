@@ -2,7 +2,10 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0b0e11">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="BAFC Display">
 <meta name="robots" content="noindex, nofollow">
 <title>BAFC Station Display</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -181,6 +184,51 @@ body.day .box input,body.day .box select{background:#fff;border-color:#9aa6b2}
 body.mouse #gear{opacity:1}
 #demoTag{position:fixed;left:50%;top:0;transform:translateX(-50%);background:var(--amber);color:#1a1300;font:700 14px Barlow;padding:3px 12px;border-radius:0 0 8px 8px;z-index:70}
 #stale{position:fixed;left:23vw;bottom:1.4vh;z-index:40;background:var(--red2);color:#fff;font:600 1.6vh Barlow;padding:.5vh .8vw;border-radius:.6vh}
+/* ---------- PHONE / PORTRAIT ---------- */
+@media (max-width:820px),(orientation:portrait){
+  html,body{overflow:auto}
+  #app{grid-template-columns:1fr;grid-template-rows:auto 1fr;height:100dvh}
+  #side{flex-direction:row;flex-wrap:wrap;align-items:center;gap:8px 12px;padding:8px 12px;border-right:0;border-bottom:1px solid var(--line)}
+  .brand .logo{height:44px}
+  .plt{font-size:20px;padding:0;border:0;text-align:left;display:flex;align-items:center;gap:8px}
+  .plt small{display:none}
+  .patches{margin:0}.patch{height:40px}.patch-ph{width:40px;height:40px;border-width:2px;font-size:0}.patch-ph b{font-size:16px}
+  .staffbox{padding:5px 10px;border-radius:8px}.staffbox .big{font-size:15px;line-height:1.15}.staffbox .lbl{display:none}
+  .wx{gap:0}.wxdays{display:none}.wxnow{gap:6px}.wxnow .t{font-size:26px}.wxnow .c{font-size:11px}
+  .clock{margin:0 0 0 auto;text-align:right}.clock .tm{font-size:26px}.clock .dt{display:none}
+  #alertbar{padding:6px 8px;gap:4px}.wxa{font-size:12px;padding:6px 8px;gap:6px;border-width:2px}.wxa b{font-size:14px;white-space:normal}
+  .slidehead{padding:8px 12px;gap:8px;flex-wrap:wrap}.slidehead h1{font-size:24px}.slidehead .sub{font-size:12px}.slidehead .dots{display:none}
+  .prog{height:3px}
+  .body{padding:10px 12px;overflow:auto;-webkit-overflow-scrolling:touch}
+  .roster{grid-template-columns:1fr!important;zoom:1!important;gap:8px}
+  .sec{font-size:14px;margin-top:4px}
+  .card{grid-template-columns:40px minmax(0,1fr);gap:10px;padding:8px 10px;border-radius:8px;border-left-width:4px}
+  .av{width:40px;height:40px;font-size:16px}.nm{font-size:19px}.sub2{font-size:12px}
+  .bd{gap:4px;margin-top:3px}.b{font-size:11px;padding:1px 7px;border-radius:8px}
+  .app{grid-template-columns:1fr 1fr;gap:8px}.unit{padding:10px;border-top-width:6px;border-radius:8px;gap:3px}
+  .unit .id{font-size:26px}.unit .ty{font-size:12px}.unit .stt{font-size:15px}.unit .nt{font-size:12px}
+  .ann{grid-template-columns:1fr;text-align:center;gap:12px;padding:16px 8px;height:auto}
+  .ann .ic{width:96px;height:96px;font-size:48px;margin:0 auto}.ann .ty{font-size:14px}.ann .tt{font-size:30px;margin:4px 0 8px}
+  .ann .wh{font-size:18px}.ann .dt2{font-size:15px;max-width:none}
+  .calls{gap:8px}.callrow{grid-template-columns:1fr;gap:4px;font-size:14px;padding:10px;border-left-width:4px}.callrow .t{font-size:18px}
+  .chip{font-size:12px;padding:1px 6px}
+  .wxgrid{grid-template-columns:1fr;height:auto;gap:10px}.fcp{padding:8px 10px}.fcp .pn{font-size:16px}.fcp .pt{font-size:26px}.fcp .ps{font-size:13px}
+  .radar{height:280px}
+  .news{grid-template-columns:1fr;height:auto;gap:10px}.ncol{padding:10px;gap:8px}.nh{font-size:18px}.nt2{font-size:15px}.ns{font-size:11px}
+  .body.flush{min-height:60dvh}
+  /* run screen */
+  #run{overflow:auto;grid-template-rows:auto auto auto}
+  #run .top{padding:10px 12px;gap:10px;flex-wrap:wrap}#run .kind{font-size:30px}#run .pri{font-size:18px;padding:2px 8px}
+  #run .elapsed{font-size:11px}#run .elapsed b{font-size:28px}
+  #run .mid{grid-template-columns:1fr!important;padding:12px;gap:12px}
+  #run .info{gap:10px}#run .nature{font-size:30px}#run .place{font-size:18px}#run .addr{font-size:30px}#run .apt{font-size:18px}
+  #run .lbl{font-size:11px}#run .val{font-size:16px}#run .units .chip{font-size:16px;padding:2px 8px}#run .notes{font-size:14px;max-height:none}
+  #run .maps{grid-template-rows:260px 260px}
+  #gear{opacity:1;width:44px;height:44px;right:10px;bottom:10px}
+  #stale{left:10px;bottom:10px;font-size:12px}
+  .box{font-size:16px;padding:18px 16px;width:94vw}
+  .checks{grid-template-columns:1fr}
+}
 </style>
 </head>
 <body>
@@ -518,8 +566,9 @@ function showSlide(i){
   const pr=el.querySelector('#prog');pr.style.transition='none';pr.style.width='0';requestAnimationFrame(()=>{pr.style.transition=`width ${cfg.rot}s linear`;pr.style.width='100%'});
   clearTimeout(rotT);rotT=setTimeout(()=>showSlide(idx+1),cfg.rot*1000);
 }
+const isPhone=()=>matchMedia('(max-width:820px),(orientation:portrait)').matches;
 function fitBody(b){ // shrink the crew list until everyone fits on screen
-  const r=b&&b.firstElementChild;if(!r)return;let z=1;r.style.zoom=1;
+  const r=b&&b.firstElementChild;if(!r)return;if(isPhone()){r.style.zoom=1;r.style.gridTemplateColumns='';return}let z=1;r.style.zoom=1;
   r.style.gridTemplateColumns='';delete r.dataset.c3;
   for(let i=0;i<40&&b.scrollHeight>b.clientHeight+2&&z>0.35;i++){z-=0.03;r.style.zoom=z;
     if(z<0.72&&!r.dataset.c3){r.dataset.c3=1;r.style.gridTemplateColumns='repeat(3,minmax(0,1fr))';z=Math.min(1,z+0.2);r.style.zoom=z}}
@@ -602,6 +651,13 @@ function tone(kind){
 let mouseT;document.addEventListener('mousemove',()=>{document.body.classList.add('mouse');clearTimeout(mouseT);mouseT=setTimeout(()=>document.body.classList.remove('mouse'),3000)});
 document.addEventListener('keydown',e=>{if(e.target.matches('input'))return;if(e.key==='s'||e.key==='S')openSettings();if(e.key==='Escape'){$('#settings').classList.add('hide');$('#run').classList.add('hide')}if(e.key==='ArrowRight')showSlide(idx+1);if(e.key==='ArrowLeft')showSlide(idx-1)});
 $('#gear').onclick=openSettings;
+// phones: swipe left/right to change slides; rotation pauses 60 s after you touch the screen
+let tx=null,ty=null;
+document.addEventListener('touchstart',e=>{tx=e.touches[0].clientX;ty=e.touches[0].clientY},{passive:true});
+document.addEventListener('touchend',e=>{if(tx==null)return;const dx=e.changedTouches[0].clientX-tx,dy=e.changedTouches[0].clientY-ty;tx=null;
+  if(!$('#run').classList.contains('hide')||!$('#settings').classList.contains('hide'))return;
+  if(Math.abs(dx)>60&&Math.abs(dx)>Math.abs(dy)*1.5){showSlide(idx+(dx<0?1:-1));clearTimeout(rotT);rotT=setTimeout(()=>showSlide(idx+1),60000)}
+  else{clearTimeout(rotT);rotT=setTimeout(()=>showSlide(idx+1),60000)}},{passive:true});
 function openSettings(){
   $('#sApp').value=cfg.appCsv;$('#sAnn').value=cfg.annCsv;$('#sDeck').value=cfg.deckUrl;$('#sRot').value=cfg.rot;$('#sRun').value=cfg.run;$('#sVol').value=cfg.vol;$('#sName').value=cfg.name;$('#sStation').value=cfg.station;$('#sTheme').value=cfg.theme||'auto';$('#sZoom').value=cfg.tzoom||15;
   $('#sSlides').innerHTML=Object.entries(SLIDES).map(([k,l])=>`<label><input type="checkbox" data-s="${k}"${cfg.slides[k]?' checked':''}${k==='calls'&&!canCalls&&!DEMO?' disabled':''}> ${esc(l)}${k==='calls'&&!canCalls&&!DEMO?' (no access)':''}</label>`).join('');
