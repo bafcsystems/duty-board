@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#1b2026">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="BAFC Duty">
+<meta name="robots" content="noindex, nofollow">
+<title>BAFC On Duty</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{color-scheme:light dark;--bg:light-dark(#eceef1,#0e1114);--card:light-dark(#fff,#171b20);--alt:light-dark(#f6f7f9,#1c2127);--ink:light-dark(#16191d,#eef0f2);--mute:light-dark(#5d6670,#9aa4ae);--line:light-dark(#e1e4e8,#2a3038);--red:#b22222;--bar:#1b2026;--gold:#e8b33a}
+*{box-sizing:border-box;min-width:0}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 Barlow,system-ui,sans-serif;overflow-x:clip}
+.wrap{max-width:780px;margin:0 auto;padding:clamp(16px,3vw,32px) max(3vw,12px) 40px}
+h1{font:700 clamp(30px,5vw,44px)/1.05 "Barlow Condensed",sans-serif;margin:0 0 4px;text-wrap:balance}
+.sub{color:var(--mute);margin:0 0 18px;font-size:15px}
+.board,.login{background:var(--card);border-radius:10px;overflow:hidden;box-shadow:0 1px 2px #0002,0 8px 24px #0001}
+.bar{background:var(--bar);color:#fff;display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;padding:10px 14px}
+.bar b{font:700 22px/1 "Barlow Condensed",sans-serif;letter-spacing:.02em}
+.staff{font-weight:600;font-size:15px;padding:3px 10px;border-radius:12px;white-space:nowrap}
+.staff.ok{background:#1f5f35;color:#d9f5e2}.staff.warn{background:#7a5a10;color:#ffefc2}.staff.bad{background:var(--red);color:#fff}
+.clock{margin-left:auto;font-variant-numeric:tabular-nums;color:#cfd6dd;font-size:15px;white-space:nowrap}
+.tabs{display:flex;gap:4px;flex-wrap:wrap;padding:8px 10px;background:light-dark(#f0f2f4,#12161a);border-bottom:1px solid var(--line)}
+.tabs button{font:600 15px Barlow,sans-serif;min-height:40px;padding:0 14px;border-radius:6px;border:0;background:transparent;color:var(--mute);cursor:pointer}
+.tabs button[aria-pressed=true]{background:var(--card);color:var(--ink);box-shadow:0 1px 2px #0002}
+.tabs .sp{margin-left:auto}.tabs .act{background:var(--red);color:#fff}.tabs .act2{background:var(--bar);color:#fff}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid #4a90e2;outline-offset:2px}
+.key{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:center;padding:8px 16px;font-size:13px;color:var(--mute);border-bottom:1px solid var(--line)}
+h2{font:700 15px/1.2 Barlow,sans-serif;color:var(--mute);margin:0;padding:12px 16px 6px;border-top:1px solid var(--line)}
+h2:first-child{border-top:0}h2 span{font-weight:500;font-size:13px}h2.un{color:var(--red)}
+.row{display:grid;grid-template-columns:44px minmax(0,1fr) auto;gap:12px;align-items:center;padding:10px 16px;border-top:1px solid var(--line)}
+.row:nth-child(even){background:var(--alt)}
+.av{width:44px;height:44px;border-radius:50%;border:3px solid var(--gold);display:grid;place-items:center;background:light-dark(#e9ecef,#262c33);color:var(--mute);font:700 16px "Barlow Condensed",sans-serif}
+.row.cmd .av{border-color:var(--red)}.row.lt .av{border-color:#2d6cb5}.row.un .av{border-color:#8a939c;opacity:.7}.row.vol .av{border-color:#2f8f4e}
+.nm{font-size:20px;font-weight:500;line-height:1.15}
+.bd{display:flex;flex-wrap:wrap;gap:4px;margin-top:3px}
+.b{font-size:12px;font-weight:600;padding:1px 7px;border-radius:10px;background:light-dark(#eceff2,#262c33);color:var(--mute);white-space:nowrap}
+.b.ems{background:light-dark(#dde9f8,#1b2a3d);color:light-dark(#1c4f8c,#a9c9f2)}.b.ems.medic{background:#1c4f8c;color:#fff}
+.b.fire{background:light-dark(#fbe3e3,#3d1e1e);color:light-dark(#9b1c1c,#f4a9a9)}
+.b.title{background:var(--bar);color:#fff}.b.src{background:transparent;border:1px solid var(--line)}
+.st{text-align:right;font-size:17px;line-height:1.2}
+.st small{display:block;color:var(--mute);font-size:13px;white-space:nowrap;margin-top:2px}
+.un .st{color:var(--red)}
+.lnk{border:0;background:none;color:var(--mute);font:500 13px Barlow,sans-serif;cursor:pointer;text-decoration:underline;padding:4px 0 0;min-height:30px}
+.empty,.msg{padding:22px 16px;color:var(--mute);text-align:center}
+.note{padding:4px 16px 8px;color:var(--mute);font-size:13px}
+form{padding:16px;gap:12px;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+#f{display:none;border-top:3px solid var(--red)}#f.open{display:grid}
+form h3{grid-column:1/-1;margin:0;font:700 22px "Barlow Condensed",sans-serif}
+label{display:grid;gap:4px;font-size:14px;color:var(--mute);font-weight:500}
+input,select{font:16px Barlow,sans-serif;min-height:44px;padding:0 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink)}
+.full{grid-column:1/-1}.hide{display:none!important}
+.acts{grid-column:1/-1;display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}
+.acts button,.btn{font:600 16px Barlow,sans-serif;min-height:44px;padding:0 18px;border-radius:6px;border:1px solid var(--line);background:transparent;color:var(--ink);cursor:pointer}
+.acts .go,.btn.go{background:var(--red);border-color:var(--red);color:#fff}
+.err{grid-column:1/-1;color:var(--red);font-size:14px;margin:0;min-height:1em}
+.ok{grid-column:1/-1;color:#2f8f4e;font-size:14px;margin:0}
+.foot{color:var(--mute);font-size:13px;margin-top:14px;display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px;justify-content:space-between}
+@media(max-width:600px){.row{grid-template-columns:40px minmax(0,1fr)}.av{width:40px;height:40px}.st{grid-column:2;text-align:left}form{grid-template-columns:minmax(0,1fr)}.nm{font-size:18px}.tabs .sp{margin-left:0}}
+@media(prefers-reduced-motion:no-preference){#f.open{animation:in .18s ease-out}@keyframes in{from{opacity:0;transform:translateY(-6px)}}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Bryn Athyn Fire Company on duty</h1>
+  <p class="sub" id="sub">Members only. Sign in with the email the company has on file.</p>
+
+  <!-- Sign in -->
+  <div class="login hide" id="login">
+    <form id="lf" novalidate>
+      <h3>Sign in</h3>
+      <label class="full">Email<input type="email" id="lEmail" autocomplete="email" inputmode="email" required></label>
+      <div class="acts"><button type="submit" class="go" id="lSend">Email me a sign-in code</button></div>
+      <label class="full hide" id="codeWrap">6-digit code from the email<input id="lCode" inputmode="numeric" autocomplete="one-time-code" maxlength="10"></label>
+      <div class="acts hide" id="codeActs"><button type="button" id="lBack">Use a different email</button><button type="button" class="go" id="lVerify">Sign in</button></div>
+      <p class="err" id="lErr" aria-live="polite"></p>
+      <p class="ok hide" id="lOk">Check your email. Enter the code here, or tap the link in the email on this device.</p>
+    </form>
+  </div>
+
+  <!-- Board -->
+  <div class="board hide" id="board">
+    <div class="bar"><b>ON DUTY</b><span class="staff" id="staff"></span><span class="clock" id="clock"></span></div>
+    <div class="tabs" role="group" aria-label="View">
+      <button type="button" data-v="now" aria-pressed="true">On duty now</button>
+      <button type="button" data-v="next">Next 24 hours</button>
+      <button type="button" class="act2 sp" id="addBtn">Add myself</button>
+      <button type="button" class="act" id="unBtn">Report unavailability</button>
+    </div>
+    <div class="key"><span class="b title">Title</span><span class="b ems">EMS</span><span class="b fire">Fire</span><span>Blue is EMS level, red is fire qualification. Solid blue marks a paramedic.</span></div>
+    <form id="f" novalidate>
+      <h3 id="fTitle"></h3>
+      <label class="full">Member<select id="fMem"></select></label>
+      <label class="full" id="posWrap">Position<select id="fPos"><option value="INT">Interior FF (INT)</option><option value="EXT">Exterior FF (EXT)</option><option value="AO">Apparatus Operator (AO)</option><option value="FF">Firefighter (FF)</option><option>EMT</option><option>AEMT</option><option>Paramedic</option><option>Fire Police</option></select></label>
+      <label>From<input type="datetime-local" id="fFrom"></label>
+      <label>Until<input type="datetime-local" id="fTo"></label>
+      <p class="err" id="fErr" aria-live="polite"></p>
+      <div class="acts"><button type="button" id="cancel">Cancel</button><button type="submit" class="go" id="fGo">Submit</button></div>
+    </form>
+    <div id="list"><div class="msg">Loading…</div></div>
+  </div>
+
+  <div class="foot"><span id="sync"></span><span id="who"></span></div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script>
+{
+const SUPABASE_URL='https://svdbmigojyttlqftuvxb.supabase.co';
+const SUPABASE_KEY='sb_publishable_skgMY3FbCCt5E_hN-ZzM6Q_q9dirLU5';
+const sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
+
+const MEMBER_COLS='id,eso_id,name,eso_name,title,ems_level,fire_quals,member_type,is_officer,active';
+const $=s=>document.querySelector(s);
+const esc=t=>String(t??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
+const H=36e5,EMS=['EMT','AEMT','Paramedic','MD'],FIRE=['FF','INT','EXT','AO','Fire Police'];
+const D=s=>new Date(s);
+const fmt=d=>d.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',hour12:false})+' '+d.toLocaleDateString('en-US',{month:'short',day:'numeric'});
+const ini=n=>String(n).split(' ').filter(Boolean).map(p=>p[0]).join('').slice(0,2);
+const last=n=>String(n).trim().split(' ').filter(p=>!/^(jr\.?|sr\.?|ii|iii|md)$/i.test(p)).pop()||n;
+
+let me=null,members=[],settings={},eso=[],unav=[],vols=[],overrides=[],lastPull=null,view='now',mode='un',loaded=false;
+const byId=id=>members.find(m=>m.id===id);
+const officer=()=>!!me?.is_officer;
+
+// ---------- sign in ----------
+let pendingEmail='';
+$('#lf').addEventListener('submit',async e=>{
+  e.preventDefault();$('#lErr').textContent='';
+  const email=$('#lEmail').value.trim().toLowerCase();
+  if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)){$('#lErr').textContent='Enter a valid email address.';return}
+  $('#lSend').disabled=true;
+  const {error}=await sb.auth.signInWithOtp({email,options:{emailRedirectTo:location.origin+location.pathname}});
+  $('#lSend').disabled=false;
+  if(error){$('#lErr').textContent='Could not send the email: '+error.message;return}
+  pendingEmail=email;
+  ['codeWrap','codeActs','lOk'].forEach(id=>$('#'+id).classList.remove('hide'));
+  $('#lSend').closest('.acts').classList.add('hide');$('#lCode').focus();
+});
+$('#lBack').addEventListener('click',()=>{['codeWrap','codeActs','lOk'].forEach(id=>$('#'+id).classList.add('hide'));$('#lSend').closest('.acts').classList.remove('hide');$('#lErr').textContent=''});
+$('#lVerify').addEventListener('click',async()=>{
+  const token=$('#lCode').value.replace(/\D/g,'');
+  if(token.length<6){$('#lErr').textContent='Enter the code from the email.';return}
+  const {error}=await sb.auth.verifyOtp({email:pendingEmail,token,type:'email'});
+  if(error) $('#lErr').textContent='That code did not work. Request a new one and try again.';
+});
+
+async function start(session){
+  if(!session){$('#login').classList.remove('hide');$('#board').classList.add('hide');$('#who').textContent='';return}
+  const email=(session.user.email||'').toLowerCase();
+  const [{data,error},{data:myId}]=await Promise.all([sb.from('members').select(MEMBER_COLS).eq('active',true),sb.rpc('my_member_id')]);
+  members=data||[];
+  me=members.find(m=>m.id===myId)||null;
+  $('#login').classList.add('hide');
+  if(error||!me){
+    $('#board').classList.add('hide');
+    $('#sub').textContent=email+' is not on the BAFC member list. Contact the Deputy Chief of EMS to be added.';
+    $('#who').innerHTML='<button class="lnk" id="out">Sign out</button>';$('#out').onclick=()=>sb.auth.signOut();
+    return;
+  }
+  $('#board').classList.remove('hide');
+  $('#sub').textContent='Shifts come from ESO Scheduling every 15 minutes. Unavailability and volunteer sign-ins appear as soon as they are submitted.';
+  $('#who').innerHTML=`Signed in as ${esc(me.name)}${me.is_officer?' (officer)':''} · <button class="lnk" id="out">Sign out</button>`;
+  $('#out').onclick=()=>sb.auth.signOut();
+  await load();subscribe();
+}
+let started=false;
+sb.auth.onAuthStateChange((ev,session)=>{
+  if(ev==='SIGNED_OUT'){started=false;location.hash='';start(null);return}
+  if(ev==='INITIAL_SESSION'||ev==='SIGNED_IN'){if(!started||ev==='SIGNED_IN'){started=true;start(session)}}
+});
+
+// ---------- data ----------
+async function load(){
+  const now=new Date(),from=new Date(+now-24*H).toISOString(),to=new Date(+now+72*H).toISOString();
+  const [s,e,u,v,o,m]=await Promise.all([
+    sb.from('settings').select('key,value'),
+    sb.from('eso_shifts').select('*').lt('start_at',to).gt('end_at',from),
+    sb.from('unavailability').select('*').is('cancelled_at',null).gt('end_at',now.toISOString()),
+    sb.from('volunteer_shifts').select('*').is('cancelled_at',null).gt('end_at',now.toISOString()),
+    sb.from('roster_overrides').select('*').is('restored_at',null),
+    sb.from('members').select(MEMBER_COLS).eq('active',true)
+  ]);
+  if(m.data) members=m.data;
+  settings=Object.fromEntries((s.data||[]).map(r=>[r.key,r.value]));
+  eso=e.data||[];unav=u.data||[];vols=v.data||[];overrides=o.data||[];
+  lastPull=eso.reduce((a,r)=>!a||D(r.pulled_at)>a?D(r.pulled_at):a,null);
+  loaded=true;render();
+}
+let tmr=null;const reload=()=>{clearTimeout(tmr);tmr=setTimeout(load,400)};
+let chan=null;
+function subscribe(){
+  if(chan) sb.removeChannel(chan);
+  chan=sb.channel('board');
+  ['eso_shifts','unavailability','volunteer_shifts','roster_overrides','settings','members'].forEach(t=>chan.on('postgres_changes',{event:'*',schema:'public',table:t},reload));
+  chan.subscribe();
+}
+setInterval(()=>loaded&&load(),5*60*1000);
+setInterval(()=>loaded&&render(),30*1000);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden&&loaded)load()});
+
+// ---------- people & badges ----------
+function memberForShift(s){
+  if(s.member_id) return byId(s.member_id);
+  const n=s.eso_name.toLowerCase();
+  return members.find(m=>(m.eso_name||'').toLowerCase()===n||m.name.toLowerCase()===n)
+      || members.find(m=>last(m.name).toLowerCase()===last(s.eso_name).toLowerCase()&&m.name[0].toLowerCase()===n[0]);
+}
+function quals(name){
+  // Badges come from the member list only. ESO's Qualification column describes the shift slot, not the person.
+  const m=members.find(x=>x.name===name);
+  return {title:m?.title,q:[...(m?.ems_level?[m.ems_level]:[]),...(m?.fire_quals||[])]};
+}
+const isMedic=name=>quals(name).q.includes('Paramedic');
+const pb=p=>`<span class="b${EMS.includes(p)?' ems'+(p==='Paramedic'?' medic':''):FIRE.includes(p)?' fire':''}">${esc(p)}</span>`;
+function badges(name,extra){
+  const {title,q}=quals(name);const list=[...q];if(extra&&!list.includes(extra))list.unshift(extra);
+  const ord=[...list.filter(p=>EMS.includes(p)),...list.filter(p=>!EMS.includes(p))];
+  return (title?`<span class="b title">${esc(title)}</span>`:'')+ord.map(pb).join('');
+}
+
+// ---------- board ----------
+const LT=()=>settings.lieutenants||{};
+const CMD=()=>settings.command_staff||[];
+const plt=g=>(String(g).match(/^([A-D]) Platoon\b/i)||[])[1]?.toUpperCase();
+function unavList(){
+  const a=unav.map(u=>({id:u.id,name:byId(u.member_id)?.name||'Unknown',member_id:u.member_id,created_by:u.created_by,start:D(u.start_at),end:D(u.end_at),src:'member'}));
+  const b=eso.filter(s=>s.kind==='pto').map(s=>({id:'pto'+s.id,name:memberForShift(s)?.name||s.eso_name,start:D(s.start_at),end:D(s.end_at),src:'eso'}));
+  return [...a,...b];
+}
+function render(){
+  if(!me) return;
+  const t=new Date(),U=unavList();
+  const unNow=n=>U.some(u=>u.name===n&&u.start<=t&&u.end>t);
+  const removed=new Set(overrides.map(o=>o.source_key));
+  const shifts=eso.filter(s=>s.kind==='shift').map(s=>({...s,name:memberForShift(s)?.name||s.eso_name,start:D(s.start_at),end:D(s.end_at)}));
+  const live=shifts.filter(s=>!removed.has(s.source_key)&&!unNow(s.name));
+  const V=vols.map(v=>({...v,name:byId(v.member_id)?.name||'Unknown',start:D(v.start_at),end:D(v.end_at)})).filter(v=>!unNow(v.name));
+  const to=view==='now'?t:new Date(+t+24*H);
+  const pick=a=>a.filter(s=>s.end>t&&(view==='now'?s.start<=t:(s.start>t&&s.start<=to)));
+  const sh=pick(live),ad=pick(V);
+
+  // staffing (always now)
+  const onNow=[...new Set([...live.filter(s=>s.start<=t&&s.end>t).map(s=>s.name),...V.filter(v=>v.start<=t&&v.end>t).map(v=>v.name)])];
+  const meds=onNow.filter(n=>isMedic(n)||V.some(v=>v.name===n&&v.position==='Paramedic'&&v.start<=t&&v.end>t)).length;
+  const minS=+settings.minimum_staff||5,minM=+settings.minimum_medics||2;
+  const st=$('#staff');
+  st.className='staff '+(onNow.length<minS?'bad':meds<minM?'warn':'ok');
+  st.textContent=`${onNow.length} on duty · ${meds} medic${meds===1?'':'s'}`+(onNow.length<minS?` · below minimum of ${minS}`:meds<minM?` · under ${minM} medics`:'');
+  $('#clock').textContent=t.toLocaleString('en-US',{weekday:'short',month:'short',day:'numeric',hour:'2-digit',minute:'2-digit',hour12:false});
+
+  let html='';
+  const win=(+settings.unavailable_window_hours||48)*H;
+  const ul=U.filter(u=>u.end>t&&u.start<new Date(+t+win)).sort((a,b)=>a.start-b.start);
+  if(ul.length) html+=`<h2 class="un">Unavailable <span>· now and within the next ${win/H} hours</span></h2>`+ul.map(u=>row({name:u.name,cls:'un',
+    badges:badges(u.name)+(u.src==='eso'?'<span class="b src">ESO</span>':''),status:'Unavailable',
+    until:(u.start>t?'From '+fmt(u.start)+' ':'')+'Until '+fmt(u.end),
+    btn:u.src==='member'&&(officer()||u.member_id===me.id||u.created_by===me.id)?btn('un',u.id,'Remove'):''})).join('');
+
+  const byLast=(x,y)=>isMedic(y.name)-isMedic(x.name)||last(x.name).localeCompare(last(y.name));
+  const cmd=sh.filter(s=>/supervisor/i.test(s.grp)&&CMD().includes(s.name));
+  const lts=sh.filter(s=>plt(s.grp)&&LT()[plt(s.grp)]===s.name);
+  const rest=sh.filter(s=>plt(s.grp)&&!lts.includes(s)).sort(byLast);
+  const ps=sh.filter(s=>/power/i.test(s.grp)).sort(byLast);
+  const sup=sh.filter(s=>/supervisor/i.test(s.grp)&&!cmd.includes(s));
+  const ev=sh.filter(s=>/special/i.test(s.grp));
+  const other=sh.filter(s=>![...cmd,...lts,...rest,...ps,...sup,...ev].includes(s));
+  const body=section('Command Staff',cmd,t,'cmd')+section('Lieutenant',lts,t,'lt')+section('On Duty',rest,t)+section('Supervisor',sup,t)
+    +section('Power Shift',ps,t)+section('Volunteers',ad.sort(byLast),t,'vol')+section('Special Event',ev,t)+section('Other',other,t);
+  html+=body||`<div class="empty">${view==='now'?'No one is on duty.':'No shifts start in the next 24 hours.'}</div>`;
+  if(officer()&&overrides.length) html+='<h2>Officer adjustments</h2>'+overrides.map(o=>{const s=shifts.find(x=>x.source_key===o.source_key);
+    return s?`<div class="note">${esc(s.name)} removed from ${esc(s.grp)} by ${esc(byId(o.removed_by)?.name||'an officer')}. ${btn('restore',o.id,'Restore')}</div>`:''}).join('');
+  $('#list').innerHTML=html;
+  $('#sync').textContent=lastPull?'Last ESO update '+fmt(lastPull):'Waiting for the first ESO update';
+}
+const btn=(k,id,label)=>`<button type="button" class="lnk" data-k="${k}" data-id="${esc(id)}">${label}</button>`;
+function row(o){
+  return `<div class="row ${o.cls||''}"><div class="av" aria-hidden="true">${esc(ini(o.name))}</div>
+  <div><div class="nm">${esc(o.name)}</div><div class="bd">${o.badges}</div></div>
+  <div class="st">${esc(o.status)}<small>${esc(o.until)}</small>${o.btn||''}</div></div>`;
+}
+function section(title,list,t,cls){
+  if(!list.length) return '';
+  return `<h2>${esc(title)}</h2>`+list.map(s=>{
+    const vol=!!s.position,future=s.start>t;
+    const status=(cls==='cmd'?'Command Staff':cls==='lt'?'Lieutenant':vol?'Volunteer':/supervisor/i.test(s.grp)?'Supervisor':'Fire/EMS')+(future?'':' at Station');
+    let b='';
+    if(vol&&(officer()||s.member_id===me.id||s.created_by===me.id)) b=btn('vol',s.id,'Remove');
+    if(!vol&&officer()) b=btn('shift',s.source_key,'Remove from roster');
+    return row({name:s.name,cls,badges:badges(s.name,vol?s.position:null),status,until:(future?'From '+fmt(s.start)+' ':'')+'Until '+fmt(s.end),btn:b});
+  }).join('');
+}
+
+// ---------- actions ----------
+$('#list').addEventListener('click',async e=>{
+  const k=e.target.dataset.k,id=e.target.dataset.id;if(!k)return;
+  e.target.disabled=true;let r;const stamp=new Date().toISOString();
+  if(k==='un') r=await sb.from('unavailability').update({cancelled_at:stamp,cancelled_by:me.id}).eq('id',id);
+  if(k==='vol') r=await sb.from('volunteer_shifts').update({cancelled_at:stamp,cancelled_by:me.id}).eq('id',id);
+  if(k==='shift') r=await sb.from('roster_overrides').insert({source_key:id,removed_by:me.id});
+  if(k==='restore') r=await sb.from('roster_overrides').update({restored_at:stamp,restored_by:me.id}).eq('id',id);
+  if(r?.error) alertBar('That change did not save: '+r.error.message);
+  load();
+});
+function alertBar(m){$('#list').insertAdjacentHTML('afterbegin',`<div class="msg" style="color:var(--red)">${esc(m)}</div>`)}
+
+const toLocal=d=>{const p=n=>String(n).padStart(2,'0');return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`};
+function openForm(m){
+  const f=$('#f');
+  if(f.classList.contains('open')&&mode===m){f.classList.remove('open');return}
+  mode=m;f.classList.add('open');
+  $('#fTitle').textContent=m==='un'?'Report unavailability':(officer()?'Add a member to the roster':'Add myself to the roster');
+  $('#posWrap').classList.toggle('hide',m==='un');
+  const list=officer()?[...members].sort((a,b)=>last(a.name).localeCompare(last(b.name))):[me];
+  $('#fMem').innerHTML=list.map(x=>`<option value="${esc(x.id)}"${x.id===me.id?' selected':''}>${esc(x.name)}</option>`).join('');
+  $('#fMem').disabled=!officer();
+  const t=new Date();t.setMinutes(0,0,0);t.setHours(t.getHours()+1);
+  $('#fFrom').value=toLocal(m==='add'?new Date():t);$('#fTo').value=toLocal(new Date(+t+(m==='un'?24:4)*H));
+  $('#fErr').textContent='';
+}
+$('#unBtn').addEventListener('click',()=>openForm('un'));
+$('#addBtn').addEventListener('click',()=>openForm('add'));
+$('#cancel').addEventListener('click',()=>$('#f').classList.remove('open'));
+$('#f').addEventListener('submit',async e=>{
+  e.preventDefault();
+  const s=new Date($('#fFrom').value),en=new Date($('#fTo').value);
+  if(isNaN(s)||isNaN(en)){$('#fErr').textContent='Enter both a start and an end time.';return}
+  if(en<=s){$('#fErr').textContent='The end time must be after the start time.';return}
+  if(en<=new Date()){$('#fErr').textContent='That period has already ended.';return}
+  const row={member_id:$('#fMem').value,start_at:s.toISOString(),end_at:en.toISOString(),created_by:me.id};
+  $('#fGo').disabled=true;
+  const r=mode==='un'?await sb.from('unavailability').insert(row):await sb.from('volunteer_shifts').insert({...row,position:$('#fPos').value});
+  $('#fGo').disabled=false;
+  if(r.error){$('#fErr').textContent='That did not save: '+r.error.message;return}
+  $('#f').classList.remove('open');load();
+});
+function setView(v){view=v;document.querySelectorAll('.tabs [data-v]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.v===v));render()}
+document.querySelectorAll('.tabs [data-v]').forEach(b=>b.addEventListener('click',()=>setView(b.dataset.v)));
+}
+</script>
+</body>
+</html>
