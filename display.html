@@ -43,8 +43,20 @@ html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font-family
 .slidehead .sub{color:var(--mute);font-size:1.8vh}
 .slidehead .dots{margin-left:auto;display:flex;gap:.5vw}
 .dot{width:1vh;height:1vh;border-radius:50%;background:var(--line)}.dot.on{background:var(--gold)}
-#alertbar{background:#7a5a10;color:#fff3cf;padding:1vh 2vw;font:600 2.2vh Barlow;display:flex;gap:1vw;align-items:center}
-#alertbar b{font:700 2.6vh "Barlow Condensed";letter-spacing:.04em}
+#alertbar{display:grid;gap:.4vh;padding:.8vh 1.4vw;background:var(--bg)}
+.wxa{display:flex;gap:1vw;align-items:center;padding:.9vh 1.2vw;border-radius:.8vh;font:600 2.2vh Barlow;border:.3vh solid}
+.wxa b{font:700 2.8vh "Barlow Condensed";letter-spacing:.05em;white-space:nowrap}
+.wxa span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.wxa.warning{background:#d32f2f;color:#fff;border-color:#ff8a80}
+.wxa.watch{background:#ffd600;color:#111;border-color:#fff59d}
+.wxa.advisory{background:#37474f;color:#fff;border-color:#90a4ae}
+#run.wx-warning .top{background:#d32f2f!important;color:#fff}
+#run.wx-watch .top{background:#ffd600!important;color:#111}
+#run.wx-advisory .top{background:#37474f!important;color:#fff}
+.patches{display:flex;justify-content:center;gap:.8vw;margin-top:1vh}
+.patch{height:11vh;width:auto;max-width:100%}
+.patch-ph{width:11vh;height:11vh;border-radius:50%;border:.4vh dashed #4a5563;display:grid;place-items:center;text-align:center;color:var(--mute);font:600 1.4vh/1.1 Barlow;background:#0e1216}
+.patch-ph b{display:block;font:700 4vh/1 "Barlow Condensed";color:var(--ink)}
 .slide{position:absolute;inset:0;display:flex;flex-direction:column;opacity:0;transition:opacity .6s}
 .slide.on{opacity:1;z-index:1}
 #slides{position:relative;flex:1}
@@ -362,7 +374,8 @@ function renderSide(R){
   const t=new Date();
   $('#tm').textContent=hm(t);
   $('#dt').textContent=t.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});
-  $('#plt').innerHTML=(R.platoon.length?R.platoon.map(p=>p+' PLATOON').join(' / '):'&nbsp;')+`<small>${esc(cfg.name)}</small>`;
+  $('#plt').innerHTML=(R.platoon.length?R.platoon.map(p=>p+' PLATOON').join(' / '):'&nbsp;')+`<small>${esc(cfg.name)}</small>`
+    +(R.platoon.length?`<div class="patches">${R.platoon.map(p=>`<img class="patch" src="patches/${p}.png" alt="${p} Platoon patch" onerror="this.outerHTML='<div class=&quot;patch-ph&quot;><div><b>${p}</b>patch<br>coming</div></div>'">`).join('')}</div>`:'');
   const minS=+settings.minimum_staff||5,minM=+settings.minimum_medics||2;
   const cls=R.onNow.length<minS?'bad':R.meds<minM?'warn':'ok';
   $('#staffbox').className='staffbox '+cls;
@@ -378,10 +391,15 @@ async function loadWx(){
     const [f,h,a]=await Promise.all([fetch(wxUrls.f).then(r=>r.json()),fetch(wxUrls.h).then(r=>r.json()),fetch(`https://api.weather.gov/alerts/active?point=${LAT},${LON}`).then(r=>r.json())]);
     wx.periods=f.properties.periods||[];wx.now=(h.properties.periods||[])[0]||null;
     const old=new Set(wx.alerts.map(x=>x.id));
-    wx.alerts=(a.features||[]).map(x=>({id:x.id,event:x.properties.event,headline:x.properties.headline,ends:x.properties.ends||x.properties.expires,severity:x.properties.severity}));
+    const lvl=e=>/warning|emergency/i.test(e)?'warning':/watch/i.test(e)?'watch':'advisory';
+    wx.alerts=(a.features||[]).map(x=>({id:x.id,event:x.properties.event,headline:x.properties.headline,ends:x.properties.ends||x.properties.expires,severity:x.properties.severity,level:lvl(x.properties.event)}))
+      .sort((p,q)=>['warning','watch','advisory'].indexOf(p.level)-['warning','watch','advisory'].indexOf(q.level));
     const fresh=wx.alerts.filter(x=>!old.has(x.id));
     if(fresh.length&&booted) showWxAlert(fresh[0]);
   }catch(e){console.warn('weather',e)}
+  if(DEMO&&!wx.alerts.some(x=>x.demo)){const e=new Date(Date.now()+6*H).toISOString();
+    wx.alerts=[{id:'d1',demo:1,event:'Severe Thunderstorm Warning',headline:'SAMPLE warning',ends:e,level:'warning'},...wx.alerts.filter(x=>x.level!=='advisory'),{id:'d2',demo:1,event:'Winter Storm Watch',headline:'SAMPLE watch',ends:e,level:'watch'}]
+      .sort((p,q)=>['warning','watch','advisory'].indexOf(p.level)-['warning','watch','advisory'].indexOf(q.level))}
   renderWxSide();renderAlertBar();
 }
 function renderWxSide(){
@@ -391,13 +409,14 @@ function renderWxSide(){
    <div class="wxdays">${days.map(d=>{const n=wx.periods.find(p=>!p.isDaytime&&D(p.startTime)>D(d.startTime));return `<div class="wxd"><span>${esc(d.name)}</span><span>${d.temperature}° / ${n?n.temperature+'°':'-'}</span></div>`}).join('')}</div>`;
 }
 function renderAlertBar(){
-  const a=wx.alerts[0];$('#alertbar').classList.toggle('hide',!a);
-  if(a)$('#alertbar').innerHTML=`<b>⚠ ${esc(a.event.toUpperCase())}</b><span>${esc(a.headline||'')}</span>`+(wx.alerts.length>1?`<span>+${wx.alerts.length-1} more</span>`:'');
+  const L=wx.alerts.slice(0,3);$('#alertbar').classList.toggle('hide',!L.length);
+  $('#alertbar').innerHTML=L.map(a=>`<div class="wxa ${a.level}"><b>⚠ ${esc(a.event.toUpperCase())}</b><span>${a.ends?'Until '+esc(fmt(D(a.ends))):''}</span></div>`).join('')
+    +(wx.alerts.length>3?`<div class="wxa advisory"><span>+${wx.alerts.length-3} more alerts</span></div>`:'');
 }
 function showWxAlert(a){ // full-screen takeover for 30 seconds
   if(!$('#run').classList.contains('hide')) return;
-  const r=$('#run');r.className='fire';r.style.setProperty('--x','1');
-  r.innerHTML=`<div class="top" style="background:#7a5a10"><div class="kind">WEATHER ALERT</div></div>
+  const r=$('#run');r.className='wx-'+(a.level||'advisory');
+  r.innerHTML=`<div class="top"><div class="kind">${a.level==='warning'?'WEATHER WARNING':a.level==='watch'?'WEATHER WATCH':'WEATHER ADVISORY'}</div></div>
    <div class="mid" style="grid-template-columns:1fr"><div class="info"><div class="nature">${esc(a.event)}</div><div class="val">${esc(a.headline||'')}</div>
    ${a.ends?`<div class="lbl">Until</div><div class="val">${esc(fmt(D(a.ends)))}</div>`:''}</div></div><div class="bar"><i id="runbar"></i></div>`;
   r.classList.remove('hide');tone('alert');runTimer(30);
