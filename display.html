@@ -116,7 +116,10 @@ iframe.fill{border:0;width:100%;height:100%;border-radius:1vh;background:#111}
 #run .val{font:500 3vh/1.2 Barlow}
 #run .units .chip{font-size:2.8vh;padding:.4vh .9vw;border-radius:1vh}
 #run .notes{background:var(--panel);border-radius:1vh;padding:1.2vh 1vw;font-size:2.2vh;white-space:pre-wrap;max-height:18vh;overflow:hidden}
-#run .map{border-radius:1.2vh;overflow:hidden;background:#111}
+#run .maps{display:grid;grid-template-rows:1fr 1fr;gap:1.4vh;min-height:0}
+#run .map{position:relative;border-radius:1.2vh;overflow:hidden;background:#111;min-height:0}
+#run .map .tag{position:absolute;left:1vh;top:1vh;z-index:2;background:#000b;color:#fff;font:700 1.8vh "Barlow Condensed";letter-spacing:.06em;padding:.3vh .7vw;border-radius:.6vh;pointer-events:none}
+#run .map iframe{position:absolute;inset:0}
 #run .bar{height:1vh;background:#fff3}
 #run .bar i{display:block;height:100%;background:#fff;width:100%;transition:width 1s linear}
 @media(prefers-reduced-motion:no-preference){#run.flash .top{animation:fl 1s 6}@keyframes fl{50%{filter:brightness(1.6)}}}
@@ -194,6 +197,7 @@ body.mouse #gear{opacity:1}
     <label>Volume<input type="range" id="sVol" min="0" max="1" step="0.05"></label>
     <label>Screen name<input id="sName" placeholder="Station 19-1"></label>
   </div>
+  <label>Station address (start of route)<input id="sStation"></label>
   <label>Apparatus Google Sheet (published CSV link)<input id="sApp" placeholder="Leave blank to show samples"></label>
   <label>Announcements Google Sheet (published CSV link)<input id="sAnn" placeholder="Leave blank to show samples"></label>
   <label>Google Slides deck link (optional)<input id="sDeck" placeholder="https://docs.google.com/presentation/d/..."></label>
@@ -220,7 +224,7 @@ const TOWNS={BRYA:'Bryn Athyn',LMOR:'Lower Moreland Township',UMOR:'Upper Morela
 const DEMO=new URLSearchParams(location.search).has('demo');
 const MEMBER_COLS='id,eso_id,name,eso_name,title,ems_level,fire_quals,member_type,is_officer,active';
 const SLIDES={roster:'On duty',apparatus:'Apparatus status',announce:'Announcements',calls:'Recent calls',weather:'Weather',traffic:'Traffic',deck:'Google Slides deck'};
-const DEF={rot:20,run:120,vol:0.8,name:'Station 19-1',appCsv:'',annCsv:'',deckUrl:'',slides:{roster:true,apparatus:true,announce:true,calls:true,weather:true,traffic:true,deck:false}};
+const DEF={rot:20,run:120,vol:0.8,name:'Station 19-1',station:'2815 Buck Rd, Bryn Athyn, PA 19009',appCsv:'',annCsv:'',deckUrl:'',slides:{roster:true,apparatus:true,announce:true,calls:true,weather:true,traffic:true,deck:false}};
 // Samples shown until a Google Sheet is connected (Settings > sheet links)
 const SAMPLE_APP=[
   {unit:'E19-1',type:'Engine',status:'In Service'},{unit:'SD19-1',type:'Squad',status:'In Service'},{unit:'SS19-1',type:'Support',status:'Out of Service',note:'Sample: body damage repair',ret:'Dec 2'},
@@ -455,7 +459,22 @@ function checkNewCalls(){
   }
   firstCheck=false;
 }
-const mapUrl=c=>`https://maps.google.com/maps?q=${encodeURIComponent((c.address||'')+', '+(TOWNS[c.mun]||'')+', PA')}&z=16&output=embed`;
+const fullAddr=c=>(c.address||'')+', '+(TOWNS[c.mun]||'Montgomery County')+', PA';
+const routeUrl=c=>`https://maps.google.com/maps?saddr=${encodeURIComponent(cfg.station||DEF.station)}&daddr=${encodeURIComponent(fullAddr(c))}&output=embed`;
+const pinUrl=c=>`https://maps.google.com/maps?q=${encodeURIComponent(fullAddr(c))}&t=k&z=18&output=embed`;
+const geoCache={};
+async function geocode(c){ // OpenStreetMap lookup (free, light use) for the street view position
+  const q=fullAddr(c);if(geoCache[q])return geoCache[q];
+  try{const r=await fetch('https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=us&q='+encodeURIComponent(q)).then(x=>x.json());
+    if(r&&r[0])return geoCache[q]={lat:+r[0].lat,lon:+r[0].lon}}catch(e){console.warn('geocode',e)}
+  return null}
+async function fillStreet(c,token){
+  const box=document.getElementById('sv');if(!box)return;
+  const g=await geocode(c);if(token!==runToken)return;
+  box.innerHTML=g?`<span class="tag">STREET VIEW</span><iframe class="fill" src="https://maps.google.com/maps?q=&layer=c&cbll=${g.lat},${g.lon}&cbp=11,0,0,0,0&output=svembed" title="Street view"></iframe>`
+                 :`<span class="tag">AERIAL</span><iframe class="fill" src="${pinUrl(c)}" title="Aerial map"></iframe>`;
+}
+let runToken=0;
 let runT=null,runEnd=0,elapsedT=null;
 function showRun(c){
   const kind=c.run_screen==='fire'?'fire':'ems',ours=[...(c.fire_units||[]),...(c.ems_units||[])];
@@ -471,9 +490,10 @@ function showRun(c){
      <div><div class="lbl">Municipality · Map</div><div class="val">${esc(TOWNS[c.mun]||c.mun||'-')}${c.map_page?' · '+esc(c.map_page):''}</div></div>
      <div class="units"><div class="lbl">Units due</div>${(c.units||[]).map(u=>`<span class="chip${ours.includes(u)?' ours':''}">${esc(u)}</span>`).join('')}</div>
      ${c.additional_info&&!/NOT ON FILE/i.test(c.additional_info)?`<div><div class="lbl">Location notes</div><div class="notes">${esc(c.additional_info)}</div></div>`:''}
-   </div><div class="map">${c.address?`<iframe class="fill" src="${mapUrl(c)}" title="Map"></iframe>`:''}</div></div>
+   </div><div class="maps">${c.address?`<div class="map"><span class="tag">ROUTE FROM STATION</span><iframe class="fill" src="${routeUrl(c)}" title="Route"></iframe></div><div class="map" id="sv"><span class="tag">STREET VIEW</span></div>`:''}</div></div>
    <div class="bar"><i id="runbar"></i></div>`;
   r.classList.remove('hide');tone(kind);runTimer(cfg.run);
+  const tk=++runToken;if(c.address)fillStreet(c,tk);
   clearInterval(elapsedT);const tick=()=>{const s=Math.max(0,Math.floor((Date.now()-disp)/1000));const e=$('#el');if(e)e.textContent=Math.floor(s/60)+':'+String(s%60).padStart(2,'0')};tick();elapsedT=setInterval(tick,1000);
 }
 function runTimer(sec){
@@ -499,20 +519,20 @@ let mouseT;document.addEventListener('mousemove',()=>{document.body.classList.ad
 document.addEventListener('keydown',e=>{if(e.target.matches('input'))return;if(e.key==='s'||e.key==='S')openSettings();if(e.key==='Escape'){$('#settings').classList.add('hide');$('#run').classList.add('hide')}if(e.key==='ArrowRight')showSlide(idx+1);if(e.key==='ArrowLeft')showSlide(idx-1)});
 $('#gear').onclick=openSettings;
 function openSettings(){
-  $('#sApp').value=cfg.appCsv;$('#sAnn').value=cfg.annCsv;$('#sDeck').value=cfg.deckUrl;$('#sRot').value=cfg.rot;$('#sRun').value=cfg.run;$('#sVol').value=cfg.vol;$('#sName').value=cfg.name;
+  $('#sApp').value=cfg.appCsv;$('#sAnn').value=cfg.annCsv;$('#sDeck').value=cfg.deckUrl;$('#sRot').value=cfg.rot;$('#sRun').value=cfg.run;$('#sVol').value=cfg.vol;$('#sName').value=cfg.name;$('#sStation').value=cfg.station;
   $('#sSlides').innerHTML=Object.entries(SLIDES).map(([k,l])=>`<label><input type="checkbox" data-s="${k}"${cfg.slides[k]?' checked':''}${k==='calls'&&!canCalls&&!DEMO?' disabled':''}> ${esc(l)}${k==='calls'&&!canCalls&&!DEMO?' (no access)':''}</label>`).join('');
   $('#sMsg').textContent=DEMO?'Demo mode: sample data only.':(me?`Signed in as ${me.name}.`:'');
   $('#settings').classList.remove('hide');
 }
 $('#sf').addEventListener('submit',e=>{e.preventDefault();
-  cfg.rot=Math.max(5,+$('#sRot').value||20);cfg.run=Math.max(15,+$('#sRun').value||120);cfg.vol=+$('#sVol').value;cfg.name=$('#sName').value.trim()||DEF.name;cfg.appCsv=$('#sApp').value.trim();cfg.annCsv=$('#sAnn').value.trim();cfg.deckUrl=$('#sDeck').value.trim();
+  cfg.rot=Math.max(5,+$('#sRot').value||20);cfg.run=Math.max(15,+$('#sRun').value||120);cfg.vol=+$('#sVol').value;cfg.name=$('#sName').value.trim()||DEF.name;cfg.station=$('#sStation').value.trim()||DEF.station;cfg.appCsv=$('#sApp').value.trim();cfg.annCsv=$('#sAnn').value.trim();cfg.deckUrl=$('#sDeck').value.trim();
   document.querySelectorAll('#sSlides [data-s]').forEach(c=>cfg.slides[c.dataset.s]=c.checked);
   saveCfg();$('#settings').classList.add('hide');loadSheets().then(()=>{renderAll();showSlide(0)});
 });
 $('#sClose').onclick=()=>$('#settings').classList.add('hide');
 $('#sOut').onclick=()=>DEMO?location.href=location.pathname:sb.auth.signOut();
 const sample=k=>calls.find(c=>c.run_screen===k)||(k==='fire'
-  ?{incident:'F0000000',run_screen:'fire',kind:'FIRE',nature:'FIRE ALARM',priority:'F3',place:'SAMPLE COMMERCIAL BUILDING',address:'2900 HUNTINGDON PIKE',cross_streets:'BUCK RD AND PAPER MILL RD',mun:'BRYA',map_page:'27-01',units:['E19-1','SD19-1','E19','TW19'],fire_units:['E19-1','SD19-1'],ems_units:[],first_dispatch_email:new Date().toISOString()}
+  ?{incident:'F0000000',run_screen:'fire',kind:'FIRE',nature:'FIRE ALARM',priority:'F3',place:'SAMPLE COMMERCIAL BUILDING',address:'2875 HUNTINGDON PIKE',cross_streets:'BUCK RD AND PAPER MILL RD',mun:'BRYA',map_page:'27-01',units:['E19-1','SD19-1','E19','TW19'],fire_units:['E19-1','SD19-1'],ems_units:[],first_dispatch_email:new Date().toISOString()}
   :{incident:'E0000000',run_screen:'ems',kind:'EMS',nature:'FALL VICTIM',priority:'E2',address:'2950 PAPER MILL RD',cross_streets:'HUNTINGDON PIKE AND BUCK RD',mun:'BRYA',map_page:'27-01',units:['319-2'],ems_units:['319-2'],fire_units:[],first_dispatch_email:new Date().toISOString()});
 $('#tEms').onclick=()=>{$('#settings').classList.add('hide');showRun({...sample('ems'),first_dispatch_email:new Date().toISOString()})};
 $('#tFire').onclick=()=>{$('#settings').classList.add('hide');showRun({...sample('fire'),first_dispatch_email:new Date().toISOString()})};
@@ -545,8 +565,8 @@ function demoData(){
   eso=[sh('Fred Ellinger','Supervisor'),sh('Ryan Ruddell','A Platoon'),sh('Andrew Taggart','A Platoon'),sh('Jessica Griffin','A Platoon'),sh('Brandon Felldin','Power Shift')];
   vols=[{id:'v1',member_id:'m5',position:'AO',start_at:iso(+t-H),end_at:iso(+t+3*H)}];
   unav=[{id:'u1',member_id:'m6',start_at:iso(+t-H),end_at:iso(+t+20*H)}];overrides=[];
-  calls=[{incident:'E2600001',run_screen:'ems',nature:'CARDIAC EMERGENCY',priority:'E2',place:'SAMPLE SENIOR LIVING',address:'100 SAMPLE RD',mun:'LMOR',units:['319-2','NC381'],ems_units:['319-2'],fire_units:[],first_dispatch_email:iso(+t-40*60e3),last_dispatch_email:iso(+t-40*60e3)},
-    {incident:'F2600002',run_screen:'fire',nature:'FIRE ALARM',priority:'F3',place:'SAMPLE SCHOOL',address:'200 SAMPLE AVE',mun:'BRYA',units:['E19','E19-1'],ems_units:[],fire_units:['E19-1'],first_dispatch_email:iso(+t-3*H),last_dispatch_email:iso(+t-3*H)}];
+  calls=[{incident:'E2600001',run_screen:'ems',nature:'CARDIAC EMERGENCY',priority:'E2',place:'SAMPLE: BRYN ATHYN COLLEGE',address:'2895 COLLEGE DR',mun:'BRYA',units:['319-2','NC381'],ems_units:['319-2'],fire_units:[],first_dispatch_email:iso(+t-40*60e3),last_dispatch_email:iso(+t-40*60e3)},
+    {incident:'F2600002',run_screen:'fire',nature:'FIRE ALARM',priority:'F3',place:'SAMPLE: BRYN ATHYN CATHEDRAL',address:'900 CATHEDRAL RD',mun:'BRYA',units:['E19','E19-1'],ems_units:[],fire_units:['E19-1'],first_dispatch_email:iso(+t-3*H),last_dispatch_email:iso(+t-3*H)}];
   firstCheck=true;checkNewCalls();
 }
 
