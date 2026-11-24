@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>BAFC Station Display</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0b0e11;--panel:#141920;--panel2:#1a2029;--line:#262e38;--ink:#eef1f4;--mute:#8d98a5;--red:#c62828;--red2:#8e1b1b;--blue:#1f5fae;--blue2:#163f73;--gold:#e8b33a;--green:#2e7d4a;--amber:#b7861b}
+*{box-sizing:border-box;min-width:0}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font-family:Barlow,system-ui,sans-serif;overflow:hidden}
+.hide{display:none!important}
+.cond{font-family:"Barlow Condensed",sans-serif}
+
+/* ---------- layout ---------- */
+#app{display:grid;grid-template-columns:22vw 1fr;height:100vh}
+#side{background:var(--panel);border-right:1px solid var(--line);display:flex;flex-direction:column;padding:2.2vh 1.4vw;gap:2vh}
+#main{position:relative;display:flex;flex-direction:column;overflow:hidden}
+.brand{text-align:center}
+.brand .n1{font:700 2.9vh/1.05 "Barlow Condensed";letter-spacing:.03em}
+.brand .n2{font:600 2.2vh/1.2 "Barlow Condensed";color:var(--gold);letter-spacing:.12em;margin-top:.4vh}
+.plt{text-align:center;font:700 4.4vh/1 "Barlow Condensed";letter-spacing:.04em;padding:1vh 0;border-block:1px solid var(--line)}
+.plt small{display:block;font:500 1.6vh Barlow;color:var(--mute);letter-spacing:0;margin-top:.5vh}
+.staffbox{border-radius:1vh;padding:1.2vh 1vw;text-align:center}
+.staffbox .big{font:700 4.6vh/1.05 "Barlow Condensed"}.staffbox .lbl{font-size:1.7vh;margin-top:.4vh}
+.staffbox.ok{background:#173d26}.staffbox.warn{background:#4d3a0c}.staffbox.bad{background:var(--red2)}
+.wx{display:grid;gap:1vh}
+.wxnow{display:flex;align-items:center;gap:1vw;justify-content:center}
+.wxnow .t{font:700 6.4vh/1 "Barlow Condensed"}.wxnow .c{font-size:1.9vh;color:var(--mute);line-height:1.2}
+.wxdays{display:grid;gap:.6vh}
+.wxd{display:grid;grid-template-columns:1fr auto;font-size:1.9vh;padding:.5vh 0;border-top:1px solid var(--line)}
+.wxd span:last-child{font-weight:600}
+.clock{margin-top:auto;text-align:center}
+.clock .tm{font:700 9vh/1 "Barlow Condensed";font-variant-numeric:tabular-nums}
+.clock .dt{font-size:2vh;color:var(--mute)}
+
+/* ---------- slides ---------- */
+.slidehead{display:flex;align-items:center;gap:1.2vw;padding:1.6vh 2vw;background:var(--panel2);border-bottom:1px solid var(--line)}
+.slidehead h1{margin:0;font:700 4vh/1 "Barlow Condensed";letter-spacing:.03em}
+.slidehead .sub{color:var(--mute);font-size:1.8vh}
+.slidehead .dots{margin-left:auto;display:flex;gap:.5vw}
+.dot{width:1vh;height:1vh;border-radius:50%;background:var(--line)}.dot.on{background:var(--gold)}
+#alertbar{background:#7a5a10;color:#fff3cf;padding:1vh 2vw;font:600 2.2vh Barlow;display:flex;gap:1vw;align-items:center}
+#alertbar b{font:700 2.6vh "Barlow Condensed";letter-spacing:.04em}
+.slide{position:absolute;inset:0;display:flex;flex-direction:column;opacity:0;transition:opacity .6s}
+.slide.on{opacity:1;z-index:1}
+#slides{position:relative;flex:1}
+.body{flex:1;overflow:hidden;padding:2vh 2vw}
+.prog{height:.5vh;background:var(--gold);width:0}
+
+/* roster */
+.roster{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1.4vh 1.6vw;align-content:start}
+.sec{grid-column:1/-1;font:700 2.4vh "Barlow Condensed";color:var(--mute);letter-spacing:.06em;text-transform:uppercase;margin-top:.6vh;border-bottom:1px solid var(--line);padding-bottom:.4vh}
+.sec.un{color:#ff8a80}
+.card{display:grid;grid-template-columns:6vh minmax(0,1fr);gap:1vw;align-items:center;background:var(--panel);border-radius:1vh;padding:1vh 1vw;border-left:.6vh solid var(--gold)}
+.card.cmd{border-left-color:var(--red)}.card.lt{border-left-color:#4f8fdc}.card.vol{border-left-color:#3fae68}.card.un{border-left-color:#666;opacity:.75}
+.av{width:6vh;height:6vh;border-radius:50%;background:#262c33;display:grid;place-items:center;font:700 2.6vh "Barlow Condensed";color:var(--mute)}
+.nm{font:600 3vh/1.1 "Barlow Condensed";white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sub2{font-size:1.6vh;color:var(--mute);margin-top:.2vh}
+.bd{display:flex;flex-wrap:wrap;gap:.4vw;margin-top:.5vh}
+.b{font:600 1.5vh Barlow;padding:.15vh .6vw;border-radius:1vh;background:#262c33;color:var(--mute)}
+.b.title{background:#2b323b;color:#fff}.b.ems{background:#1b2a3d;color:#a9c9f2}.b.ems.medic{background:var(--blue);color:#fff}.b.fire{background:#3d1e1e;color:#f4a9a9}
+.empty{color:var(--mute);font-size:2.4vh;padding:4vh;text-align:center}
+
+/* weather slide */
+.wxgrid{display:grid;grid-template-columns:1fr 1.1fr;gap:2vw;height:100%}
+.fc{display:grid;gap:1.2vh;align-content:start}
+.fcp{background:var(--panel);border-radius:1vh;padding:1.2vh 1vw;display:grid;grid-template-columns:auto 1fr;gap:.2vh 1vw}
+.fcp .pn{font:700 2.3vh "Barlow Condensed";grid-column:1/-1}.fcp .pt{font:700 4vh "Barlow Condensed"}.fcp .ps{font-size:1.9vh;color:var(--mute);align-self:center}
+.radar{background:#000;border-radius:1vh;overflow:hidden;display:grid;place-items:center}
+.radar img{width:100%;height:100%;object-fit:contain}
+iframe.fill{border:0;width:100%;height:100%;border-radius:1vh;background:#111}
+
+/* recent calls */
+.calls{display:grid;gap:1.1vh}
+.callrow{display:grid;grid-template-columns:10vw 1fr 1fr auto;gap:1.4vw;align-items:center;background:var(--panel);border-radius:1vh;padding:1.1vh 1.2vw;border-left:.6vh solid #555;font-size:2.1vh}
+.callrow.ems{border-left-color:var(--blue)}.callrow.fire{border-left-color:var(--red)}
+.callrow .t{font:700 2.6vh "Barlow Condensed"}.callrow .n{font-weight:600}.callrow .a{color:var(--mute)}
+.chip{display:inline-block;font:600 1.6vh Barlow;padding:.1vh .5vw;border-radius:.8vh;background:#262c33;color:#cfd6dd;margin:.15vh .15vw}
+.chip.ours{background:var(--gold);color:#1a1300}
+
+/* ---------- run screen ---------- */
+#run{position:fixed;inset:0;z-index:50;display:grid;grid-template-rows:auto 1fr auto;background:var(--bg)}
+#run .top{display:flex;align-items:center;gap:2vw;padding:2vh 2.5vw;color:#fff}
+#run.ems .top{background:var(--blue)}#run.fire .top{background:var(--red)}
+#run .kind{font:700 8vh/1 "Barlow Condensed";letter-spacing:.04em}
+#run .pri{font:700 4vh "Barlow Condensed";background:#0004;padding:.4vh 1.2vw;border-radius:1vh}
+#run .elapsed{margin-left:auto;text-align:right;font:600 2.2vh Barlow}
+#run .elapsed b{display:block;font:700 6vh/1 "Barlow Condensed";font-variant-numeric:tabular-nums}
+#run .mid{display:grid;grid-template-columns:1.05fr 1fr;gap:2vw;padding:2.5vh 2.5vw;min-height:0}
+#run .info{display:flex;flex-direction:column;gap:1.8vh;min-height:0}
+#run .nature{font:700 7vh/1.02 "Barlow Condensed"}
+#run .place{font:600 3.4vh/1.1 "Barlow Condensed";color:var(--gold)}
+#run .addr{font:700 7.5vh/1 "Barlow Condensed"}
+#run .apt{font:600 3.4vh "Barlow Condensed";color:#fff}
+#run .lbl{font:600 1.7vh Barlow;color:var(--mute);text-transform:uppercase;letter-spacing:.08em}
+#run .val{font:500 3vh/1.2 Barlow}
+#run .units .chip{font-size:2.8vh;padding:.4vh .9vw;border-radius:1vh}
+#run .notes{background:var(--panel);border-radius:1vh;padding:1.2vh 1vw;font-size:2.2vh;white-space:pre-wrap;max-height:18vh;overflow:hidden}
+#run .map{border-radius:1.2vh;overflow:hidden;background:#111}
+#run .bar{height:1vh;background:#fff3}
+#run .bar i{display:block;height:100%;background:#fff;width:100%;transition:width 1s linear}
+@media(prefers-reduced-motion:no-preference){#run.flash .top{animation:fl 1s 6}@keyframes fl{50%{filter:brightness(1.6)}}}
+
+/* ---------- overlays ---------- */
+.overlay{position:fixed;inset:0;z-index:80;display:grid;place-items:center;background:#000c}
+.box{background:var(--panel);border:1px solid var(--line);border-radius:1.2vh;padding:3vh 2.4vw;width:min(560px,92vw);display:grid;gap:1.4vh;font-size:16px}
+.box h2{margin:0;font:700 30px "Barlow Condensed"}
+.box p{margin:0;color:var(--mute)}
+.box input,.box select{font:16px Barlow;min-height:42px;padding:0 10px;border-radius:6px;border:1px solid var(--line);background:#0e1216;color:var(--ink);width:100%}
+.box label{display:grid;gap:4px;color:var(--mute);font-size:14px}
+.box .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.btn{font:600 16px Barlow;min-height:42px;padding:0 16px;border-radius:6px;border:1px solid var(--line);background:transparent;color:var(--ink);cursor:pointer}
+.btn.go{background:var(--red);border-color:var(--red);color:#fff}.btn.blue{background:var(--blue);border-color:var(--blue);color:#fff}
+.acts{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+.err{color:#ff8a80;font-size:14px;min-height:1em;margin:0}
+.checks{display:grid;grid-template-columns:1fr 1fr;gap:6px 12px}
+.checks label{display:flex;gap:8px;align-items:center;color:var(--ink)}
+.checks input{width:auto;min-height:auto}
+#gear{position:fixed;right:1.2vw;bottom:1.6vh;z-index:60;width:48px;height:48px;border-radius:50%;border:1px solid var(--line);background:#141920cc;color:var(--ink);font-size:22px;cursor:pointer;opacity:0;transition:opacity .3s}
+body.mouse #gear{opacity:1}
+#demoTag{position:fixed;left:50%;top:0;transform:translateX(-50%);background:var(--amber);color:#1a1300;font:700 14px Barlow;padding:3px 12px;border-radius:0 0 8px 8px;z-index:70}
+#stale{position:fixed;left:23vw;bottom:1.4vh;z-index:40;background:var(--red2);color:#fff;font:600 1.6vh Barlow;padding:.5vh .8vw;border-radius:.6vh}
+</style>
+</head>
+<body>
+<div id="demoTag" class="hide">DEMO DATA</div>
+
+<div id="app" class="hide">
+  <aside id="side">
+    <div class="brand"><div class="n1">BRYN ATHYN FIRE CO.</div><div class="n2">STATION 19-1</div></div>
+    <div class="plt" id="plt">&nbsp;</div>
+    <div class="staffbox" id="staffbox"><div class="big" id="staffBig">-</div><div class="lbl" id="staffLbl"></div></div>
+    <div class="wx" id="wxSide"></div>
+    <div class="clock"><div class="tm" id="tm">--:--</div><div class="dt" id="dt"></div></div>
+  </aside>
+  <main id="main">
+    <div id="alertbar" class="hide"></div>
+    <div id="slides"></div>
+  </main>
+</div>
+
+<div id="run" class="hide"></div>
+<button id="gear" title="Display settings (S)" aria-label="Display settings">⚙</button>
+<div id="stale" class="hide"></div>
+
+<!-- sign in -->
+<div class="overlay hide" id="login"><form class="box" id="lf" novalidate>
+  <h2>Station display sign-in</h2>
+  <p>Sign in once with an authorized email. This screen stays signed in.</p>
+  <label>Email<input type="email" id="lEmail" autocomplete="email"></label>
+  <div class="acts" id="sendActs"><a class="btn" href="?demo=1" style="display:grid;place-items:center;text-decoration:none">Try demo</a><button class="btn go" id="lSend">Email me a code</button></div>
+  <label class="hide" id="codeWrap">6-digit code<input id="lCode" inputmode="numeric" maxlength="10"></label>
+  <div class="acts hide" id="codeActs"><button type="button" class="btn" id="lBack">Back</button><button type="button" class="btn go" id="lVerify">Sign in</button></div>
+  <p class="err" id="lErr"></p>
+</form></div>
+
+<!-- enable sound -->
+<div class="overlay hide" id="soundGate"><div class="box">
+  <h2>Click to start</h2>
+  <p>Browsers block sound until someone clicks once. Station boxes will be set to skip this step.</p>
+  <div class="acts"><button class="btn go" id="soundGo">Start display</button></div>
+</div></div>
+
+<!-- settings -->
+<div class="overlay hide" id="settings"><form class="box" id="sf" novalidate>
+  <h2>Display settings</h2>
+  <div class="row2">
+    <label>Seconds per slide<input type="number" id="sRot" min="5" max="300"></label>
+    <label>Run screen seconds<input type="number" id="sRun" min="15" max="900"></label>
+  </div>
+  <label>Slides in rotation</label>
+  <div class="checks" id="sSlides"></div>
+  <div class="row2">
+    <label>Volume<input type="range" id="sVol" min="0" max="1" step="0.05"></label>
+    <label>Screen name<input id="sName" placeholder="Station 19-1"></label>
+  </div>
+  <label>Test</label>
+  <div class="acts" style="justify-content:flex-start">
+    <button type="button" class="btn blue" id="tEms">EMS run screen</button>
+    <button type="button" class="btn go" id="tFire">Fire run screen</button>
+    <button type="button" class="btn" id="tTone">Play tones</button>
+    <button type="button" class="btn" id="tFull">Full screen</button>
+  </div>
+  <p class="err" id="sMsg" style="color:var(--mute)"></p>
+  <div class="acts"><button type="button" class="btn" id="sOut">Sign out</button><button type="button" class="btn" id="sClose">Close</button><button type="submit" class="btn go">Save</button></div>
+</form></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script>
+{
+// ================= config =================
+const SUPABASE_URL='https://svdbmigojyttlqftuvxb.supabase.co';
+const SUPABASE_KEY='sb_publishable_skgMY3FbCCt5E_hN-ZzM6Q_q9dirLU5';
+const LAT=40.1365,LON=-75.0638;               // Bryn Athyn
+const RADAR='https://radar.weather.gov/ridge/standard/KDIX_loop.gif';
+const TOWNS={BRYA:'Bryn Athyn',LMOR:'Lower Moreland Township',UMOR:'Upper Moreland Township',ABGN:'Abington Township',CHEL:'Cheltenham Township',UDUB:'Upper Dublin Township',HATB:'Hatboro',SHAM:'Upper Southampton Township',PHIL:'Philadelphia'};
+const DEMO=new URLSearchParams(location.search).has('demo');
+const MEMBER_COLS='id,eso_id,name,eso_name,title,ems_level,fire_quals,member_type,is_officer,active';
+const SLIDES={roster:'On duty',calls:'Recent calls',weather:'Weather',traffic:'Traffic'};
+const DEF={rot:20,run:120,vol:0.8,name:'Station 19-1',slides:{roster:true,calls:true,weather:true,traffic:true}};
+const H=36e5,EMS=['EMT','AEMT','Paramedic','MD'],FIRE=['FF','INT','EXT','AO','Fire Police'];
+
+const $=s=>document.querySelector(s);
+const esc=t=>String(t??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
+const D=s=>new Date(s);
+const hm=d=>d.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',hour12:false});
+const fmt=d=>hm(d)+' '+d.toLocaleDateString('en-US',{month:'short',day:'numeric'});
+const ini=n=>String(n).split(' ').filter(Boolean).map(p=>p[0]).join('').slice(0,2);
+const last=n=>String(n).trim().split(' ').filter(p=>!/^(jr\.?|sr\.?|ii|iii|md)$/i.test(p)).pop()||n;
+const title=s=>String(s||'').toLowerCase().replace(/\b\w/g,c=>c.toUpperCase());
+
+// settings (per screen, kept in this browser)
+let cfg=structuredClone(DEF);
+try{const s=JSON.parse(localStorage.getItem('bafcDisplay')||'null');if(s)cfg={...cfg,...s,slides:{...DEF.slides,...(s.slides||{})}}}catch(e){}
+const saveCfg=()=>{try{localStorage.setItem('bafcDisplay',JSON.stringify(cfg))}catch(e){}};
+
+const sb=DEMO?null:window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{persistSession:true,autoRefreshToken:true}});
+let me=null,members=[],settings={},eso=[],unav=[],vols=[],overrides=[],calls=[],canCalls=false,lastLoad=null;
+
+// ================= sign in =================
+let pendingEmail='';
+$('#lf').addEventListener('submit',async e=>{e.preventDefault();
+  const email=$('#lEmail').value.trim().toLowerCase();$('#lErr').textContent='';
+  if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)){$('#lErr').textContent='Enter a valid email.';return}
+  const {error}=await sb.auth.signInWithOtp({email,options:{shouldCreateUser:false}});
+  if(error){$('#lErr').textContent='Could not send: '+error.message;return}
+  pendingEmail=email;$('#sendActs').classList.add('hide');$('#codeWrap').classList.remove('hide');$('#codeActs').classList.remove('hide');$('#lCode').focus();
+});
+$('#lBack').onclick=()=>{$('#sendActs').classList.remove('hide');$('#codeWrap').classList.add('hide');$('#codeActs').classList.add('hide')};
+$('#lVerify').onclick=async()=>{const token=$('#lCode').value.replace(/\D/g,'');
+  const {error}=await sb.auth.verifyOtp({email:pendingEmail,token,type:'email'});if(error)$('#lErr').textContent='That code did not work.'};
+
+let started=false;
+async function start(session){
+  if(!session){$('#login').classList.remove('hide');$('#app').classList.add('hide');return}
+  $('#login').classList.add('hide');
+  const [{data},{data:myId},{data:cv}]=await Promise.all([sb.from('members').select(MEMBER_COLS).eq('active',true),sb.rpc('my_member_id'),sb.rpc('can_view_calls')]);
+  members=data||[];me=members.find(m=>m.id===myId);canCalls=!!cv;
+  if(!me){$('#login').classList.remove('hide');$('#lErr').textContent=session.user.email+' is not on the member list.';return}
+  boot();
+}
+
+// ================= data =================
+async function load(){
+  if(DEMO){lastLoad=new Date();renderAll();return}
+  const now=new Date(),from=new Date(+now-24*H).toISOString(),to=new Date(+now+48*H).toISOString();
+  const q=[sb.from('settings').select('key,value'),sb.from('eso_shifts').select('*').lt('start_at',to).gt('end_at',from),
+    sb.from('unavailability').select('*').is('cancelled_at',null).gt('end_at',now.toISOString()),
+    sb.from('volunteer_shifts').select('*').is('cancelled_at',null).gt('end_at',now.toISOString()),
+    sb.from('roster_overrides').select('*').is('restored_at',null),sb.from('members').select(MEMBER_COLS).eq('active',true)];
+  if(canCalls) q.push(sb.from('calls').select('incident,kind,code,nature,priority,place,address,apt,cross_streets,map_page,mun,units,ems_units,fire_units,run_screen,additional_info,first_dispatch_email,last_dispatch_email,closed_at').gt('updated_at',from).order('last_dispatch_email',{ascending:false,nullsFirst:false}).limit(40));
+  const [s,e,u,v,o,m,c]=await Promise.all(q);
+  if(e.error){showStale('Data error: '+e.error.message);return}
+  settings=Object.fromEntries((s.data||[]).map(r=>[r.key,r.value]));
+  eso=e.data||[];unav=u.data||[];vols=v.data||[];overrides=o.data||[];if(m.data)members=m.data;
+  if(c&&c.data){calls=c.data;checkNewCalls()}
+  lastLoad=new Date();showStale('');renderAll();
+}
+function subscribe(){
+  const ch=sb.channel('display');let t;const re=()=>{clearTimeout(t);t=setTimeout(load,500)};
+  ['eso_shifts','unavailability','volunteer_shifts','roster_overrides','settings','calls'].forEach(x=>ch.on('postgres_changes',{event:'*',schema:'public',table:x},re));
+  ch.subscribe();
+}
+function showStale(msg){$('#stale').textContent=msg;$('#stale').classList.toggle('hide',!msg)}
+
+// ================= roster (same rules as the duty board) =================
+const byId=id=>members.find(m=>m.id===id);
+function memberForShift(s){
+  if(s.member_id) return byId(s.member_id);
+  const n=(s.eso_name||'').toLowerCase();
+  return members.find(m=>(m.eso_name||'').toLowerCase()===n||m.name.toLowerCase()===n)
+      || members.find(m=>last(m.name).toLowerCase()===last(s.eso_name).toLowerCase()&&m.name[0].toLowerCase()===n[0]);
+}
+function quals(name){const m=members.find(x=>x.name===name);return {title:m?.title,q:[...(m?.ems_level?[m.ems_level]:[]),...(m?.fire_quals||[])]}}
+const isMedic=name=>quals(name).q.includes('Paramedic');
+const pb=p=>`<span class="b${EMS.includes(p)?' ems'+(p==='Paramedic'?' medic':''):FIRE.includes(p)?' fire':''}">${esc(p)}</span>`;
+function badges(name,extra){const {title:t,q}=quals(name);const l=[...q];if(extra&&!l.includes(extra))l.unshift(extra);
+  return (t?`<span class="b title">${esc(t)}</span>`:'')+[...l.filter(p=>EMS.includes(p)),...l.filter(p=>!EMS.includes(p))].map(pb).join('')}
+const plt=g=>(String(g).match(/^([A-D]) Platoon\b/i)||[])[1]?.toUpperCase();
+
+function roster(){
+  const t=new Date();
+  const U=[...unav.map(u=>({name:byId(u.member_id)?.name||'Unknown',start:D(u.start_at),end:D(u.end_at)})),
+           ...eso.filter(s=>s.kind==='pto').map(s=>({name:memberForShift(s)?.name||s.eso_name,start:D(s.start_at),end:D(s.end_at)}))];
+  const unNow=n=>U.some(u=>u.name===n&&u.start<=t&&u.end>t);
+  const removed=new Set(overrides.map(o=>o.source_key));
+  const sh=eso.filter(s=>s.kind==='shift'&&!removed.has(s.source_key)).map(s=>({...s,name:memberForShift(s)?.name||s.eso_name,start:D(s.start_at),end:D(s.end_at)}))
+    .filter(s=>s.start<=t&&s.end>t&&!unNow(s.name));
+  const V=vols.map(v=>({...v,name:byId(v.member_id)?.name||'Unknown',start:D(v.start_at),end:D(v.end_at)})).filter(v=>v.start<=t&&v.end>t&&!unNow(v.name));
+  const LT=settings.lieutenants||{},CMD=settings.command_staff||[];
+  const byLast=(x,y)=>isMedic(y.name)-isMedic(x.name)||last(x.name).localeCompare(last(y.name));
+  let cmd=sh.filter(s=>/supervisor/i.test(s.grp)&&CMD.includes(s.name));
+  let lts=sh.filter(s=>plt(s.grp)&&LT[plt(s.grp)]===s.name);
+  let rest=sh.filter(s=>plt(s.grp)&&!lts.includes(s)).sort(byLast);
+  let sup=sh.filter(s=>/supervisor/i.test(s.grp)&&!cmd.includes(s));
+  let ps=sh.filter(s=>/power/i.test(s.grp)).sort(byLast);
+  let ev=sh.filter(s=>/special/i.test(s.grp));
+  let vl=V.sort(byLast);
+  const seen=new Set(),take=a=>a.filter(s=>seen.has(s.name)?false:(seen.add(s.name),true));
+  cmd=take(cmd);lts=take(lts);rest=take(rest);sup=take(sup);ps=take(ps);vl=take(vl);ev=take(ev);
+  const onNow=[...seen];
+  const meds=onNow.filter(n=>isMedic(n)||vl.some(v=>v.name===n&&v.position==='Paramedic')).length;
+  const platoon=[...new Set(sh.map(s=>plt(s.grp)).filter(Boolean))];
+  const unList=U.filter(u=>u.start<=t&&u.end>t);
+  return {cmd,lts,rest,sup,ps,vl,ev,onNow,meds,platoon,unList};
+}
+
+// ================= sidebar =================
+function renderSide(R){
+  const t=new Date();
+  $('#tm').textContent=hm(t);
+  $('#dt').textContent=t.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});
+  $('#plt').innerHTML=(R.platoon.length?R.platoon.map(p=>p+' PLATOON').join(' / '):'&nbsp;')+`<small>${esc(cfg.name)}</small>`;
+  const minS=+settings.minimum_staff||5,minM=+settings.minimum_medics||2;
+  const cls=R.onNow.length<minS?'bad':R.meds<minM?'warn':'ok';
+  $('#staffbox').className='staffbox '+cls;
+  $('#staffBig').innerHTML=`${R.onNow.length} ON DUTY<br>${R.meds} MEDIC${R.meds===1?'':'S'}`;
+  $('#staffLbl').textContent=cls==='bad'?`Below minimum of ${minS}`:cls==='warn'?`Under ${minM} paramedics`:'Staffing meets minimum';
+}
+
+// ================= weather (National Weather Service) =================
+let wx={now:null,periods:[],alerts:[]},wxUrls=null;
+async function loadWx(){
+  try{
+    if(!wxUrls){const p=await fetch(`https://api.weather.gov/points/${LAT},${LON}`).then(r=>r.json());wxUrls={f:p.properties.forecast,h:p.properties.forecastHourly}}
+    const [f,h,a]=await Promise.all([fetch(wxUrls.f).then(r=>r.json()),fetch(wxUrls.h).then(r=>r.json()),fetch(`https://api.weather.gov/alerts/active?point=${LAT},${LON}`).then(r=>r.json())]);
+    wx.periods=f.properties.periods||[];wx.now=(h.properties.periods||[])[0]||null;
+    const old=new Set(wx.alerts.map(x=>x.id));
+    wx.alerts=(a.features||[]).map(x=>({id:x.id,event:x.properties.event,headline:x.properties.headline,ends:x.properties.ends||x.properties.expires,severity:x.properties.severity}));
+    const fresh=wx.alerts.filter(x=>!old.has(x.id));
+    if(fresh.length&&booted) showWxAlert(fresh[0]);
+  }catch(e){console.warn('weather',e)}
+  renderWxSide();renderAlertBar();
+}
+function renderWxSide(){
+  if(!wx.now){$('#wxSide').innerHTML='';return}
+  const days=wx.periods.filter(p=>p.isDaytime).slice(0,3);
+  $('#wxSide').innerHTML=`<div class="wxnow"><div class="t">${wx.now.temperature}°</div><div class="c">${esc(wx.now.shortForecast)}<br>Wind ${esc(wx.now.windSpeed)} ${esc(wx.now.windDirection)}</div></div>
+   <div class="wxdays">${days.map(d=>{const n=wx.periods.find(p=>!p.isDaytime&&D(p.startTime)>D(d.startTime));return `<div class="wxd"><span>${esc(d.name)}</span><span>${d.temperature}° / ${n?n.temperature+'°':'-'}</span></div>`}).join('')}</div>`;
+}
+function renderAlertBar(){
+  const a=wx.alerts[0];$('#alertbar').classList.toggle('hide',!a);
+  if(a)$('#alertbar').innerHTML=`<b>⚠ ${esc(a.event.toUpperCase())}</b><span>${esc(a.headline||'')}</span>`+(wx.alerts.length>1?`<span>+${wx.alerts.length-1} more</span>`:'');
+}
+function showWxAlert(a){ // full-screen takeover for 30 seconds
+  if(!$('#run').classList.contains('hide')) return;
+  const r=$('#run');r.className='fire';r.style.setProperty('--x','1');
+  r.innerHTML=`<div class="top" style="background:#7a5a10"><div class="kind">WEATHER ALERT</div></div>
+   <div class="mid" style="grid-template-columns:1fr"><div class="info"><div class="nature">${esc(a.event)}</div><div class="val">${esc(a.headline||'')}</div>
+   ${a.ends?`<div class="lbl">Until</div><div class="val">${esc(fmt(D(a.ends)))}</div>`:''}</div></div><div class="bar"><i id="runbar"></i></div>`;
+  r.classList.remove('hide');tone('alert');runTimer(30);
+}
+
+// ================= slides =================
+let order=[],idx=-1,rotT=null,booted=false;
+function slideHtml(k){
+  if(k==='roster'){const R=roster();
+    const card=(s,cls,st)=>`<div class="card ${cls||''}"><div class="av">${esc(ini(s.name))}</div><div><div class="nm">${esc(s.name)}</div><div class="bd">${badges(s.name,s.position)}</div>${st?`<div class="sub2">${esc(st)}</div>`:''}</div></div>`;
+    const sec=(h,l,cls)=>l.length?`<div class="sec">${esc(h)}</div>`+l.map(s=>card(s,cls)).join(''):'';
+    let b=sec('Command Staff',R.cmd,'cmd')+sec('Lieutenant',R.lts,'lt')+sec('On Duty',R.rest)+sec('Supervisor',R.sup)+sec('Power Shift',R.ps)+sec('Volunteers',R.vl,'vol')+sec('Special Event',R.ev);
+    if(R.unList.length) b+=`<div class="sec un">Unavailable now</div>`+R.unList.map(u=>card(u,'un')).join('');
+    return {h:'On Duty',sub:'From ESO Scheduling and member sign-ins',body:`<div class="roster">${b||'<div class="empty">No one is on duty.</div>'}</div>`}}
+  if(k==='weather'){
+    const p=wx.periods.slice(0,6);
+    return {h:'Weather',sub:'National Weather Service · Bryn Athyn',body:`<div class="wxgrid"><div class="fc">${p.map(x=>`<div class="fcp"><div class="pn">${esc(x.name)}</div><div class="pt">${x.temperature}°</div><div class="ps">${esc(x.shortForecast)} · ${esc(x.windSpeed)}</div></div>`).join('')||'<div class="empty">Weather unavailable</div>'}</div>
+      <div class="radar"><img src="${RADAR}?t=${Date.now()}" alt="Radar loop, Mount Holly NJ"></div></div>`}}
+  if(k==='traffic') return {h:'Traffic',sub:'Live from Waze',body:`<iframe class="fill" src="https://embed.waze.com/iframe?zoom=13&lat=${LAT}&lon=${LON}&ct=livemap" loading="lazy" title="Traffic map"></iframe>`};
+  if(k==='calls'){
+    const L=calls.filter(c=>c.first_dispatch_email).slice(0,9);
+    return {h:'Recent Calls',sub:'Last 24 hours · BAFC units highlighted',body:`<div class="calls">${L.map(c=>{const ours=[...(c.ems_units||[]),...(c.fire_units||[])];
+      return `<div class="callrow ${c.run_screen||''}"><div class="t">${esc(hm(D(c.first_dispatch_email)))}<div class="sub2">${esc(c.incident)}</div></div>
+      <div><div class="n">${esc(title(c.nature))} ${c.priority?`<span class="chip">${esc(c.priority)}</span>`:''}</div><div class="a">${esc(c.place?title(c.place):'')}</div></div>
+      <div><div>${esc(c.address||'')}</div><div class="a">${esc(TOWNS[c.mun]||c.mun||'')}</div></div>
+      <div>${(c.units||[]).map(u=>`<span class="chip${ours.includes(u)?' ours':''}">${esc(u)}</span>`).join('')}</div></div>`}).join('')||'<div class="empty">No calls in the last 24 hours.</div>'}</div>`}}
+  return {h:k,sub:'',body:''};
+}
+function buildOrder(){order=Object.keys(SLIDES).filter(k=>cfg.slides[k]&&(k!=='calls'||canCalls||DEMO));if(!order.length)order=['roster']}
+function showSlide(i){
+  buildOrder();idx=(i+order.length)%order.length;const k=order[idx],s=slideHtml(k);
+  const el=document.createElement('section');el.className='slide';
+  el.innerHTML=`<div class="slidehead"><h1>${esc(s.h)}</h1><span class="sub">${esc(s.sub)}</span><span class="dots">${order.map((_,j)=>`<i class="dot${j===idx?' on':''}"></i>`).join('')}</span></div><div class="prog" id="prog"></div><div class="body">${s.body}</div>`;
+  const box=$('#slides');box.appendChild(el);requestAnimationFrame(()=>el.classList.add('on'));
+  [...box.children].slice(0,-1).forEach(o=>{o.classList.remove('on');setTimeout(()=>o.remove(),700)});
+  const pr=el.querySelector('#prog');pr.style.transition='none';pr.style.width='0';requestAnimationFrame(()=>{pr.style.transition=`width ${cfg.rot}s linear`;pr.style.width='100%'});
+  clearTimeout(rotT);rotT=setTimeout(()=>showSlide(idx+1),cfg.rot*1000);
+}
+function renderAll(){const R=roster();renderSide(R);if(booted&&order[idx]==='roster'&&$('#run').classList.contains('hide')){/* refresh roster in place */const b=document.querySelector('.slide.on .body');if(b)b.innerHTML=slideHtml('roster').body}}
+
+// ================= run screen =================
+const shownCalls=new Set();let firstCheck=true;
+function checkNewCalls(){
+  const now=Date.now();
+  for(const c of calls){
+    if(!c.run_screen||!c.last_dispatch_email) continue;
+    const key=c.incident+'|'+c.run_screen;
+    const fresh=now-D(c.last_dispatch_email)<6*60*1000; // email time within 6 minutes (relay checks every minute)
+    if(firstCheck||!fresh){shownCalls.add(key);continue}
+    if(!shownCalls.has(key)){shownCalls.add(key);showRun(c);break}
+  }
+  firstCheck=false;
+}
+const mapUrl=c=>`https://maps.google.com/maps?q=${encodeURIComponent((c.address||'')+', '+(TOWNS[c.mun]||'')+', PA')}&z=16&output=embed`;
+let runT=null,runEnd=0,elapsedT=null;
+function showRun(c){
+  const kind=c.run_screen==='fire'?'fire':'ems',ours=[...(c.fire_units||[]),...(c.ems_units||[])];
+  const r=$('#run');r.className=kind+' flash';
+  const disp=D(c.first_dispatch_email||c.last_dispatch_email);
+  r.innerHTML=`<div class="top"><div class="kind">${kind==='fire'?'FIRE DISPATCH':'EMS DISPATCH'}</div>${c.priority?`<div class="pri">${esc(c.priority)}</div>`:''}
+    <div class="elapsed">Dispatched ${esc(hm(disp))}<b id="el">0:00</b></div></div>
+   <div class="mid"><div class="info">
+     <div class="nature">${esc(title(c.nature||c.code||'Call'))}</div>
+     ${c.place?`<div class="place">${esc(c.place)}</div>`:''}
+     <div><div class="addr">${esc(c.address||'Address pending')}</div>${c.apt?`<div class="apt">Apt ${esc(c.apt)}</div>`:''}</div>
+     <div><div class="lbl">Cross streets</div><div class="val">${esc(c.cross_streets||'-')}</div></div>
+     <div><div class="lbl">Municipality · Map</div><div class="val">${esc(TOWNS[c.mun]||c.mun||'-')}${c.map_page?' · '+esc(c.map_page):''}</div></div>
+     <div class="units"><div class="lbl">Units due</div>${(c.units||[]).map(u=>`<span class="chip${ours.includes(u)?' ours':''}">${esc(u)}</span>`).join('')}</div>
+     ${c.additional_info&&!/NOT ON FILE/i.test(c.additional_info)?`<div><div class="lbl">Location notes</div><div class="notes">${esc(c.additional_info)}</div></div>`:''}
+   </div><div class="map">${c.address?`<iframe class="fill" src="${mapUrl(c)}" title="Map"></iframe>`:''}</div></div>
+   <div class="bar"><i id="runbar"></i></div>`;
+  r.classList.remove('hide');tone(kind);runTimer(cfg.run);
+  clearInterval(elapsedT);const tick=()=>{const s=Math.max(0,Math.floor((Date.now()-disp)/1000));const e=$('#el');if(e)e.textContent=Math.floor(s/60)+':'+String(s%60).padStart(2,'0')};tick();elapsedT=setInterval(tick,1000);
+}
+function runTimer(sec){
+  clearTimeout(runT);runEnd=Date.now()+sec*1000;
+  const b=$('#runbar');if(b){b.style.transition='none';b.style.width='100%';requestAnimationFrame(()=>{b.style.transition=`width ${sec}s linear`;b.style.width='0'})}
+  runT=setTimeout(()=>{$('#run').classList.add('hide');clearInterval(elapsedT)},sec*1000);
+}
+
+// ================= tones (placeholders until BAFC sound files are supplied) =================
+let ac=null;
+function tone(kind){
+  try{ac=ac||new (window.AudioContext||window.webkitAudioContext)();if(ac.state==='suspended')ac.resume();
+    const g=ac.createGain();g.gain.value=cfg.vol*0.35;g.connect(ac.destination);let t=ac.currentTime+.05;
+    const beep=(f,d,f2)=>{const o=ac.createOscillator();o.type='square';o.frequency.setValueAtTime(f,t);if(f2)o.frequency.linearRampToValueAtTime(f2,t+d);o.connect(g);o.start(t);o.stop(t+d);t+=d+.03};
+    if(kind==='ems') for(let i=0;i<4;i++){beep(960,.35);beep(770,.35)}        // hi-lo
+    else if(kind==='fire') for(let i=0;i<3;i++){beep(500,.9,1400);t+=.15}      // rising
+    else for(let i=0;i<3;i++){beep(1050,.18);beep(1050,.18);t+=.3}             // weather alert
+  }catch(e){console.warn('audio',e)}
+}
+
+// ================= settings panel =================
+let mouseT;document.addEventListener('mousemove',()=>{document.body.classList.add('mouse');clearTimeout(mouseT);mouseT=setTimeout(()=>document.body.classList.remove('mouse'),3000)});
+document.addEventListener('keydown',e=>{if(e.target.matches('input'))return;if(e.key==='s'||e.key==='S')openSettings();if(e.key==='Escape'){$('#settings').classList.add('hide');$('#run').classList.add('hide')}if(e.key==='ArrowRight')showSlide(idx+1);if(e.key==='ArrowLeft')showSlide(idx-1)});
+$('#gear').onclick=openSettings;
+function openSettings(){
+  $('#sRot').value=cfg.rot;$('#sRun').value=cfg.run;$('#sVol').value=cfg.vol;$('#sName').value=cfg.name;
+  $('#sSlides').innerHTML=Object.entries(SLIDES).map(([k,l])=>`<label><input type="checkbox" data-s="${k}"${cfg.slides[k]?' checked':''}${k==='calls'&&!canCalls&&!DEMO?' disabled':''}> ${esc(l)}${k==='calls'&&!canCalls&&!DEMO?' (no access)':''}</label>`).join('');
+  $('#sMsg').textContent=DEMO?'Demo mode: sample data only.':(me?`Signed in as ${me.name}.`:'');
+  $('#settings').classList.remove('hide');
+}
+$('#sf').addEventListener('submit',e=>{e.preventDefault();
+  cfg.rot=Math.max(5,+$('#sRot').value||20);cfg.run=Math.max(15,+$('#sRun').value||120);cfg.vol=+$('#sVol').value;cfg.name=$('#sName').value.trim()||DEF.name;
+  document.querySelectorAll('#sSlides [data-s]').forEach(c=>cfg.slides[c.dataset.s]=c.checked);
+  saveCfg();$('#settings').classList.add('hide');renderAll();showSlide(0);
+});
+$('#sClose').onclick=()=>$('#settings').classList.add('hide');
+$('#sOut').onclick=()=>DEMO?location.href=location.pathname:sb.auth.signOut();
+const sample=k=>calls.find(c=>c.run_screen===k)||(k==='fire'
+  ?{incident:'F0000000',run_screen:'fire',kind:'FIRE',nature:'FIRE ALARM',priority:'F3',place:'SAMPLE COMMERCIAL BUILDING',address:'2900 HUNTINGDON PIKE',cross_streets:'BUCK RD AND PAPER MILL RD',mun:'BRYA',map_page:'27-01',units:['E19-1','SD19-1','E19','TW19'],fire_units:['E19-1','SD19-1'],ems_units:[],first_dispatch_email:new Date().toISOString()}
+  :{incident:'E0000000',run_screen:'ems',kind:'EMS',nature:'FALL VICTIM',priority:'E2',address:'2950 PAPER MILL RD',cross_streets:'HUNTINGDON PIKE AND BUCK RD',mun:'BRYA',map_page:'27-01',units:['319-2'],ems_units:['319-2'],fire_units:[],first_dispatch_email:new Date().toISOString()});
+$('#tEms').onclick=()=>{$('#settings').classList.add('hide');showRun({...sample('ems'),first_dispatch_email:new Date().toISOString()})};
+$('#tFire').onclick=()=>{$('#settings').classList.add('hide');showRun({...sample('fire'),first_dispatch_email:new Date().toISOString()})};
+$('#tTone').onclick=()=>{tone('ems');setTimeout(()=>tone('fire'),3400)};
+$('#tFull').onclick=()=>document.documentElement.requestFullscreen?.();
+$('#run').onclick=()=>{$('#run').classList.add('hide');clearTimeout(runT);clearInterval(elapsedT)};
+
+// ================= boot =================
+function boot(){
+  $('#app').classList.remove('hide');
+  const go=()=>{$('#soundGate').classList.add('hide');try{ac=ac||new (window.AudioContext||window.webkitAudioContext)();ac.resume()}catch(e){}};
+  try{const probe=new (window.AudioContext||window.webkitAudioContext)();if(probe.state==='suspended'){$('#soundGate').classList.remove('hide');$('#soundGo').onclick=go}else{ac=probe}}catch(e){}
+  load().then(()=>{booted=true;showSlide(0)});loadWx();
+  if(!DEMO){subscribe();setInterval(load,30*1000)}
+  setInterval(loadWx,10*60*1000);
+  setInterval(()=>renderSide(roster()),15*1000);
+  setInterval(()=>{if(lastLoad&&Date.now()-lastLoad>5*60*1000)showStale('No data update since '+hm(lastLoad)+'. Check internet.')},60*1000);
+  setTimeout(()=>location.reload(),6*H); // fresh start every 6 hours (keeps long-running screens healthy)
+}
+
+// ================= demo data =================
+function demoData(){
+  canCalls=true;const t=new Date(),iso=d=>new Date(d).toISOString();
+  members=[['Fred Ellinger','Deputy Chief','Paramedic',['INT']],['Ryan Ruddell','Lieutenant','Paramedic',['INT']],['Andrew Taggart',null,'EMT',['INT','AO']],
+    ['Jessica Griffin',null,'Paramedic',['INT','AO']],['Brandon Felldin',null,'EMT',['INT']],['Dylan Logue',null,null,['INT','AO']],['Kurt Wille',null,null,['EXT','AO']]]
+    .map(([name,title,ems,f],i)=>({id:'m'+i,name,title,ems_level:ems,fire_quals:f,is_officer:!!title}));
+  settings={lieutenants:{A:'Ryan Ruddell'},command_staff:['Fred Ellinger'],minimum_staff:5,minimum_medics:2};
+  const sh=(n,g,k='shift')=>({id:n,source_key:n,eso_name:n,member_id:members.find(m=>m.name===n)?.id,grp:g,kind:k,start_at:iso(+t-4*H),end_at:iso(+t+8*H)});
+  eso=[sh('Fred Ellinger','Supervisor'),sh('Ryan Ruddell','A Platoon'),sh('Andrew Taggart','A Platoon'),sh('Jessica Griffin','A Platoon'),sh('Brandon Felldin','Power Shift')];
+  vols=[{id:'v1',member_id:'m5',position:'AO',start_at:iso(+t-H),end_at:iso(+t+3*H)}];
+  unav=[{id:'u1',member_id:'m6',start_at:iso(+t-H),end_at:iso(+t+20*H)}];overrides=[];
+  calls=[{incident:'E2600001',run_screen:'ems',nature:'CARDIAC EMERGENCY',priority:'E2',place:'SAMPLE SENIOR LIVING',address:'100 SAMPLE RD',mun:'LMOR',units:['319-2','NC381'],ems_units:['319-2'],fire_units:[],first_dispatch_email:iso(+t-40*60e3),last_dispatch_email:iso(+t-40*60e3)},
+    {incident:'F2600002',run_screen:'fire',nature:'FIRE ALARM',priority:'F3',place:'SAMPLE SCHOOL',address:'200 SAMPLE AVE',mun:'BRYA',units:['E19','E19-1'],ems_units:[],fire_units:['E19-1'],first_dispatch_email:iso(+t-3*H),last_dispatch_email:iso(+t-3*H)}];
+  firstCheck=true;checkNewCalls();
+}
+
+// ================= start =================
+if(DEMO){$('#demoTag').classList.remove('hide');demoData();boot()}
+else sb.auth.onAuthStateChange((ev,s)=>{if(ev==='SIGNED_OUT'){location.reload();return}if((ev==='INITIAL_SESSION'||ev==='SIGNED_IN')&&!started){started=!!s;start(s)}});
+}
+</script>
+</body>
+</html>
