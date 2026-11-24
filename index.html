@@ -44,6 +44,7 @@ h2:first-child{border-top:0}h2 span{font-weight:500;font-size:13px}h2.un{color:v
 .st{text-align:right;font-size:17px;line-height:1.2}
 .st small{display:block;color:var(--mute);font-size:13px;white-space:nowrap;margin-top:2px}
 .un .st{color:var(--red)}
+.ctl{display:flex;flex-wrap:wrap;gap:2px 12px;justify-content:flex-end}.st small+.ctl{margin-top:2px}
 .lnk{border:0;background:none;color:var(--mute);font:500 13px Barlow,sans-serif;cursor:pointer;text-decoration:underline;padding:4px 0 0;min-height:30px}
 .empty,.msg{padding:22px 16px;color:var(--mute);text-align:center}
 .note{padding:4px 16px 8px;color:var(--mute);font-size:13px}
@@ -59,7 +60,7 @@ input,select{font:16px Barlow,sans-serif;min-height:44px;padding:0 10px;border:1
 .err{grid-column:1/-1;color:var(--red);font-size:14px;margin:0;min-height:1em}
 .ok{grid-column:1/-1;color:#2f8f4e;font-size:14px;margin:0}
 .foot{color:var(--mute);font-size:13px;margin-top:14px;display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px;justify-content:space-between}
-@media(max-width:600px){.row{grid-template-columns:40px minmax(0,1fr)}.av{width:40px;height:40px}.st{grid-column:2;text-align:left}form{grid-template-columns:minmax(0,1fr)}.nm{font-size:18px}.tabs .sp{margin-left:0}}
+@media(max-width:600px){.ctl{justify-content:flex-start}.row{grid-template-columns:40px minmax(0,1fr)}.av{width:40px;height:40px}.st{grid-column:2;text-align:left}form{grid-template-columns:minmax(0,1fr)}.nm{font-size:18px}.tabs .sp{margin-left:0}}
 @media(prefers-reduced-motion:no-preference){#f.open{animation:in .18s ease-out}@keyframes in{from{opacity:0;transform:translateY(-6px)}}}
 </style>
 </head>
@@ -236,14 +237,14 @@ function render(){
   const t=new Date(),U=unavList();
   const unNow=n=>U.some(u=>u.name===n&&u.start<=t&&u.end>t);
   const removed=new Set(overrides.map(o=>o.source_key));
-  const shifts=eso.filter(s=>s.kind==='shift').map(s=>({...s,name:memberForShift(s)?.name||s.eso_name,start:D(s.start_at),end:D(s.end_at)}));
+  const shifts=eso.filter(s=>s.kind==='shift').map(s=>({...s,name:memberForShift(s)?.name||s.eso_name,mid:memberForShift(s)?.id,start:D(s.start_at),end:D(s.end_at)}));
   const live=shifts.filter(s=>!removed.has(s.source_key)&&!unNow(s.name));
   const V=vols.map(v=>({...v,name:byId(v.member_id)?.name||'Unknown',start:D(v.start_at),end:D(v.end_at)})).filter(v=>!unNow(v.name));
   const to=view==='now'?t:new Date(+t+24*H);
   const pick=a=>a.filter(s=>s.end>t&&(view==='now'?s.start<=t:(s.start>t&&s.start<=to)));
   const sh=pick(live),ad=pick(V);
 
-  // staffing (always now)
+  // staffing (always now; each person counted once)
   const onNow=[...new Set([...live.filter(s=>s.start<=t&&s.end>t).map(s=>s.name),...V.filter(v=>v.start<=t&&v.end>t).map(v=>v.name)])];
   const meds=onNow.filter(n=>isMedic(n)||V.some(v=>v.name===n&&v.position==='Paramedic'&&v.start<=t&&v.end>t)).length;
   const minS=+settings.minimum_staff||5,minM=+settings.minimum_medics||2;
@@ -255,28 +256,37 @@ function render(){
   let html='';
   const win=(+settings.unavailable_window_hours||48)*H;
   const ul=U.filter(u=>u.end>t&&u.start<new Date(+t+win)).sort((a,b)=>a.start-b.start);
-  if(ul.length) html+=`<h2 class="un">Unavailable <span>· now and within the next ${win/H} hours</span></h2>`+ul.map(u=>row({name:u.name,cls:'un',
-    badges:badges(u.name)+(u.src==='eso'?'<span class="b src">ESO</span>':''),status:'Unavailable',
-    until:(u.start>t?'From '+fmt(u.start)+' ':'')+'Until '+fmt(u.end),
-    btn:u.src==='member'&&(officer()||u.member_id===me.id||u.created_by===me.id)?btn('un',u.id,'Remove'):''})).join('');
+  if(ul.length) html+=`<h2 class="un">Unavailable <span>· now and within the next ${win/H} hours</span></h2>`+ul.map(u=>{
+    const mine=u.src==='member'&&(officer()||u.member_id===me.id||u.created_by===me.id);
+    return row({name:u.name,cls:'un',badges:badges(u.name)+(u.src==='eso'?'<span class="b src">ESO</span>':''),
+      status:u.start>t?'Unavailable (upcoming)':'Unavailable',until:(u.start>t?'From '+fmt(u.start)+' ':'')+'Until '+fmt(u.end),
+      btn:mine?btns([['editun',u.id,'Edit times'],['un',u.id,'Clear']]):(u.src==='eso'&&officer()?'<small>Change in ESO</small>':'')});
+  }).join('');
 
   const byLast=(x,y)=>isMedic(y.name)-isMedic(x.name)||last(x.name).localeCompare(last(y.name));
-  const cmd=sh.filter(s=>/supervisor/i.test(s.grp)&&CMD().includes(s.name));
-  const lts=sh.filter(s=>plt(s.grp)&&LT()[plt(s.grp)]===s.name);
-  const rest=sh.filter(s=>plt(s.grp)&&!lts.includes(s)).sort(byLast);
-  const ps=sh.filter(s=>/power/i.test(s.grp)).sort(byLast);
-  const sup=sh.filter(s=>/supervisor/i.test(s.grp)&&!cmd.includes(s));
-  const ev=sh.filter(s=>/special/i.test(s.grp));
-  const other=sh.filter(s=>![...cmd,...lts,...rest,...ps,...sup,...ev].includes(s));
+  let cmd=sh.filter(s=>/supervisor/i.test(s.grp)&&CMD().includes(s.name));
+  let lts=sh.filter(s=>plt(s.grp)&&LT()[plt(s.grp)]===s.name);
+  let rest=sh.filter(s=>plt(s.grp)&&!lts.includes(s)).sort(byLast);
+  let sup=sh.filter(s=>/supervisor/i.test(s.grp)&&!cmd.includes(s));
+  let ps=sh.filter(s=>/power/i.test(s.grp)).sort(byLast);
+  let ev=sh.filter(s=>/special/i.test(s.grp));
+  let other=sh.filter(s=>![...cmd,...lts,...rest,...ps,...sup,...ev].includes(s));
+  let vl=ad.sort(byLast);
+  // One row per person: keep only their highest-priority spot
+  const seen=new Set(),take=a=>a.filter(s=>{const k=view==='now'?s.name:s.name+'|'+(+s.start);if(seen.has(k))return false;seen.add(k);return true});
+  cmd=take(cmd);lts=take(lts);rest=take(rest);sup=take(sup);ps=take(ps);vl=take(vl);ev=take(ev);other=take(other);
   const body=section('Command Staff',cmd,t,'cmd')+section('Lieutenant',lts,t,'lt')+section('On Duty',rest,t)+section('Supervisor',sup,t)
-    +section('Power Shift',ps,t)+section('Volunteers',ad.sort(byLast),t,'vol')+section('Special Event',ev,t)+section('Other',other,t);
+    +section('Power Shift',ps,t)+section('Volunteers',vl,t,'vol')+section('Special Event',ev,t)+section('Other',other,t);
   html+=body||`<div class="empty">${view==='now'?'No one is on duty.':'No shifts start in the next 24 hours.'}</div>`;
+  const hid=ad.filter(v=>!vl.includes(v)&&(officer()||v.member_id===me.id||v.created_by===me.id));
+  if(hid.length) html+='<h2>Duplicate sign-ins</h2>'+hid.map(v=>`<div class="note">${esc(v.name)} also has a volunteer sign-in (${esc(fmt(v.start))} to ${esc(fmt(v.end))}) that is hidden because they are already listed above. ${btn('vol',v.id,'Remove it')}</div>`).join('');
   if(officer()&&overrides.length) html+='<h2>Officer adjustments</h2>'+overrides.map(o=>{const s=shifts.find(x=>x.source_key===o.source_key);
     return s?`<div class="note">${esc(s.name)} removed from ${esc(s.grp)} by ${esc(byId(o.removed_by)?.name||'an officer')}. ${btn('restore',o.id,'Restore')}</div>`:''}).join('');
   $('#list').innerHTML=html;
   $('#sync').textContent=lastPull?'Last ESO update '+fmt(lastPull):'Waiting for the first ESO update';
 }
-const btn=(k,id,label)=>`<button type="button" class="lnk" data-k="${k}" data-id="${esc(id)}">${label}</button>`;
+const btn=(k,id,label,extra='')=>`<button type="button" class="lnk" data-k="${k}" data-id="${esc(id)}"${extra}>${label}</button>`;
+const btns=list=>`<span class="ctl">${list.map(x=>btn(...x)).join('')}</span>`;
 function row(o){
   return `<div class="row ${o.cls||''}"><div class="av" aria-hidden="true">${esc(ini(o.name))}</div>
   <div><div class="nm">${esc(o.name)}</div><div class="bd">${o.badges}</div></div>
@@ -288,18 +298,25 @@ function section(title,list,t,cls){
     const vol=!!s.position,future=s.start>t;
     const status=(cls==='cmd'?'Command Staff':cls==='lt'?'Lieutenant':vol?'Volunteer':/supervisor/i.test(s.grp)?'Supervisor':'Fire/EMS')+(future?'':' at Station');
     let b='';
-    if(vol&&(officer()||s.member_id===me.id||s.created_by===me.id)) b=btn('vol',s.id,'Remove');
-    if(!vol&&officer()) b=btn('shift',s.source_key,'Remove from roster');
+    if(vol&&(officer()||s.member_id===me.id||s.created_by===me.id))
+      b=btns([['editvol',s.id,'Edit times'],...(future?[]:[['endvol',s.id,'End now']]),['vol',s.id,'Remove']]);
+    if(!vol&&officer())
+      b=btns([...(s.mid?[['mkun',s.mid,'Mark unavailable',` data-end="${esc(s.end_at)}"`]]:[]),['shift',s.source_key,'Remove from roster']]);
     return row({name:s.name,cls,badges:badges(s.name,vol?s.position:null),status,until:(future?'From '+fmt(s.start)+' ':'')+'Until '+fmt(s.end),btn:b});
   }).join('');
 }
 
 // ---------- actions ----------
 $('#list').addEventListener('click',async e=>{
-  const k=e.target.dataset.k,id=e.target.dataset.id;if(!k)return;
-  e.target.disabled=true;let r;const stamp=new Date().toISOString();
+  const el=e.target.closest('[data-k]');if(!el)return;
+  const k=el.dataset.k,id=el.dataset.id;
+  if(k==='editun'){const u=unav.find(x=>String(x.id)===id);if(u)openForm('editun',{id:u.id,memberId:u.member_id,start:D(u.start_at),end:D(u.end_at)});return}
+  if(k==='editvol'){const v=vols.find(x=>String(x.id)===id);if(v)openForm('editvol',{id:v.id,memberId:v.member_id,start:D(v.start_at),end:D(v.end_at),pos:v.position});return}
+  if(k==='mkun'){openForm('un',{memberId:id,start:new Date(),end:el.dataset.end?D(el.dataset.end):new Date(Date.now()+24*H)});return}
+  el.disabled=true;let r;const stamp=new Date().toISOString();
   if(k==='un') r=await sb.from('unavailability').update({cancelled_at:stamp,cancelled_by:me.id}).eq('id',id);
   if(k==='vol') r=await sb.from('volunteer_shifts').update({cancelled_at:stamp,cancelled_by:me.id}).eq('id',id);
+  if(k==='endvol') r=await sb.from('volunteer_shifts').update({end_at:stamp}).eq('id',id);
   if(k==='shift') r=await sb.from('roster_overrides').insert({source_key:id,removed_by:me.id});
   if(k==='restore') r=await sb.from('roster_overrides').update({restored_at:stamp,restored_by:me.id}).eq('id',id);
   if(r?.error) alertBar('That change did not save: '+r.error.message);
@@ -308,18 +325,35 @@ $('#list').addEventListener('click',async e=>{
 function alertBar(m){$('#list').insertAdjacentHTML('afterbegin',`<div class="msg" style="color:var(--red)">${esc(m)}</div>`)}
 
 const toLocal=d=>{const p=n=>String(n).padStart(2,'0');return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`};
-function openForm(m){
+let editId=null;
+function openForm(m,o={}){
   const f=$('#f');
-  if(f.classList.contains('open')&&mode===m){f.classList.remove('open');return}
-  mode=m;f.classList.add('open');
-  $('#fTitle').textContent=m==='un'?'Report unavailability':(officer()?'Add a member to the roster':'Add myself to the roster');
-  $('#posWrap').classList.toggle('hide',m==='un');
+  if(f.classList.contains('open')&&mode===m&&!o.memberId&&!o.id){f.classList.remove('open');return}
+  mode=m;editId=o.id||null;f.classList.add('open');
+  const titles={un:o.memberId&&o.memberId!==me.id?'Mark unavailable':'Report unavailability',add:officer()?'Add a member to the roster':'Add myself to the roster',editun:'Edit unavailability',editvol:'Edit volunteer sign-in'};
+  $('#fTitle').textContent=titles[m];
+  $('#posWrap').classList.toggle('hide',m==='un'||m==='editun');
   const list=officer()?[...members].sort((a,b)=>last(a.name).localeCompare(last(b.name))):[me];
-  $('#fMem').innerHTML=list.map(x=>`<option value="${esc(x.id)}"${x.id===me.id?' selected':''}>${esc(x.name)}</option>`).join('');
-  $('#fMem').disabled=!officer();
+  const sel=o.memberId||me.id;
+  $('#fMem').innerHTML=list.map(x=>`<option value="${esc(x.id)}"${x.id===sel?' selected':''}>${esc(x.name)}</option>`).join('');
+  if(!list.some(x=>x.id===sel)){const x=byId(sel);if(x)$('#fMem').insertAdjacentHTML('afterbegin',`<option value="${esc(x.id)}" selected>${esc(x.name)}</option>`)}
+  $('#fMem').disabled=!officer()||m==='editun'||m==='editvol';
+  if(o.pos) $('#fPos').value=o.pos;
   const t=new Date();t.setMinutes(0,0,0);t.setHours(t.getHours()+1);
-  $('#fFrom').value=toLocal(m==='add'?new Date():t);$('#fTo').value=toLocal(new Date(+t+(m==='un'?24:4)*H));
+  $('#fFrom').value=toLocal(o.start||(m==='add'?new Date():t));
+  $('#fTo').value=toLocal(o.end||new Date(+t+(m==='un'?24:4)*H));
   $('#fErr').textContent='';
+  f.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+// Overlap checks so a person can't be listed twice
+function overlaps(memberId,s,en,skipVolId){
+  const name=byId(memberId)?.name;
+  const removed=new Set(overrides.map(o=>o.source_key));
+  const hit=eso.find(x=>x.kind==='shift'&&!removed.has(x.source_key)&&(memberForShift(x)?.id===memberId||memberForShift(x)?.name===name)&&D(x.start_at)<en&&D(x.end_at)>s);
+  if(hit) return `${name} is already scheduled in ESO (${hit.grp}) from ${fmt(D(hit.start_at))} to ${fmt(D(hit.end_at))}.`;
+  const v=vols.find(x=>x.member_id===memberId&&x.id!==skipVolId&&D(x.start_at)<en&&D(x.end_at)>s);
+  if(v) return `${name} is already signed in as a volunteer from ${fmt(D(v.start_at))} to ${fmt(D(v.end_at))}.`;
+  return '';
 }
 $('#unBtn').addEventListener('click',()=>openForm('un'));
 $('#addBtn').addEventListener('click',()=>openForm('add'));
@@ -330,11 +364,16 @@ $('#f').addEventListener('submit',async e=>{
   if(isNaN(s)||isNaN(en)){$('#fErr').textContent='Enter both a start and an end time.';return}
   if(en<=s){$('#fErr').textContent='The end time must be after the start time.';return}
   if(en<=new Date()){$('#fErr').textContent='That period has already ended.';return}
-  const row={member_id:$('#fMem').value,start_at:s.toISOString(),end_at:en.toISOString(),created_by:me.id};
-  $('#fGo').disabled=true;
-  const r=mode==='un'?await sb.from('unavailability').insert(row):await sb.from('volunteer_shifts').insert({...row,position:$('#fPos').value});
+  const memberId=$('#fMem').value;
+  if(mode==='add'||mode==='editvol'){const why=overlaps(memberId,s,en,editId);if(why){$('#fErr').textContent=why;return}}
+  const times={start_at:s.toISOString(),end_at:en.toISOString()};
+  $('#fGo').disabled=true;let r;
+  if(mode==='un') r=await sb.from('unavailability').insert({member_id:memberId,...times,created_by:me.id});
+  if(mode==='add') r=await sb.from('volunteer_shifts').insert({member_id:memberId,...times,position:$('#fPos').value,created_by:me.id});
+  if(mode==='editun') r=await sb.from('unavailability').update(times).eq('id',editId);
+  if(mode==='editvol') r=await sb.from('volunteer_shifts').update({...times,position:$('#fPos').value}).eq('id',editId);
   $('#fGo').disabled=false;
-  if(r.error){$('#fErr').textContent='That did not save: '+r.error.message;return}
+  if(r?.error){$('#fErr').textContent='That did not save: '+r.error.message;return}
   $('#f').classList.remove('open');load();
 });
 function setView(v){view=v;document.querySelectorAll('.tabs [data-v]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.v===v));render()}
