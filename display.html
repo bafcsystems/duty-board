@@ -139,9 +139,37 @@ iframe.fill{border:0;width:100%;height:100%;border-radius:1vh;background:#111}
 .chip.ours{background:var(--gold);color:#1a1300}
 
 /* ---------- run screen ---------- */
-#run{position:fixed;inset:0;z-index:50;display:grid;grid-template-rows:auto 1fr auto;background:var(--bg)}
+#run{position:fixed;inset:0;z-index:50;display:grid;grid-template-rows:1fr auto;background:var(--bg)}
+#run .runs{display:grid;min-height:0}#run.two .runs{grid-template-columns:1fr 1fr;gap:3px;background:var(--line)}
+#run .panel{display:grid;grid-template-rows:auto 1fr;min-height:0;background:var(--bg)}
+#run.two .mid{grid-template-columns:1fr!important;grid-template-rows:auto minmax(18vh,1fr)}#run.two .maps{grid-template-rows:1fr}#run.two #sv,#run.two .sv2{display:none}
+#run.two .kind{font-size:5.5vh}#run.two .nature{font-size:5vh}#run.two .addr{font-size:5.4vh}
+#run .cd{margin-left:auto;text-align:center;border-radius:1vh;padding:.6vh 1.4vw;background:#0004;transition:background .3s}
+#run .cd b{display:block;font:700 7vh/1 "Barlow Condensed";font-variant-numeric:tabular-nums}#run .cd span{font:600 1.9vh Barlow}
+#run .cd.y{background:#ffd600;color:#111}#run .cd.r{background:#d32f2f;color:#fff}
+#run .pp{background:#3a2a00;border:2px solid var(--gold);border-radius:1vh;padding:1vh 1vw;font-size:2.2vh;white-space:pre-wrap;max-height:16vh;overflow:hidden}
+#run .pp b{color:var(--gold);font:700 1.9vh "Barlow Condensed";letter-spacing:.08em;display:block}
+#run .prior{font:500 2.4vh Barlow}#run .prior small{display:block;color:var(--mute);font-size:1.8vh}
+#run .chip.also{opacity:.85}
+#run.avail .avbox{display:grid;place-items:center;text-align:center;padding:4vh 4vw}
+#run.avail .top{background:#2e7d32;color:#fff}
+#run .avu{font:700 18vh/1 "Barlow Condensed"}#run .avt{font:600 6vh/1.1 "Barlow Condensed";margin-top:2vh}#run .avh{font:700 7vh/1.05 "Barlow Condensed";color:var(--gold);margin-top:1vh}
+#run .avs{font:500 2.6vh Barlow;color:var(--mute);margin-top:3vh}
+#activebar{display:grid;gap:.4vh;padding:.6vh 1.4vw 0;background:var(--bg)}
+.act{display:flex;align-items:center;gap:1vw;padding:.8vh 1vw;border-radius:.8vh;color:#fff;font:600 2.3vh Barlow;cursor:pointer;border:0;text-align:left;width:100%}
+.act.ems{background:var(--blue)}.act.fire{background:var(--red)}.act b{font:700 2.6vh "Barlow Condensed";letter-spacing:.05em}
+.act .ad{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.act .st{font-size:2vh;background:#0004;padding:.2vh .6vw;border-radius:.6vh}
+.amb{display:grid;gap:.5vh}.amb h4{margin:0;font:700 1.7vh Barlow;color:var(--mute);text-transform:uppercase;letter-spacing:.08em}
+.amb .u{display:flex;justify-content:space-between;align-items:center;gap:.6vw;padding:.5vh .7vw;border-radius:.7vh;background:var(--panel2);font:600 2.1vh Barlow}
+.amb .u b{font:700 2.6vh "Barlow Condensed"}.amb .u span{font-size:1.7vh;padding:.2vh .5vw;border-radius:.5vh}
+.amb .u.aok span{background:#1f7a41;color:#fff}.amb .u.busy span{background:#f2b51a;color:#1a1300}
+.wxic{font-size:6vh;line-height:1}
+.cal{display:grid;gap:1.2vh}.cal .ev{display:grid;grid-template-columns:14vw 1fr;gap:1.4vw;align-items:center;background:var(--panel);border-radius:1vh;padding:1.4vh 1.4vw}
+.cal .when{font:700 3vh/1.1 "Barlow Condensed";color:var(--gold)}.cal .when small{display:block;font:500 2vh Barlow;color:var(--mute)}
+.cal .tt{font:700 3.6vh/1.1 "Barlow Condensed"}.cal .lo{font-size:2.1vh;color:var(--mute)}
+body.day #run .pp{background:#fff4d6}body.day .amb .u{background:#eef1f4}
 #run .top{display:flex;align-items:center;gap:2vw;padding:2vh 2.5vw;color:#fff}
-#run.ems .top{background:var(--blue)}#run.fire .top{background:var(--red)}
+.panel.ems .top{background:var(--blue)}.panel.fire .top{background:var(--red)}
 #run .kind{font:700 8vh/1 "Barlow Condensed";letter-spacing:.04em}
 #run .pri{font:700 4vh "Barlow Condensed";background:#0004;padding:.4vh 1.2vw;border-radius:1vh}
 #run .elapsed{margin-left:auto;text-align:right;font:600 2.2vh Barlow}
@@ -162,7 +190,7 @@ iframe.fill{border:0;width:100%;height:100%;border-radius:1vh;background:#111}
 #run .map iframe{position:absolute;inset:0}
 #run .bar{height:1vh;background:#fff3}
 #run .bar i{display:block;height:100%;background:#fff;width:100%;transition:width 1s linear}
-@media(prefers-reduced-motion:no-preference){#run.flash .top{animation:fl 1s 6}@keyframes fl{50%{filter:brightness(1.6)}}}
+@media(prefers-reduced-motion:no-preference){#run.flash .panel.new .top,#run.flash>.runs>.panel:only-child .top{animation:fl 1s 6}@keyframes fl{50%{filter:brightness(1.6)}}}
 
 /* ---------- overlays ---------- */
 .overlay{position:fixed;inset:0;z-index:80;display:grid;place-items:center;background:#000c}
@@ -219,7 +247,10 @@ body.mouse #gear{opacity:1}
   .news{grid-template-columns:1fr;height:auto;gap:10px}.ncol{padding:10px;gap:8px}.nh{font-size:18px}.nt2{font-size:15px}.nsum{font-size:13px}.ns{font-size:11px}
   .body.flush{min-height:60dvh}
   /* run screen */
-  #run{overflow:auto;grid-template-rows:auto auto auto}
+  #run{overflow:auto;grid-template-rows:auto auto}#run.two .runs{grid-template-columns:1fr}#run .panel{grid-template-rows:auto auto}
+  #run .cd b{font-size:28px}#run .avu{font-size:70px}#run .avt{font-size:26px}#run .avh{font-size:30px}
+  .act{font-size:13px}.act b{font-size:15px}.amb .u{font-size:12px}.amb .u b{font-size:15px}.wxic{font-size:26px}
+  .cal .ev{grid-template-columns:90px 1fr}.cal .when{font-size:15px}.cal .tt{font-size:17px}
   #run .top{padding:10px 12px;gap:10px;flex-wrap:wrap}#run .kind{font-size:30px}#run .pri{font-size:18px;padding:2px 8px}
   #run .elapsed{font-size:11px}#run .elapsed b{font-size:28px}
   #run .mid{grid-template-columns:1fr!important;padding:12px;gap:12px}
@@ -242,9 +273,11 @@ body.mouse #gear{opacity:1}
     <div class="plt" id="plt">&nbsp;</div>
     <div class="staffbox" id="staffbox"><div class="big" id="staffBig">-</div><div class="lbl" id="staffLbl"></div></div>
     <div class="wx" id="wxSide"></div>
+    <div class="amb hide" id="ambSide"></div>
     <div class="clock"><div class="tm" id="tm">--:--</div><div class="dt" id="dt"></div></div>
   </aside>
   <main id="main">
+    <div id="activebar" class="hide"></div>
     <div id="alertbar" class="hide"></div>
     <div id="slides"></div>
   </main>
@@ -277,7 +310,7 @@ body.mouse #gear{opacity:1}
   <h2>Display settings</h2>
   <div class="row2">
     <label>Seconds per slide<input type="number" id="sRot" min="5" max="300"></label>
-    <label>Run screen seconds<input type="number" id="sRun" min="15" max="900"></label>
+    <label>Run screen countdown (seconds)<input type="number" id="sRun" min="30" max="900"></label>
   </div>
   <label>Slides in rotation</label>
   <div class="checks" id="sSlides"></div>
@@ -285,7 +318,10 @@ body.mouse #gear{opacity:1}
     <label>Volume<input type="range" id="sVol" min="0" max="1" step="0.05"></label>
     <label>Screen name<input id="sName" placeholder="Station 19-1"></label>
   </div>
-  <label>Station address (start of route)<input id="sStation"></label>
+  <div class="row2">
+    <label>Station address (start of route)<input id="sStation"></label>
+    <label>Screen ID (bay, dayroom…)<input id="sScreen" placeholder="bay"></label>
+  </div>
   <div class="row2">
     <label>Colors<select id="sTheme"><option value="auto">Auto: day 0600-1800, night 1800-0600</option><option value="day">Always day (bright)</option><option value="night">Always night (dark)</option></select></label>
     <label>Traffic map zoom (12 far, 17 close)<input type="number" id="sZoom" min="10" max="17"></label>
@@ -299,6 +335,8 @@ body.mouse #gear{opacity:1}
     <button type="button" class="btn go" id="tFire">Fire run screen</button>
     <button type="button" class="btn" id="tWarn" style="background:#d32f2f;border-color:#d32f2f;color:#fff">Weather warning</button>
     <button type="button" class="btn" id="tWatch" style="background:#ffd600;border-color:#ffd600;color:#111">Weather watch</button>
+    <button type="button" class="btn blue" id="tTwo">Two calls</button>
+    <button type="button" class="btn" id="tAvail" style="background:#2e7d32;border-color:#2e7d32;color:#fff">Unit available</button>
     <button type="button" class="btn" id="tTone">Play tones</button>
     <button type="button" class="btn" id="tFull">Full screen</button>
   </div>
@@ -317,8 +355,9 @@ const RADAR='https://radar.weather.gov/ridge/standard/KDIX_loop.gif';
 const TOWNS={BRYA:'Bryn Athyn',LMOR:'Lower Moreland Township',UMOR:'Upper Moreland Township',ABGN:'Abington Township',CHEL:'Cheltenham Township',UDUB:'Upper Dublin Township',HATB:'Hatboro',SHAM:'Upper Southampton Township',PHIL:'Philadelphia'};
 const DEMO=new URLSearchParams(location.search).has('demo');
 const MEMBER_COLS='id,eso_id,name,eso_name,title,ems_level,fire_quals,member_type,is_officer,active';
-const SLIDES={roster:'On duty',tomorrow:"Tomorrow's crew",apparatus:'Apparatus status',announce:'Announcements',calls:'Recent calls',weather:'Weather',news:'News & sports',traffic:'Traffic',deck:'Google Slides deck'};
-const DEF={rot:20,run:120,vol:0.8,name:'Station 19-1',station:'2815 Buck Rd, Bryn Athyn, PA 19009',appCsv:'',annCsv:'',deckUrl:'',tzoom:15,theme:'auto',slides:{roster:true,tomorrow:true,news:true,apparatus:true,announce:true,calls:true,weather:true,traffic:true,deck:false}};
+const VERSION='2026-11-25b';
+const SLIDES={roster:'On duty',tomorrow:"Tomorrow's crew",calendar:'Upcoming events',apparatus:'Apparatus status',announce:'Announcements',calls:'Recent calls',weather:'Weather',news:'News & sports',traffic:'Traffic',deck:'Google Slides deck'};
+const DEF={screen:'',rot:20,run:90,vol:0.8,name:'Station 19-1',station:'2815 Buck Rd, Bryn Athyn, PA 19009',appCsv:'',annCsv:'',deckUrl:'',tzoom:15,theme:'auto',slides:{roster:true,tomorrow:true,calendar:true,news:true,apparatus:true,announce:true,calls:true,weather:true,traffic:true,deck:false}};
 // Samples shown until a Google Sheet is connected (Settings > sheet links)
 const SAMPLE_APP=[
   {unit:'E19-1',type:'Engine',status:'In Service'},{unit:'SD19-1',type:'Squad',status:'In Service'},{unit:'SS19-1',type:'Support',status:'Out of Service',note:'Sample: body damage repair',ret:'Dec 2'},
@@ -341,10 +380,13 @@ const title=s=>String(s||'').toLowerCase().replace(/\b\w/g,c=>c.toUpperCase());
 // settings (per screen, kept in this browser)
 let cfg=structuredClone(DEF);
 try{const s=JSON.parse(localStorage.getItem('bafcDisplay')||'null');if(s)cfg={...cfg,...s,slides:{...DEF.slides,...(s.slides||{})}}}catch(e){}
+if(cfg.run===120)cfg.run=90; // 2026-11-25: run screen is a 1:30 countdown
+{const q=new URLSearchParams(location.search).get('screen');if(q)cfg.screen=q.toLowerCase()}
 const saveCfg=()=>{try{localStorage.setItem('bafcDisplay',JSON.stringify(cfg))}catch(e){}};
 
 const sb=DEMO?null:window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{persistSession:true,autoRefreshToken:true}});
-let me=null,members=[],settings={},eso=[],unav=[],vols=[],overrides=[],calls=[],canCalls=false,lastLoad=null;
+let me=null,members=[],settings={},eso=[],unav=[],vols=[],overrides=[],calls=[],canCalls=false,canManage=false,lastLoad=null;
+let ambs=[],clears=[],preplans=[],events=[];
 
 // ================= sign in =================
 let pendingEmail='';
@@ -363,8 +405,8 @@ let started=false;
 async function start(session){
   if(!session){$('#login').classList.remove('hide');$('#app').classList.add('hide');return}
   $('#login').classList.add('hide');
-  const [{data},{data:myId},{data:cv}]=await Promise.all([sb.from('members').select(MEMBER_COLS).eq('active',true),sb.rpc('my_member_id'),sb.rpc('can_view_calls')]);
-  members=data||[];me=members.find(m=>m.id===myId);canCalls=!!cv;
+  const [{data},{data:myId},{data:cv},{data:cm}]=await Promise.all([sb.from('members').select(MEMBER_COLS).eq('active',true),sb.rpc('my_member_id'),sb.rpc('can_view_calls'),sb.rpc('can_manage_screens')]);
+  members=data||[];me=members.find(m=>m.id===myId);canCalls=!!cv;canManage=!!cm;
   if(!me){$('#login').classList.remove('hide');$('#lErr').textContent=session.user.email+' is not on the member list.';return}
   boot();
 }
@@ -377,17 +419,21 @@ async function load(){
     sb.from('unavailability').select('*').is('cancelled_at',null).gt('end_at',now.toISOString()),
     sb.from('volunteer_shifts').select('*').is('cancelled_at',null).gt('end_at',now.toISOString()),
     sb.from('roster_overrides').select('*').is('restored_at',null),sb.from('members').select(MEMBER_COLS).eq('active',true)];
-  if(canCalls) q.push(sb.from('calls').select('incident,kind,code,nature,priority,place,address,apt,cross_streets,map_page,mun,units,ems_units,fire_units,run_screen,additional_info,first_dispatch_email,last_dispatch_email,closed_at').gt('updated_at',from).order('last_dispatch_email',{ascending:false,nullsFirst:false}).limit(40));
-  const [s,e,u,v,o,m,c]=await Promise.all(q);
+  q.push(sb.from('unit_status').select('*').order('unit'),sb.from('events').select('*').gte('starts_at',new Date(+now-12*H).toISOString()).lte('starts_at',new Date(+now+21*24*H).toISOString()).order('starts_at').limit(30));
+  if(canCalls) q.push(sb.from('calls').select('incident,kind,code,nature,priority,place,address,apt,cross_streets,map_page,mun,units,ems_units,fire_units,run_screen,additional_info,prior_events,first_dispatch_email,last_dispatch_email,closed_at').gt('updated_at',from).order('last_dispatch_email',{ascending:false,nullsFirst:false}).limit(40),
+    sb.from('unit_clears').select('*').gt('created_at',from).order('created_at',{ascending:false}).limit(20),sb.from('preplans').select('address,mun,place,notes'));
+  const [s,e,u,v,o,m,us,ev,c,uc,pp]=await Promise.all(q);
   if(e.error){showStale('Data error: '+e.error.message);return}
   settings=Object.fromEntries((s.data||[]).map(r=>[r.key,r.value]));
   eso=e.data||[];unav=u.data||[];vols=v.data||[];overrides=o.data||[];if(m.data)members=m.data;
+  ambs=us.data||[];events=ev.data||[];if(pp&&pp.data)preplans=pp.data;
   if(c&&c.data){calls=c.data;checkNewCalls()}
-  lastLoad=new Date();showStale('');renderAll();
+  if(uc&&uc.data){clears=uc.data;checkClears()}
+  lastLoad=new Date();showStale('');renderAll();renderActive();renderAmb();
 }
 function subscribe(){
   const ch=sb.channel('display');let t;const re=()=>{clearTimeout(t);t=setTimeout(load,500)};
-  ['eso_shifts','unavailability','volunteer_shifts','roster_overrides','settings','calls'].forEach(x=>ch.on('postgres_changes',{event:'*',schema:'public',table:x},re));
+  ['eso_shifts','unavailability','volunteer_shifts','roster_overrides','settings','calls','unit_clears','unit_status','events','preplans'].forEach(x=>ch.on('postgres_changes',{event:'*',schema:'public',table:x},re));
   ch.subscribe();
 }
 function showStale(msg){$('#stale').textContent=msg;$('#stale').classList.toggle('hide',!msg)}
@@ -506,10 +552,11 @@ async function loadWx(){
 }
 function renderWxSide(){
   if(!wx.now){$('#wxSide').innerHTML='';return}
-  const days=wx.periods.filter(p=>p.isDaytime).slice(0,3);
-  $('#wxSide').innerHTML=`<div class="wxnow"><div class="t">${wx.now.temperature}°</div><div class="c">${esc(wx.now.shortForecast)}<br>Wind ${esc(wx.now.windSpeed)} ${esc(wx.now.windDirection)}</div></div>
-   <div class="wxdays">${days.map(d=>{const n=wx.periods.find(p=>!p.isDaytime&&D(p.startTime)>D(d.startTime));return `<div class="wxd"><span>${esc(d.name)}</span><span>${d.temperature}° / ${n?n.temperature+'°':'-'}</span></div>`}).join('')}</div>`;
+  $('#wxSide').innerHTML=`<div class="wxnow" title="${esc(wx.now.shortForecast)}"><div class="wxic">${wxIcon(wx.now.shortForecast,wx.now.isDaytime)}</div><div class="t">${wx.now.temperature}°</div></div>`;
 }
+function wxIcon(f,day=true){f=String(f||'').toLowerCase();
+  return /thunder|t-storm/.test(f)?'⛈️':/snow|flurr|sleet|ice|freezing/.test(f)?'🌨️':/rain|shower|drizzle/.test(f)?'🌧️':/fog|haze|smoke|mist/.test(f)?'🌫️':/wind|breezy|blustery/.test(f)?'💨':
+    /mostly cloudy|overcast|^cloudy/.test(f)?'☁️':/partly|mostly sunny|mostly clear/.test(f)?(day?'⛅':'☁️'):/sunny|clear|fair/.test(f)?(day?'☀️':'🌙'):'🌡️'}
 function allAlerts(){return [...(wx.sim||[]),...wx.alerts].sort((p,q)=>['warning','watch','advisory'].indexOf(p.level)-['warning','watch','advisory'].indexOf(q.level))}
 function renderAlertBar(){
   const A=allAlerts(),L=A.slice(0,3);$('#alertbar').classList.toggle('hide',!L.length);
@@ -518,10 +565,10 @@ function renderAlertBar(){
 }
 function showWxAlert(a){ // full-screen takeover for 30 seconds
   if(!$('#run').classList.contains('hide')) return;
-  const r=$('#run');r.className='wx-'+(a.level||'advisory');
-  r.innerHTML=`<div class="top"><div class="kind">${a.level==='warning'?'WEATHER WARNING':a.level==='watch'?'WEATHER WATCH':'WEATHER ADVISORY'}</div></div>
+  const r=$('#run');r.className='wx-'+(a.level||'advisory');r.dataset.mode='wx';
+  r.innerHTML=`<div class="runs"><div class="panel"><div class="top"><div class="kind">${a.level==='warning'?'WEATHER WARNING':a.level==='watch'?'WEATHER WATCH':'WEATHER ADVISORY'}</div></div>
    <div class="mid" style="grid-template-columns:1fr"><div class="info"><div class="nature">${esc(a.event)}</div><div class="val">${esc(a.headline||'')}</div>
-   ${a.ends?`<div class="lbl">Until</div><div class="val">${esc(fmt(D(a.ends)))}</div>`:''}</div></div><div class="bar"><i id="runbar"></i></div>`;
+   ${a.ends?`<div class="lbl">Until</div><div class="val">${esc(fmt(D(a.ends)))}</div>`:''}</div></div></div></div><div class="bar"><i id="runbar"></i></div>`;
   r.classList.remove('hide');tone('alert');runTimer(30);
 }
 
@@ -538,6 +585,10 @@ function slideHtml(k){
     const dname=tw?tw[0].toLocaleDateString('en-US',{weekday:'long',month:'short',day:'numeric'}):'';
     return {h:tw?"Tomorrow's Crew":'On Duty',sub:tw?`${dname} · 0600 to 0600`+(R.platoon.length?' · '+R.platoon.map(p=>p+' Platoon').join(' / '):''):'From ESO Scheduling and member sign-ins',fit:true,
       body:`<div class="roster">${b||`<div class="empty">${tw?'No shifts scheduled for tomorrow yet.':'No one is on duty.'}</div>`}</div>`}}
+  if(k==='calendar'){const L=(events.length?events:DEMO?demoEvents():[]).filter(e=>D(e.ends_at||e.starts_at)>=new Date()).slice(0,6),smp=!events.length&&DEMO;
+    const when=e=>{const d=D(e.starts_at);return `${esc(d.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'}))}<small>${e.all_day?'All day':esc(hm(d))}</small>`};
+    return {h:'Upcoming Events',sub:(smp?'<span class="sample">SAMPLE</span> ':'')+'Station Google Calendar',raw:true,
+      body:`<div class="cal">${L.map(e=>`<div class="ev"><div class="when">${when(e)}</div><div><div class="tt">${esc(e.title)}</div>${e.location?`<div class="lo">${esc(e.location)}</div>`:''}</div></div>`).join('')||'<div class="empty">No events on the station calendar yet.</div>'}</div>`}}
   if(k==='weather'){
     const p=wx.periods.slice(0,6);
     return {h:'Weather',sub:'National Weather Service · Bryn Athyn',body:`<div class="wxgrid"><div class="fc">${p.map(x=>`<div class="fcp"><div class="pn">${esc(x.name)}</div><div class="pt">${x.temperature}°</div><div class="ps">${esc(x.shortForecast)} · ${esc(x.windSpeed)}</div></div>`).join('')||'<div class="empty">Weather unavailable</div>'}</div>
@@ -563,7 +614,7 @@ function slideHtml(k){
       <div>${(c.units||[]).map(u=>`<span class="chip${ours.includes(u)?' ours':''}">${esc(u)}</span>`).join('')}</div></div>`}).join('')||'<div class="empty">No calls in the last 24 hours.</div>'}</div>`}}
   return {h:k,sub:'',body:''};
 }
-function buildOrder(){order=[];for(const k of Object.keys(SLIDES)){if(!cfg.slides[k])continue;if(k==='calls'&&!canCalls&&!DEMO)continue;if(k==='deck'&&!cfg.deckUrl)continue;
+function buildOrder(){order=[];for(const k of Object.keys(SLIDES)){if(!cfg.slides[k])continue;if(k==='calls'&&!canCalls&&!DEMO)continue;if(k==='deck'&&!cfg.deckUrl)continue;if(k==='calendar'&&!events.length&&!DEMO)continue;
   if(k==='announce')anns().forEach((_,i)=>order.push('ann:'+i));else order.push(k)}if(!order.length)order=['roster']}
 function showSlide(i){
   buildOrder();idx=(i+order.length)%order.length;const k=order[idx],s=slideHtml(k);
@@ -596,7 +647,7 @@ function checkNewCalls(){
     const key=c.incident+'|'+c.run_screen;
     const fresh=now-D(c.last_dispatch_email)<6*60*1000; // email time within 6 minutes (relay checks every minute)
     if(firstCheck||!fresh){shownCalls.add(key);continue}
-    if(!shownCalls.has(key)){shownCalls.add(key);showRun(c);break}
+    if(!shownCalls.has(key)){shownCalls.add(key);showRun(c)}
   }
   firstCheck=false;
 }
@@ -615,32 +666,91 @@ async function fillStreet(c,token){
   box.innerHTML=g?`<span class="tag">STREET VIEW</span><iframe class="fill" src="https://maps.google.com/maps?q=&layer=c&cbll=${g.lat},${g.lon}&cbp=11,0,0,0,0&output=svembed" title="Street view"></iframe>`
                  :`<span class="tag">AERIAL</span><iframe class="fill" src="${pinUrl(c)}" title="Aerial map"></iframe>`;
 }
-let runToken=0;
-let runT=null,runEnd=0,elapsedT=null;
-function showRun(c){
-  const kind=c.run_screen==='fire'?'fire':'ems',ours=[...(c.fire_units||[]),...(c.ems_units||[])];
-  const r=$('#run');r.className=kind+' flash';
-  const disp=D(c.first_dispatch_email||c.last_dispatch_email);
-  r.innerHTML=`<div class="top"><div class="kind">${kind==='fire'?'FIRE DISPATCH':'EMS DISPATCH'}</div>${c.priority?`<div class="pri">${esc(c.priority)}</div>`:''}
-    <div class="elapsed">Dispatched ${esc(hm(disp))}<b id="el">0:00</b></div></div>
+// ours = 319 ambulances/officers and 19-1 apparatus; everything else in Units Due is "also due"
+const isOurs=u=>/319/.test(u)||/19-1$/.test(u);
+// Prior Events lines look like "E2604171 01-16-2026 ABDOMINAL PAINS"
+function priors(c){const out=[],yr=Date.now()-365*24*H;
+  for(const m of String(c.prior_events||'').matchAll(/([EF]\d{6,})\s+(\d{2})-(\d{2})-(\d{4})\s+([^\n]*)/g)){
+    const d=new Date(+m[4],m[2]-1,+m[3]);if(+d>=yr&&m[1]!==c.incident)out.push({inc:m[1],d,what:m[5].trim()})}
+  return out.sort((a,b)=>b.d-a.d)}
+const normAddr=a=>String(a||'').toUpperCase().replace(/\s+/g,' ').replace(/\b(ROAD)\b/g,'RD').replace(/\b(STREET)\b/g,'ST').replace(/\b(AVENUE)\b/g,'AVE').replace(/\b(DRIVE)\b/g,'DR').replace(/\b(LANE)\b/g,'LN').replace(/\b(PIKE)\b/g,'PK').trim();
+const preplanFor=c=>c.address&&(preplans.length?preplans:DEMO?demoPreplans():[]).find(p=>normAddr(p.address)===normAddr(c.address)&&(!p.mun||!c.mun||p.mun===c.mun));
+let runToken=0,runCalls=[];
+let runT=null,runEnd=0,cdT=null;
+function panelHtml(c,isNew){
+  const kind=c.run_screen==='fire'?'fire':'ems',ours=(c.units||[]).filter(isOurs),also=(c.units||[]).filter(u=>!isOurs(u));
+  const disp=D(c.first_dispatch_email||c.last_dispatch_email),pr=priors(c),pp=preplanFor(c),two=runCalls.length>1;
+  return `<div class="panel ${kind}${isNew?' new':''}"><div class="top"><div class="kind">${kind==='fire'?'FIRE DISPATCH':'EMS DISPATCH'}</div>${c.priority?`<div class="pri">${esc(c.priority)}</div>`:''}
+    <div class="cd" data-cd><span>Dispatched ${esc(hm(disp))}</span><b>1:30</b></div></div>
    <div class="mid"><div class="info">
      <div class="nature">${esc(title(c.nature||c.code||'Call'))}</div>
      ${c.place?`<div class="place">${esc(c.place)}</div>`:''}
      <div><div class="addr">${esc(c.address||'Address pending')}</div>${c.apt?`<div class="apt">Apt ${esc(c.apt)}</div>`:''}</div>
      <div><div class="lbl">Cross streets</div><div class="val">${esc(c.cross_streets||'-')}</div></div>
      <div><div class="lbl">Municipality · Map</div><div class="val">${esc(TOWNS[c.mun]||c.mun||'-')}${c.map_page?' · '+esc(c.map_page):''}</div></div>
-     <div class="units"><div class="lbl">Units due</div>${(c.units||[]).map(u=>`<span class="chip${ours.includes(u)?' ours':''}">${esc(u)}</span>`).join('')}</div>
-     ${c.additional_info&&!/NOT ON FILE/i.test(c.additional_info)?`<div><div class="lbl">Location notes</div><div class="notes">${esc(c.additional_info)}</div></div>`:''}
-   </div><div class="maps">${c.address?`<div class="map"><span class="tag">ROUTE FROM STATION</span><iframe class="fill" src="${routeUrl(c)}" title="Route"></iframe></div><div class="map" id="sv"><span class="tag">STREET VIEW</span></div>`:''}</div></div>
-   <div class="bar"><i id="runbar"></i></div>`;
-  r.classList.remove('hide');tone(kind);runTimer(cfg.run);
-  const tk=++runToken;if(c.address)fillStreet(c,tk);
-  clearInterval(elapsedT);const tick=()=>{const s=Math.max(0,Math.floor((Date.now()-disp)/1000));const e=$('#el');if(e)e.textContent=Math.floor(s/60)+':'+String(s%60).padStart(2,'0')};tick();elapsedT=setInterval(tick,1000);
+     <div class="units"><div class="lbl">Our units</div>${ours.map(u=>`<span class="chip ours">${esc(u)}</span>`).join('')||'<span class="val">-</span>'}</div>
+     ${also.length?`<div class="units"><div class="lbl">Also due</div>${also.map(u=>`<span class="chip also">${esc(u)}</span>`).join('')}</div>`:''}
+     ${pp?`<div class="pp"><b>PRE-PLAN${pp.place?' · '+esc(pp.place.toUpperCase()):''}</b>${esc(pp.notes||'')}</div>`:''}
+     ${!two&&c.additional_info&&!/NOT ON FILE/i.test(c.additional_info)?`<div><div class="lbl">Location notes</div><div class="notes">${esc(c.additional_info)}</div></div>`:''}
+     <div class="prior"><div class="lbl">Prior calls here · last 12 months</div>${pr.length?`<b>${pr.length}</b> prior call${pr.length===1?'':'s'}<small>${pr.slice(0,3).map(x=>esc(x.d.toLocaleDateString('en-US',{month:'numeric',day:'numeric',year:'2-digit'}))+' '+esc(title(x.what))).join(' · ')}</small>`:'None'}</div>
+   </div><div class="maps">${c.address?`<div class="map"><span class="tag">ROUTE FROM STATION</span><iframe class="fill" src="${routeUrl(c)}" title="Route"></iframe></div>${two?'':'<div class="map" id="sv"><span class="tag">STREET VIEW</span></div>'}`:''}</div></div></div>`;
 }
-function runTimer(sec){
-  clearTimeout(runT);runEnd=Date.now()+sec*1000;
+function showRun(c){
+  const r=$('#run'),open=!r.classList.contains('hide')&&r.dataset.mode==='call';
+  runCalls=open?[...runCalls.filter(x=>x.incident!==c.incident),c].slice(-2):[c];
+  r.dataset.mode='call';
+  r.className=(runCalls.length>1?'two ':'')+'flash';
+  r.innerHTML=`<div class="runs">${runCalls.map(x=>panelHtml(x,x===c)).join('')}</div><div class="bar"><i id="runbar"></i></div>`;
+  r.classList.remove('hide');tone(c.run_screen==='fire'?'fire':'ems');runTimer(cfg.run||90,true);
+  const tk=++runToken;if(runCalls.length===1&&c.address)fillStreet(c,tk);
+}
+function closeRun(){$('#run').classList.add('hide');$('#run').dataset.mode='';clearTimeout(runT);clearInterval(cdT);runCalls=[];
+  if(clearQ.length)setTimeout(nextClear,800)}
+// countdown: 1:30 by default, yellow with 1:00 left, red with 0:30 left, then back to rotation
+function runTimer(sec,countdown){
+  clearTimeout(runT);clearInterval(cdT);runEnd=Date.now()+sec*1000;
   const b=$('#runbar');if(b){b.style.transition='none';b.style.width='100%';requestAnimationFrame(()=>{b.style.transition=`width ${sec}s linear`;b.style.width='0'})}
-  runT=setTimeout(()=>{$('#run').classList.add('hide');clearInterval(elapsedT)},sec*1000);
+  if(countdown){const tick=()=>{const left=Math.max(0,Math.ceil((runEnd-Date.now())/1000));
+      document.querySelectorAll('#run [data-cd]').forEach(e=>{e.querySelector('b').textContent=Math.floor(left/60)+':'+String(left%60).padStart(2,'0');
+        e.classList.toggle('y',left<=60&&left>30);e.classList.toggle('r',left<=30)})};tick();cdT=setInterval(tick,250)}
+  runT=setTimeout(closeRun,sec*1000);
+}
+
+// ================= active calls banner (until the clear report) =================
+const activeCalls=()=>calls.filter(c=>c.run_screen&&!c.closed_at&&c.first_dispatch_email&&Date.now()-D(c.first_dispatch_email)<4*H);
+function renderActive(){
+  const L=activeCalls(),bar=$('#activebar');bar.classList.toggle('hide',!L.length);
+  bar.innerHTML=L.map(c=>{const st=(c.ems_units||[]).map(u=>{const a=ambs.find(x=>x.unit===u);return a&&a.incident===c.incident?u+' '+a.status:''}).filter(Boolean).join(' · ');
+    const mins=Math.round((Date.now()-D(c.first_dispatch_email))/6e4);
+    return `<button class="act ${c.run_screen}" data-inc="${esc(c.incident)}"><b>ACTIVE ${c.run_screen==='fire'?'FIRE':'EMS'}</b><span class="ad">${esc(title(c.nature||''))} · ${esc(c.address||'')}${c.mun?' · '+esc(TOWNS[c.mun]||c.mun):''}</span>${st?`<span class="st">${esc(st)}</span>`:''}<span class="st">${mins} min</span></button>`}).join('');
+  bar.querySelectorAll('.act').forEach(b=>b.onclick=()=>{const c=calls.find(x=>x.incident===b.dataset.inc);if(c)showRun(c)});
+}
+setInterval(()=>{renderActive();},60*1000);
+
+// ================= our ambulances (WebCAD, logged-on units only) =================
+function renderAmb(){
+  const L=(ambs.length?ambs:DEMO?demoAmbs():[]),box=$('#ambSide');box.classList.toggle('hide',!L.length);
+  box.innerHTML=`<h4>Ambulances</h4>`+L.map(a=>{const avail=/^available$/i.test(a.status);
+    return `<div class="u ${avail?'aok':'busy'}"><b>${esc(a.unit)}</b><span>${esc(avail?'Available':a.status)}</span></div>`}).join('');
+}
+
+// ================= unit available (clear report) =================
+const shownClears=new Set();let firstClear=true;const clearQ=[];
+function checkClears(){
+  for(const u of clears){const key=u.incident+'|'+u.unit;
+    if(firstClear||Date.now()-D(u.created_at)>6*60*1000){shownClears.add(key);continue}
+    if(!shownClears.has(key)){shownClears.add(key);clearQ.push(u)}}
+  firstClear=false;nextClear();
+}
+const hospName=code=>code?((settings.hospital_codes||{})[code]||code):'';
+function nextClear(){
+  const r=$('#run');if(!r.classList.contains('hide')||!clearQ.length)return; // never cover a dispatch or weather takeover
+  const u=clearQ.shift(),h=hospName(u.hospital_code);
+  r.dataset.mode='avail';r.className='avail';
+  r.innerHTML=`<div class="runs"><div class="panel"><div class="top"><div class="kind">UNIT AVAILABLE</div></div>
+    <div class="avbox"><div><div class="avu">${esc(u.unit)}</div><div class="avt">is now available${h?' from':''}</div>${h?`<div class="avh">${esc(h)}</div>`:''}
+    <div class="avs">${u.available_at?'Cleared '+esc(hm(D(u.available_at))):''}${u.incident?' · '+esc(u.incident):''}</div></div></div></div></div><div class="bar"><i id="runbar"></i></div>`;
+  r.classList.remove('hide');tone('clear');runTimer(20);
 }
 
 // ================= tones (placeholders until BAFC sound files are supplied) =================
@@ -651,13 +761,14 @@ function tone(kind){
     const beep=(f,d,f2)=>{const o=ac.createOscillator();o.type='square';o.frequency.setValueAtTime(f,t);if(f2)o.frequency.linearRampToValueAtTime(f2,t+d);o.connect(g);o.start(t);o.stop(t+d);t+=d+.03};
     if(kind==='ems') for(let i=0;i<4;i++){beep(960,.35);beep(770,.35)}        // hi-lo
     else if(kind==='fire') for(let i=0;i<3;i++){beep(500,.9,1400);t+=.15}      // rising
+    else if(kind==='clear'){beep(660,.25);beep(880,.4)}                          // unit available chime
     else for(let i=0;i<3;i++){beep(1050,.18);beep(1050,.18);t+=.3}             // weather alert
   }catch(e){console.warn('audio',e)}
 }
 
 // ================= settings panel =================
 let mouseT;document.addEventListener('mousemove',()=>{document.body.classList.add('mouse');clearTimeout(mouseT);mouseT=setTimeout(()=>document.body.classList.remove('mouse'),3000)});
-document.addEventListener('keydown',e=>{if(e.target.matches('input'))return;if(e.key==='s'||e.key==='S')openSettings();if(e.key==='Escape'){$('#settings').classList.add('hide');$('#run').classList.add('hide')}if(e.key==='ArrowRight')showSlide(idx+1);if(e.key==='ArrowLeft')showSlide(idx-1)});
+document.addEventListener('keydown',e=>{if(e.target.matches('input'))return;if(e.key==='s'||e.key==='S')openSettings();if(e.key==='Escape'){$('#settings').classList.add('hide');closeRun()}if(e.key==='ArrowRight')showSlide(idx+1);if(e.key==='ArrowLeft')showSlide(idx-1)});
 $('#gear').onclick=openSettings;
 // phones: swipe left/right to change slides; rotation pauses 60 s after you touch the screen
 let tx=null,ty=null;
@@ -667,21 +778,21 @@ document.addEventListener('touchend',e=>{if(tx==null)return;const dx=e.changedTo
   if(Math.abs(dx)>60&&Math.abs(dx)>Math.abs(dy)*1.5){showSlide(idx+(dx<0?1:-1));clearTimeout(rotT);rotT=setTimeout(()=>showSlide(idx+1),60000)}
   else{clearTimeout(rotT);rotT=setTimeout(()=>showSlide(idx+1),60000)}},{passive:true});
 function openSettings(){
-  $('#sApp').value=cfg.appCsv;$('#sAnn').value=cfg.annCsv;$('#sDeck').value=cfg.deckUrl;$('#sRot').value=cfg.rot;$('#sRun').value=cfg.run;$('#sVol').value=cfg.vol;$('#sName').value=cfg.name;$('#sStation').value=cfg.station;$('#sTheme').value=cfg.theme||'auto';$('#sZoom').value=cfg.tzoom||15;
+  $('#sApp').value=cfg.appCsv;$('#sAnn').value=cfg.annCsv;$('#sDeck').value=cfg.deckUrl;$('#sRot').value=cfg.rot;$('#sRun').value=cfg.run;$('#sVol').value=cfg.vol;$('#sName').value=cfg.name;$('#sStation').value=cfg.station;$('#sScreen').value=cfg.screen||'';$('#sTheme').value=cfg.theme||'auto';$('#sZoom').value=cfg.tzoom||15;
   $('#sSlides').innerHTML=Object.entries(SLIDES).map(([k,l])=>`<label><input type="checkbox" data-s="${k}"${cfg.slides[k]?' checked':''}${k==='calls'&&!canCalls&&!DEMO?' disabled':''}> ${esc(l)}${k==='calls'&&!canCalls&&!DEMO?' (no access)':''}</label>`).join('');
-  $('#sMsg').textContent=DEMO?'Demo mode: sample data only.':(me?`Signed in as ${me.name}.`:'');
+  $('#sMsg').textContent=DEMO?'Demo mode: sample data only.':(me?`Signed in as ${me.name}. `+(canManage?(cfg.screen?`Save applies to screen "${cfg.screen}" for everyone.`:'Set a Screen ID to save settings centrally.'):'Settings are saved on this screen only.')+` Version ${VERSION}.`:'');
   $('#settings').classList.remove('hide');
 }
 $('#sf').addEventListener('submit',e=>{e.preventDefault();
-  cfg.rot=Math.max(5,+$('#sRot').value||20);cfg.run=Math.max(15,+$('#sRun').value||120);cfg.vol=+$('#sVol').value;cfg.name=$('#sName').value.trim()||DEF.name;cfg.station=$('#sStation').value.trim()||DEF.station;cfg.theme=$('#sTheme').value;cfg.tzoom=Math.min(17,Math.max(10,+$('#sZoom').value||15));applyTheme();cfg.appCsv=$('#sApp').value.trim();cfg.annCsv=$('#sAnn').value.trim();cfg.deckUrl=$('#sDeck').value.trim();
+  cfg.rot=Math.max(5,+$('#sRot').value||20);cfg.run=Math.max(15,+$('#sRun').value||120);cfg.vol=+$('#sVol').value;cfg.name=$('#sName').value.trim()||DEF.name;cfg.station=$('#sStation').value.trim()||DEF.station;cfg.screen=$('#sScreen').value.trim().toLowerCase().replace(/[^a-z0-9-]/g,'');cfg.theme=$('#sTheme').value;cfg.tzoom=Math.min(17,Math.max(10,+$('#sZoom').value||15));applyTheme();cfg.appCsv=$('#sApp').value.trim();cfg.annCsv=$('#sAnn').value.trim();cfg.deckUrl=$('#sDeck').value.trim();
   document.querySelectorAll('#sSlides [data-s]').forEach(c=>cfg.slides[c.dataset.s]=c.checked);
-  saveCfg();$('#settings').classList.add('hide');loadSheets().then(()=>{renderAll();showSlide(0)});
+  saveCfg();$('#settings').classList.add('hide');saveCentral();checkin();loadSheets().then(()=>{renderAll();showSlide(0)});
 });
 $('#sClose').onclick=()=>$('#settings').classList.add('hide');
 $('#sOut').onclick=()=>DEMO?location.href=location.pathname:sb.auth.signOut();
-const sample=k=>calls.find(c=>c.run_screen===k)||(k==='fire'
-  ?{incident:'F0000000',run_screen:'fire',kind:'FIRE',nature:'FIRE ALARM',priority:'F3',place:'SAMPLE COMMERCIAL BUILDING',address:'2875 HUNTINGDON PIKE',cross_streets:'BUCK RD AND PAPER MILL RD',mun:'BRYA',map_page:'27-01',units:['E19-1','SD19-1','E19','TW19'],fire_units:['E19-1','SD19-1'],ems_units:[],first_dispatch_email:new Date().toISOString()}
-  :{incident:'E0000000',run_screen:'ems',kind:'EMS',nature:'FALL VICTIM',priority:'E2',address:'2950 PAPER MILL RD',cross_streets:'HUNTINGDON PIKE AND BUCK RD',mun:'BRYA',map_page:'27-01',units:['319-2'],ems_units:['319-2'],fire_units:[],first_dispatch_email:new Date().toISOString()});
+const sample=k=>(DEMO?null:calls.find(c=>c.run_screen===k))||(k==='fire'
+  ?{incident:'F0000000',run_screen:'fire',kind:'FIRE',nature:'FIRE ALARM',priority:'F3',place:'SAMPLE COMMERCIAL BUILDING',address:'2875 HUNTINGDON PIKE',cross_streets:'BUCK RD AND PAPER MILL RD',mun:'BRYA',map_page:'27-01',units:['E19-1','SD19-1','AC19-1','E19','E7','TW19'],fire_units:['E19-1','SD19-1'],ems_units:[],prior_events:'F2601111 03-14-2026 FIRE ALARM\nF2599999 11-02-2025 FIRE ALARM',first_dispatch_email:new Date().toISOString()}
+  :{incident:'E0000000',run_screen:'ems',kind:'EMS',nature:'FALL VICTIM',priority:'E2',address:'2950 PAPER MILL RD',cross_streets:'HUNTINGDON PIKE AND BUCK RD',mun:'BRYA',map_page:'27-01',units:['319-2','NC381'],ems_units:['319-2'],fire_units:[],prior_events:'E2604171 01-16-2026 FALL VICTIM',first_dispatch_email:new Date().toISOString()});
 $('#tEms').onclick=()=>{$('#settings').classList.add('hide');showRun({...sample('ems'),first_dispatch_email:new Date().toISOString()})};
 $('#tFire').onclick=()=>{$('#settings').classList.add('hide');showRun({...sample('fire'),first_dispatch_email:new Date().toISOString()})};
 function simAlert(level){
@@ -692,7 +803,26 @@ function simAlert(level){
 $('#tWarn').onclick=()=>simAlert('warning');$('#tWatch').onclick=()=>simAlert('watch');
 $('#tTone').onclick=()=>{tone('ems');setTimeout(()=>tone('fire'),3400)};
 $('#tFull').onclick=()=>document.documentElement.requestFullscreen?.();
-$('#run').onclick=()=>{$('#run').classList.add('hide');clearTimeout(runT);clearInterval(elapsedT)};
+$('#run').onclick=closeRun;
+$('#tTwo').onclick=()=>{$('#settings').classList.add('hide');closeRun();const n=new Date().toISOString();showRun({...sample('ems'),first_dispatch_email:n});setTimeout(()=>showRun({...sample('fire'),first_dispatch_email:n}),1500)};
+$('#tAvail').onclick=()=>{$('#settings').classList.add('hide');closeRun();clearQ.push({incident:'E0000000',unit:'319-2',hospital_code:'AMH',available_at:new Date().toISOString()});nextClear()};
+
+// ================= central settings + heartbeat (screens table) =================
+const LOCAL_ONLY=['screen'];
+async function checkin(){
+  if(DEMO||!cfg.screen||!sb)return;
+  try{const {data,error}=await sb.rpc('screen_checkin',{p_id:cfg.screen,p_name:cfg.name,p_version:VERSION,p_agent:navigator.userAgent});
+    if(error){console.warn('checkin',error.message);return}
+    if(data&&Object.keys(data).length){const before=JSON.stringify(cfg);const next={...cfg,...data,slides:{...cfg.slides,...(data.slides||{})}};LOCAL_ONLY.forEach(k=>next[k]=cfg[k]);
+      if(JSON.stringify(next)!==before){cfg=next;saveCfg();applyTheme();if(booted&&$('#run').classList.contains('hide'))loadSheets().then(()=>showSlide(0))}}
+  }catch(e){console.warn('checkin',e)}
+}
+async function saveCentral(){
+  if(DEMO||!canManage||!cfg.screen)return;
+  const settingsOut={...cfg};LOCAL_ONLY.forEach(k=>delete settingsOut[k]);
+  const {error}=await sb.from('screens').upsert({id:cfg.screen,name:cfg.name,settings:settingsOut,updated_at:new Date().toISOString(),updated_by:me?.id});
+  if(error)console.warn('save central',error.message);
+}
 
 // ================= day / night =================
 function applyTheme(){const h=new Date().getHours();const day=cfg.theme==='day'||(cfg.theme!=='night'&&h>=6&&h<18);document.body.classList.toggle('day',day)}
@@ -705,7 +835,8 @@ function boot(){
   applyTheme();setInterval(applyTheme,60*1000);
   Promise.all([load(),loadSheets()]).then(()=>{booted=true;showSlide(0)});loadWx();loadNews();setInterval(loadNews,30*60*1000);
   setInterval(loadSheets,5*60*1000);
-  if(!DEMO){subscribe();setInterval(load,30*1000)}
+  if(!DEMO){subscribe();setInterval(load,30*1000);checkin();setInterval(checkin,60*1000)}
+  renderAmb();renderActive();
   setInterval(loadWx,10*60*1000);
   setInterval(()=>renderSide(roster()),15*1000);
   setInterval(()=>{if(lastLoad&&Date.now()-lastLoad>5*60*1000)showStale('No data update since '+hm(lastLoad)+'. Check internet.')},60*1000);
@@ -726,10 +857,17 @@ function demoData(){
   eso.push(tsh('Jessica Griffin','B Platoon'),tsh('Andrew Taggart','B Platoon'),tsh('Brandon Felldin','Power Shift',3,12),tsh('Fred Ellinger','Supervisor',0,10));
   vols=[{id:'v1',member_id:'m5',position:'AO',start_at:iso(+t-H),end_at:iso(+t+3*H)}];
   unav=[{id:'u1',member_id:'m6',start_at:iso(+t-H),end_at:iso(+t+20*H)}];overrides=[];
-  calls=[{incident:'E2600001',run_screen:'ems',nature:'CARDIAC EMERGENCY',priority:'E2',place:'SAMPLE: BRYN ATHYN COLLEGE',address:'2895 COLLEGE DR',mun:'BRYA',units:['319-2','NC381'],ems_units:['319-2'],fire_units:[],first_dispatch_email:iso(+t-40*60e3),last_dispatch_email:iso(+t-40*60e3)},
-    {incident:'F2600002',run_screen:'fire',nature:'FIRE ALARM',priority:'F3',place:'SAMPLE: BRYN ATHYN CATHEDRAL',address:'900 CATHEDRAL RD',mun:'BRYA',units:['E19','E19-1'],ems_units:[],fire_units:['E19-1'],first_dispatch_email:iso(+t-3*H),last_dispatch_email:iso(+t-3*H)}];
+  calls=[{incident:'E2600001',run_screen:'ems',nature:'CARDIAC EMERGENCY',priority:'E2',place:'SAMPLE: BRYN ATHYN COLLEGE',address:'2895 COLLEGE DR',mun:'BRYA',units:['319-2','NC381'],ems_units:['319-2'],fire_units:[],first_dispatch_email:iso(+t-40*60e3),last_dispatch_email:iso(+t-40*60e3),closed_at:iso(+t-5*60e3)},
+    {incident:'F2600002',run_screen:'fire',nature:'FIRE ALARM',priority:'F3',place:'SAMPLE: BRYN ATHYN CATHEDRAL',address:'900 CATHEDRAL RD',mun:'BRYA',units:['E19','E19-1'],ems_units:[],fire_units:['E19-1'],first_dispatch_email:iso(+t-3*H),last_dispatch_email:iso(+t-3*H),closed_at:iso(+t-2*H)}];
+  calls[0].prior_events='E2604171 01-16-2026 CARDIAC EMERGENCY\nE2590001 08-02-2026 FALL VICTIM';
+  calls.push({incident:'E2600003',run_screen:'ems',nature:'BREATHING PROBLEMS',priority:'E1',address:'2950 PAPER MILL RD',mun:'BRYA',units:['319-3'],ems_units:['319-3'],fire_units:[],first_dispatch_email:iso(+t-14*60e3),last_dispatch_email:iso(+t-14*60e3),closed_at:null});
+  settings.hospital_codes={AMH:'Abington Hospital',HRH:'Holy Redeemer Hospital'};
   firstCheck=true;checkNewCalls();
 }
+function demoAmbs(){return [{unit:'319-2',status:'Available'},{unit:'319-3',status:'Transport',incident:'E2600003'}]}
+function demoPreplans(){return [{address:'900 CATHEDRAL RD',mun:'BRYA',place:'Bryn Athyn Cathedral (SAMPLE)',notes:'SAMPLE: Knox box at main entrance. FDC on east side. Hydrant at Cathedral Rd & Paper Mill Rd.'}]}
+function demoEvents(){const d=n=>{const x=new Date();x.setDate(x.getDate()+n);x.setHours(19,0,0,0);return x.toISOString()};
+  return [{title:'SAMPLE: Monthly Drill · Ladder Ops',starts_at:d(1),location:'Station 19'},{title:'SAMPLE: Board Meeting',starts_at:d(3),location:'Meeting room'},{title:'SAMPLE: EMS Con Ed · Airway',starts_at:d(6)},{title:'SAMPLE: Holiday',starts_at:d(9),all_day:true}]}
 
 // ================= start =================
 if(DEMO){$('#demoTag').classList.remove('hide');demoData();boot()}

@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>BAFC Station Display Admin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{color-scheme:light dark;--bg:light-dark(#eceef1,#0e1114);--card:light-dark(#fff,#171b20);--alt:light-dark(#f6f7f9,#1c2127);--ink:light-dark(#16191d,#eef0f2);--mute:light-dark(#5d6670,#9aa4ae);--line:light-dark(#e1e4e8,#2a3038);--red:#b22222;--bar:#1b2026;--gold:#e8b33a;--ok:#1f7a41}
+*{box-sizing:border-box;min-width:0}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 Barlow,system-ui,sans-serif}
+.wrap{max-width:900px;margin:0 auto;padding:clamp(16px,3vw,32px) max(3vw,12px) 60px}
+h1{font:700 clamp(28px,5vw,40px)/1.05 "Barlow Condensed",sans-serif;margin:0 0 4px}
+.sub{color:var(--mute);margin:0 0 18px;font-size:15px}
+.card{background:var(--card);border-radius:10px;box-shadow:0 1px 2px #0002,0 8px 24px #0001;margin:0 0 18px;overflow:hidden}
+.card h2{margin:0;padding:12px 16px;background:var(--bar);color:#fff;font:700 20px "Barlow Condensed",sans-serif;letter-spacing:.03em;display:flex;align-items:center;gap:10px}
+.card h2 small{font:500 13px Barlow;color:#cfd6dd;margin-left:auto}
+.in{padding:12px 16px}
+table{width:100%;border-collapse:collapse;font-size:15px}
+th,td{text-align:left;padding:8px 10px;border-top:1px solid var(--line);vertical-align:top}
+th{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--mute);border-top:0}
+tr:nth-child(even) td{background:var(--alt)}
+.pill{font-size:12px;font-weight:600;padding:2px 8px;border-radius:10px;white-space:nowrap}
+.pill.on{background:var(--ok);color:#fff}.pill.off{background:var(--red);color:#fff}
+label{display:block;font-size:13px;font-weight:600;color:var(--mute);margin:8px 0 2px}
+input,select,textarea{width:100%;font:16px Barlow,sans-serif;padding:8px 10px;border-radius:6px;border:1px solid var(--line);background:var(--alt);color:var(--ink)}
+textarea{min-height:90px;resize:vertical}
+.row2{display:grid;grid-template-columns:2fr 1fr;gap:10px}
+button{font:600 15px Barlow,sans-serif;min-height:38px;padding:0 14px;border-radius:6px;border:1px solid var(--line);background:var(--card);color:var(--ink);cursor:pointer}
+button.go{background:var(--bar);color:#fff;border-color:var(--bar)}button.del{color:var(--red)}
+.acts{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.lnk{background:none;border:0;color:inherit;text-decoration:underline;min-height:0;padding:0}
+.err{color:var(--red);min-height:1.2em}.note{color:var(--mute);font-size:14px}
+.hide{display:none!important}
+.pp{white-space:pre-wrap;font-size:14px;color:var(--mute)}
+@media(max-width:640px){.row2{grid-template-columns:1fr}th:nth-child(4),td:nth-child(4){display:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Station display admin</h1>
+  <p class="sub" id="sub">Officers and screen managers only.</p>
+
+  <div class="card hide" id="login"><h2>Sign in</h2><form class="in" id="lf" novalidate>
+    <label>Email<input type="email" id="lEmail" autocomplete="email"></label>
+    <div class="acts" id="sendActs"><button type="submit" class="go">Email me a code</button></div>
+    <label class="hide" id="codeWrap">6-digit code<input id="lCode" inputmode="numeric" maxlength="10"></label>
+    <div class="acts hide" id="codeActs"><button type="button" id="lBack">Back</button><button type="button" class="go" id="lVerify">Sign in</button></div>
+    <p class="err" id="lErr"></p>
+  </form></div>
+
+  <div id="main" class="hide">
+    <p class="note" id="who"></p>
+
+    <div class="card"><h2>Screens <small id="scNote"></small></h2><div class="in">
+      <table><thead><tr><th>Screen</th><th>Status</th><th>Last check-in</th><th>Version</th><th></th></tr></thead><tbody id="scBody"></tbody></table>
+      <p class="note">A screen appears here the first time it checks in. Open the display with <b>display.html?screen=bay</b> (or set "Screen ID" in its settings). Settings saved on a screen by a manager apply to every display using that Screen ID. Offline = no check-in for 5 minutes.</p>
+    </div></div>
+
+    <div class="card"><h2>Pre-plans <small id="ppCount"></small></h2><div class="in">
+      <input id="ppSearch" placeholder="Search address or name">
+      <table><thead><tr><th>Address</th><th>Town</th><th>Name</th><th>Notes</th><th></th></tr></thead><tbody id="ppBody"></tbody></table>
+      <form id="ppForm" novalidate>
+        <h3 id="ppTitle" style="margin:16px 0 0">Add a pre-plan</h3>
+        <div class="row2"><label>Address, as CAD writes it<input id="ppAddr" placeholder="2895 COLLEGE DR"></label><label>Town<select id="ppMun"></select></label></div>
+        <label>Building or business name<input id="ppPlace"></label>
+        <label>Notes for crews (Knox box, FDC, hydrant, hazards, utilities). No patient or resident health information.<textarea id="ppNotes"></textarea></label>
+        <div class="acts"><button type="submit" class="go" id="ppSave">Save pre-plan</button><button type="button" id="ppCancel" class="hide">Cancel edit</button></div>
+        <p class="err" id="ppErr"></p>
+      </form>
+      <p class="note">Shown on the run screen when a dispatch address matches. Matching ignores ROAD/RD style differences.</p>
+    </div></div>
+
+    <div class="card hide" id="hospCard"><h2>Hospital codes</h2><div class="in">
+      <label>One per line: CODE = Hospital name (from "TRANSPORTING TO: CODE" in CAD)<textarea id="hospTxt"></textarea></label>
+      <div class="acts"><button class="go" id="hospSave">Save codes</button></div><p class="err" id="hospErr"></p>
+    </div></div>
+
+    <div class="card"><h2>Calendar</h2><div class="in"><p class="note" style="margin:0">Events come from the station Google Calendar (systems@). Add or change events in Google Calendar; screens update within 15 minutes.</p></div></div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script>
+{
+const SUPABASE_URL='https://svdbmigojyttlqftuvxb.supabase.co';
+const SUPABASE_KEY='sb_publishable_skgMY3FbCCt5E_hN-ZzM6Q_q9dirLU5';
+const TOWNS={BRYA:'Bryn Athyn',LMOR:'Lower Moreland Township',UMOR:'Upper Moreland Township',ABGN:'Abington Township',CHEL:'Cheltenham Township',UDUB:'Upper Dublin Township',HATB:'Hatboro',SHAM:'Upper Southampton Township',PHIL:'Philadelphia'};
+const sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{persistSession:true,autoRefreshToken:true}});
+const $=s=>document.querySelector(s);
+const esc=t=>String(t??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
+const when=d=>d?new Date(d).toLocaleString('en-US',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit',hour12:false}):'never';
+let me=null,isOfficer=false,canManage=false,screens=[],preplans=[],editId=null,settings={};
+
+// sign in
+let pending='';
+$('#lf').addEventListener('submit',async e=>{e.preventDefault();const email=$('#lEmail').value.trim().toLowerCase();$('#lErr').textContent='';
+  const {error}=await sb.auth.signInWithOtp({email,options:{shouldCreateUser:false}});if(error){$('#lErr').textContent='Could not send: '+error.message;return}
+  pending=email;$('#sendActs').classList.add('hide');$('#codeWrap').classList.remove('hide');$('#codeActs').classList.remove('hide');$('#lCode').focus()});
+$('#lBack').onclick=()=>{$('#sendActs').classList.remove('hide');$('#codeWrap').classList.add('hide');$('#codeActs').classList.add('hide')};
+$('#lVerify').onclick=async()=>{const {error}=await sb.auth.verifyOtp({email:pending,token:$('#lCode').value.replace(/\D/g,''),type:'email'});if(error)$('#lErr').textContent='That code did not work.'};
+
+async function start(session){
+  if(!session){$('#login').classList.remove('hide');$('#main').classList.add('hide');return}
+  $('#login').classList.add('hide');
+  const [{data:id},{data:cm}]=await Promise.all([sb.rpc('my_member_id'),sb.rpc('can_manage_screens')]);
+  const {data:m}=await sb.from('members').select('id,name,is_officer').eq('id',id).maybeSingle();
+  me=m;isOfficer=!!m?.is_officer;canManage=!!cm;
+  if(!me||!(isOfficer||canManage)){$('#sub').textContent='This page is for officers and screen managers. '+(session.user.email||'')+' does not have access.';
+    $('#login').classList.add('hide');return}
+  $('#main').classList.remove('hide');
+  $('#who').innerHTML=`Signed in as ${esc(me.name)}${canManage?' (screen manager)':' (officer)'} · <button class="lnk" id="out">Sign out</button>`;
+  $('#out').onclick=()=>sb.auth.signOut();
+  $('#hospCard').classList.toggle('hide',!canManage);
+  $('#ppMun').innerHTML='<option value="">Any</option>'+Object.entries(TOWNS).map(([k,v])=>`<option value="${k}">${esc(v)}</option>`).join('');
+  load();setInterval(loadScreens,60*1000);
+}
+sb.auth.onAuthStateChange((ev,s)=>{if(ev==='SIGNED_OUT'){location.reload();return}if(ev==='INITIAL_SESSION'||ev==='SIGNED_IN')start(s)});
+
+async function load(){await Promise.all([loadScreens(),loadPreplans(),loadSettings()])}
+async function loadScreens(){
+  const {data,error}=await sb.from('screens').select('id,name,last_seen,version').order('id');
+  if(error){$('#scBody').innerHTML=`<tr><td colspan="5">${esc(error.message)}</td></tr>`;return}
+  screens=data||[];
+  $('#scBody').innerHTML=screens.map(s=>{const on=s.last_seen&&Date.now()-new Date(s.last_seen)<5*60e3;
+    return `<tr><td><b>${esc(s.name)}</b><br><span class="note">${esc(s.id)}</span></td><td><span class="pill ${on?'on':'off'}">${on?'Online':'Offline'}</span></td><td>${esc(when(s.last_seen))}</td><td>${esc(s.version||'')}</td>
+      <td>${canManage?`<button class="del" data-del="${esc(s.id)}">Remove</button>`:''}</td></tr>`}).join('')||'<tr><td colspan="5" class="note">No screens have checked in yet.</td></tr>';
+  document.querySelectorAll('[data-del]').forEach(b=>b.onclick=async()=>{
+    if(!confirmInline(b))return;
+    const {error}=await sb.from('screens').delete().eq('id',b.dataset.del);if(error)alertRow(error.message);loadScreens()});
+}
+// two-click confirm instead of a browser dialog
+function confirmInline(b){if(b.dataset.sure)return true;b.dataset.sure=1;b.textContent='Click again to confirm';setTimeout(()=>{delete b.dataset.sure;b.textContent=b.dataset.del?'Remove':'Delete'},4000);return false}
+function alertRow(m){$('#sub').textContent=m}
+
+async function loadPreplans(){
+  const {data,error}=await sb.from('preplans').select('*').order('address');
+  if(error){$('#ppBody').innerHTML=`<tr><td colspan="5">${esc(error.message)}</td></tr>`;return}
+  preplans=data||[];renderPreplans();
+}
+function renderPreplans(){
+  const q=$('#ppSearch').value.trim().toUpperCase();
+  const L=preplans.filter(p=>!q||(p.address+' '+(p.place||'')).toUpperCase().includes(q));
+  $('#ppCount').textContent=preplans.length+' on file';
+  $('#ppBody').innerHTML=L.map(p=>`<tr><td><b>${esc(p.address)}</b></td><td>${esc(TOWNS[p.mun]||p.mun||'Any')}</td><td>${esc(p.place||'')}</td><td class="pp">${esc((p.notes||'').slice(0,140))}${(p.notes||'').length>140?'…':''}</td>
+    <td><button data-ed="${p.id}">Edit</button> <button class="del" data-pd="${p.id}">Delete</button></td></tr>`).join('')||'<tr><td colspan="5" class="note">No pre-plans yet.</td></tr>';
+  document.querySelectorAll('[data-ed]').forEach(b=>b.onclick=()=>{const p=preplans.find(x=>x.id===b.dataset.ed);editId=p.id;
+    $('#ppAddr').value=p.address;$('#ppMun').value=p.mun||'';$('#ppPlace').value=p.place||'';$('#ppNotes').value=p.notes||'';
+    $('#ppTitle').textContent='Edit pre-plan';$('#ppCancel').classList.remove('hide');$('#ppAddr').focus()});
+  document.querySelectorAll('[data-pd]').forEach(b=>b.onclick=async()=>{if(!confirmInline(b))return;
+    const {error}=await sb.from('preplans').delete().eq('id',b.dataset.pd);if(error)$('#ppErr').textContent=error.message;loadPreplans()});
+}
+$('#ppSearch').oninput=renderPreplans;
+const resetPp=()=>{editId=null;$('#ppForm').reset();$('#ppTitle').textContent='Add a pre-plan';$('#ppCancel').classList.add('hide')};
+$('#ppCancel').onclick=resetPp;
+$('#ppForm').addEventListener('submit',async e=>{e.preventDefault();$('#ppErr').textContent='';
+  const row={address:$('#ppAddr').value.trim().toUpperCase(),mun:$('#ppMun').value||null,place:$('#ppPlace').value.trim()||null,notes:$('#ppNotes').value.trim()||null,updated_at:new Date().toISOString(),updated_by:me.id};
+  if(!row.address){$('#ppErr').textContent='Enter the address.';return}
+  const {error}=editId?await sb.from('preplans').update(row).eq('id',editId):await sb.from('preplans').insert(row);
+  if(error){$('#ppErr').textContent=error.message;return}
+  resetPp();loadPreplans();
+});
+
+async function loadSettings(){
+  const {data}=await sb.from('settings').select('key,value').in('key',['hospital_codes']);
+  settings=Object.fromEntries((data||[]).map(r=>[r.key,r.value]));
+  $('#hospTxt').value=Object.entries(settings.hospital_codes||{}).map(([k,v])=>k+' = '+v).join('\n');
+}
+$('#hospSave').onclick=async()=>{$('#hospErr').textContent='';
+  const obj={};for(const line of $('#hospTxt').value.split('\n')){const m=line.match(/^\s*([A-Za-z0-9]{2,6})\s*=\s*(.+?)\s*$/);if(m)obj[m[1].toUpperCase()]=m[2]}
+  const {error}=await sb.from('settings').update({value:obj,updated_at:new Date().toISOString()}).eq('key','hospital_codes');
+  $('#hospErr').style.color=error?'':'var(--ok)';$('#hospErr').textContent=error?error.message:'Saved.';loadSettings()};
+}
+</script>
+</body>
+</html>

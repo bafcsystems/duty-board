@@ -13,6 +13,7 @@
 <style>
 :root{color-scheme:light dark;--bg:light-dark(#eceef1,#0e1114);--card:light-dark(#fff,#171b20);--alt:light-dark(#f6f7f9,#1c2127);--ink:light-dark(#16191d,#eef0f2);--mute:light-dark(#5d6670,#9aa4ae);--line:light-dark(#e1e4e8,#2a3038);--red:#b22222;--bar:#1b2026;--gold:#e8b33a}
 *{box-sizing:border-box;min-width:0}
+.offline{background:#7a5a10;color:#fff3d1;border-radius:8px;padding:10px 14px;margin:0 0 14px;font-weight:600}.offline a{color:#fff}
 body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 Barlow,system-ui,sans-serif;overflow-x:clip}
 .wrap{max-width:780px;margin:0 auto;padding:clamp(16px,3vw,32px) max(3vw,12px) 40px}
 h1{font:700 clamp(30px,5vw,44px)/1.05 "Barlow Condensed",sans-serif;margin:0 0 4px;text-wrap:balance}
@@ -68,6 +69,7 @@ input,select{font:16px Barlow,sans-serif;min-height:44px;padding:0 10px;border:1
 <div class="wrap">
   <h1>Bryn Athyn Fire Company on duty</h1>
   <p class="sub" id="sub">Members only. Sign in with the email the company has on file.</p>
+  <div class="offline hide" id="offline" role="status"></div>
 
   <!-- Sign in -->
   <div class="login hide" id="login">
@@ -189,8 +191,16 @@ async function load(){
   settings=Object.fromEntries((s.data||[]).map(r=>[r.key,r.value]));
   eso=e.data||[];unav=u.data||[];vols=v.data||[];overrides=o.data||[];
   lastPull=eso.reduce((a,r)=>!a||D(r.pulled_at)>a?D(r.pulled_at):a,null);
-  loaded=true;render();
+  loaded=true;render();checkScreens();
 }
+// Officers: notice when a station display has not checked in for 5+ minutes
+async function checkScreens(){
+  if(!me?.is_officer)return;
+  const {data,error}=await sb.rpc('offline_screens');if(error)return;
+  const el=$('#offline');el.classList.toggle('hide',!data?.length);
+  if(data?.length)el.innerHTML='⚠ Station display offline: '+data.map(x=>esc(x.name)+(x.last_seen?' (last seen '+esc(new Date(x.last_seen).toLocaleString('en-US',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit',hour12:false}))+')':'')).join(', ')+'. <a href="admin.html">Screens</a>';
+}
+setInterval(()=>{if(me)checkScreens()},2*60*1000);
 let tmr=null;const reload=()=>{clearTimeout(tmr);tmr=setTimeout(load,400)};
 let chan=null;
 function subscribe(){
