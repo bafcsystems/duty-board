@@ -358,7 +358,7 @@ const RADAR='https://radar.weather.gov/ridge/standard/KDIX_loop.gif';
 const TOWNS={BRYA:'Bryn Athyn',LMOR:'Lower Moreland Township',UMOR:'Upper Moreland Township',ABGN:'Abington Township',CHEL:'Cheltenham Township',UDUB:'Upper Dublin Township',HATB:'Hatboro',SHAM:'Upper Southampton Township',PHIL:'Philadelphia'};
 const DEMO=new URLSearchParams(location.search).has('demo');
 const MEMBER_COLS='id,eso_id,name,eso_name,title,ems_level,fire_quals,member_type,is_officer,active';
-const VERSION='2026-11-25f';
+const VERSION='2026-11-25g';
 const SLIDES={roster:'On duty',tomorrow:"Tomorrow's crew",calendar:'Upcoming events',apparatus:'Apparatus status',announce:'Announcements',calls:'Recent calls',weather:'Weather',news:'News & sports',traffic:'Traffic',deck:'Google Slides deck'};
 const DEF={screen:'',rot:20,run:90,vol:0.8,name:'Station 19-1',station:'2815 Buck Rd, Bryn Athyn, PA 19009',appCsv:'',annCsv:'',deckUrl:'',tzoom:15,theme:'auto',slides:{roster:true,tomorrow:true,calendar:true,news:true,apparatus:true,announce:true,calls:true,weather:true,traffic:true,deck:false}};
 // Samples shown until a Google Sheet is connected (Settings > sheet links)
@@ -708,7 +708,7 @@ function showRun(c){
   r.classList.remove('hide');tone(c.run_screen==='fire'?'fire':'ems');runTimer(cfg.run||90,true);
   const tk=++runToken;if(runCalls.length===1&&c.address)fillStreet(c,tk);
 }
-function closeRun(){$('#run').classList.add('hide');$('#run').dataset.mode='';clearTimeout(runT);clearInterval(cdT);runCalls=[];
+function closeRun(){stopSound();$('#run').classList.add('hide');$('#run').dataset.mode='';clearTimeout(runT);clearInterval(cdT);runCalls=[];
   if(clearQ.length)setTimeout(nextClear,800)}
 // countdown: 1:30 by default, yellow with 1:00 left, red with 0:30 left, then back to rotation
 function runTimer(sec,countdown){
@@ -765,7 +765,21 @@ function nextClear(){
 
 // ================= tones (placeholders until BAFC sound files are supplied) =================
 let ac=null;
-function tone(kind){
+// Dispatch sounds supplied by Fred 2026-11-25: fire = Squad 51 tone then "Fire goes, go get 'em";
+// EMS = EMS dispatch tone then "Ambulance, ambulance". Generated tones below are the fallback.
+const SOUNDS={fire:['sounds/fire_tone.mp3','sounds/fire_voice.mp3'],ems:['sounds/ems_tone.mp3','sounds/ems_voice.mp3']};
+let playing=null,seqId=0;
+function stopSound(){seqId++;if(playing){playing.pause();playing=null}}
+function playSeq(list,fallback){
+  stopSound();const id=seqId;
+  let i=0;const next=()=>{if(id!==seqId||i>=list.length){if(id===seqId)playing=null;return}
+    const au=new Audio(list[i++]);au.volume=Math.min(1,Math.max(0,cfg.vol));playing=au;
+    au.onended=()=>setTimeout(next,250);
+    au.play().catch(e=>{console.warn('sound',e);playing=null;if(i===1)fallback()})};
+  next();
+}
+function tone(kind){if(SOUNDS[kind]){playSeq(SOUNDS[kind],()=>synthTone(kind));return}synthTone(kind)}
+function synthTone(kind){
   try{ac=ac||new (window.AudioContext||window.webkitAudioContext)();if(ac.state==='suspended')ac.resume();
     const g=ac.createGain();g.gain.value=cfg.vol*0.35;g.connect(ac.destination);let t=ac.currentTime+.05;
     const beep=(f,d,f2)=>{const o=ac.createOscillator();o.type='square';o.frequency.setValueAtTime(f,t);if(f2)o.frequency.linearRampToValueAtTime(f2,t+d);o.connect(g);o.start(t);o.stop(t+d);t+=d+.03};
@@ -811,7 +825,7 @@ function simAlert(level){
   setTimeout(()=>{wx.sim=(wx.sim||[]).filter(x=>x.id!==a.id);renderAlertBar()},2*60e3);
 }
 $('#tWarn').onclick=()=>simAlert('warning');$('#tWatch').onclick=()=>simAlert('watch');
-$('#tTone').onclick=()=>{tone('ems');setTimeout(()=>tone('fire'),3400)};
+$('#tTone').onclick=()=>{tone('ems');setTimeout(()=>tone('fire'),14000)};
 $('#tFull').onclick=()=>document.documentElement.requestFullscreen?.();
 $('#run').onclick=closeRun;
 $('#tTwo').onclick=()=>{$('#settings').classList.add('hide');closeRun();const n=new Date().toISOString();showRun({...sample('ems'),first_dispatch_email:n});setTimeout(()=>showRun({...sample('fire'),first_dispatch_email:n}),1500)};
