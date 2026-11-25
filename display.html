@@ -22,7 +22,7 @@ html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font-family
 #side{background:var(--panel);border-right:1px solid var(--line);display:flex;flex-direction:column;padding:2.2vh 1.4vw;gap:2vh}
 #main{position:relative;display:flex;flex-direction:column;overflow:hidden}
 .brand{text-align:center}
-.brand .logo{display:block;margin:0 auto;height:22vh;width:auto;max-width:100%;filter:drop-shadow(0 .4vh 1vh #0008)}
+.brand .logo{display:block;margin:0 auto;height:19vh;width:auto;max-width:100%;filter:drop-shadow(0 .4vh 1vh #0008)}
 .brand .n1{font:700 2.9vh/1.05 "Barlow Condensed";letter-spacing:.03em}
 .brand .n2{font:600 2.2vh/1.2 "Barlow Condensed";color:var(--gold);letter-spacing:.12em;margin-top:.4vh}
 .plt{text-align:center;font:700 4.4vh/1 "Barlow Condensed";letter-spacing:.04em;padding:1vh 0;border-block:1px solid var(--line)}
@@ -57,8 +57,8 @@ html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font-family
 #run.wx-watch .top{background:#ffd600!important;color:#111}
 #run.wx-advisory .top{background:#37474f!important;color:#fff}
 .patches{display:flex;justify-content:center;gap:.8vw;margin-top:1vh}
-.patch{height:11vh;width:auto;max-width:100%}
-.patch-ph{width:11vh;height:11vh;border-radius:50%;border:.4vh dashed #4a5563;display:grid;place-items:center;text-align:center;color:var(--mute);font:600 1.4vh/1.1 Barlow;background:#0e1216}
+.patch{height:17vh;width:auto;max-width:100%;filter:drop-shadow(0 .3vh .8vh #0006)}
+.patch-ph{width:17vh;height:17vh;border-radius:50%;border:.4vh dashed #4a5563;display:grid;place-items:center;text-align:center;color:var(--mute);font:600 1.4vh/1.1 Barlow;background:#0e1216}
 .patch-ph b{display:block;font:700 4vh/1 "Barlow Condensed";color:var(--ink)}
 .slide{position:absolute;inset:0;display:flex;flex-direction:column;opacity:0;transition:opacity .6s}
 .slide.on{opacity:1;z-index:1}
@@ -222,7 +222,7 @@ body.mouse #gear{opacity:1}
   .brand .logo{height:44px}
   .plt{font-size:20px;padding:0;border:0;text-align:left;display:flex;align-items:center;gap:8px}
   .plt small{display:none}
-  .patches{margin:0}.patch{height:40px}.patch-ph{width:40px;height:40px;border-width:2px;font-size:0}.patch-ph b{font-size:16px}
+  .patches{margin:0}.patch{height:52px}.patch-ph{width:40px;height:40px;border-width:2px;font-size:0}.patch-ph b{font-size:16px}
   .staffbox{padding:5px 10px;border-radius:8px}.staffbox .big{font-size:15px;line-height:1.15}.staffbox .lbl{display:none}
   .wx{gap:0}.wxdays{display:none}.wxnow{gap:6px}.wxnow .t{font-size:26px}.wxnow .c{font-size:11px}
   .clock{margin:0 0 0 auto;text-align:right}.clock .tm{font-size:26px}.clock .dt{display:none}
@@ -269,7 +269,7 @@ body.mouse #gear{opacity:1}
 
 <div id="app" class="hide">
   <aside id="side">
-    <div class="brand"><img class="logo" src="logo.png" alt="Bryn Athyn Fire Company"></div>
+    <div class="brand"><img class="logo" src="logo.png?v=2" alt="Fetters Mill Fire Rescue"></div>
     <div class="plt" id="plt">&nbsp;</div>
     <div class="staffbox" id="staffbox"><div class="big" id="staffBig">-</div><div class="lbl" id="staffLbl"></div></div>
     <div class="wx" id="wxSide"></div>
@@ -337,6 +337,8 @@ body.mouse #gear{opacity:1}
     <button type="button" class="btn" id="tWatch" style="background:#ffd600;border-color:#ffd600;color:#111">Weather watch</button>
     <button type="button" class="btn blue" id="tTwo">Two calls</button>
     <button type="button" class="btn" id="tAvail" style="background:#2e7d32;border-color:#2e7d32;color:#fff">Unit available</button>
+    <button type="button" class="btn" id="tNight" style="background:#0f1419;border-color:#4a5563;color:#e8edf2">Night view (2 min)</button>
+    <button type="button" class="btn" id="tDay" style="background:#fff;border-color:#9aa6b2;color:#111">Day view (2 min)</button>
     <button type="button" class="btn" id="tTone">Play tones</button>
     <button type="button" class="btn" id="tFull">Full screen</button>
   </div>
@@ -355,7 +357,7 @@ const RADAR='https://radar.weather.gov/ridge/standard/KDIX_loop.gif';
 const TOWNS={BRYA:'Bryn Athyn',LMOR:'Lower Moreland Township',UMOR:'Upper Moreland Township',ABGN:'Abington Township',CHEL:'Cheltenham Township',UDUB:'Upper Dublin Township',HATB:'Hatboro',SHAM:'Upper Southampton Township',PHIL:'Philadelphia'};
 const DEMO=new URLSearchParams(location.search).has('demo');
 const MEMBER_COLS='id,eso_id,name,eso_name,title,ems_level,fire_quals,member_type,is_officer,active';
-const VERSION='2026-11-25c';
+const VERSION='2026-11-25d';
 const SLIDES={roster:'On duty',tomorrow:"Tomorrow's crew",calendar:'Upcoming events',apparatus:'Apparatus status',announce:'Announcements',calls:'Recent calls',weather:'Weather',news:'News & sports',traffic:'Traffic',deck:'Google Slides deck'};
 const DEF={screen:'',rot:20,run:90,vol:0.8,name:'Station 19-1',station:'2815 Buck Rd, Bryn Athyn, PA 19009',appCsv:'',annCsv:'',deckUrl:'',tzoom:15,theme:'auto',slides:{roster:true,tomorrow:true,calendar:true,news:true,apparatus:true,announce:true,calls:true,weather:true,traffic:true,deck:false}};
 // Samples shown until a Google Sheet is connected (Settings > sheet links)
@@ -826,7 +828,11 @@ async function saveCentral(){
 }
 
 // ================= day / night =================
-function applyTheme(){const h=new Date().getHours();const day=cfg.theme==='day'||(cfg.theme!=='night'&&h>=6&&h<18);document.body.classList.toggle('day',day)}
+let themePreview=null,themePreviewUntil=0;
+function applyTheme(){const h=new Date().getHours();let day=cfg.theme==='day'||(cfg.theme!=='night'&&h>=6&&h<18);
+  if(themePreview&&Date.now()<themePreviewUntil)day=themePreview==='day';document.body.classList.toggle('day',day)}
+function previewTheme(t){themePreview=t;themePreviewUntil=Date.now()+2*60e3;$('#settings').classList.add('hide');applyTheme();setTimeout(applyTheme,2*60e3+500)}
+$('#tNight').onclick=()=>previewTheme('night');$('#tDay').onclick=()=>previewTheme('day');
 
 // ================= boot =================
 function boot(){
