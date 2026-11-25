@@ -163,7 +163,7 @@ iframe.fill{border:0;width:100%;height:100%;border-radius:1vh;background:#111}
 .amb{display:grid;gap:.5vh}.amb h4{margin:0;font:700 1.7vh Barlow;color:var(--mute);text-transform:uppercase;letter-spacing:.08em}
 .amb .u{display:flex;justify-content:space-between;align-items:center;gap:.6vw;padding:.5vh .7vw;border-radius:.7vh;background:var(--panel2);font:600 2.1vh Barlow}
 .amb .u b{font:700 2.6vh "Barlow Condensed"}.amb .u span{font-size:1.7vh;padding:.2vh .5vw;border-radius:.5vh}
-.amb .u.aok span{background:#1f7a41;color:#fff}.amb .u.busy span{background:#f2b51a;color:#1a1300}
+.amb .u.aok span{background:#1f7a41;color:#fff}.amb .u.amb6 span{background:#f2b51a;color:#1a1300}.amb .u.none{background:#7a1d1d;color:#fff;justify-content:center}.amb .u.none b{font-size:2.2vh}.amb .u.busy span{background:#f2b51a;color:#1a1300}
 .wxic{font-size:6vh;line-height:1}
 .cal{display:grid;gap:1.2vh}.cal .ev{display:grid;grid-template-columns:14vw 1fr;gap:1.4vw;align-items:center;background:var(--panel);border-radius:1vh;padding:1.4vh 1.4vw}
 .cal .when{font:700 3vh/1.1 "Barlow Condensed";color:var(--gold)}.cal .when small{display:block;font:500 2vh Barlow;color:var(--mute)}
@@ -358,7 +358,7 @@ const RADAR='https://radar.weather.gov/ridge/standard/KDIX_loop.gif';
 const TOWNS={BRYA:'Bryn Athyn',LMOR:'Lower Moreland Township',UMOR:'Upper Moreland Township',ABGN:'Abington Township',CHEL:'Cheltenham Township',UDUB:'Upper Dublin Township',HATB:'Hatboro',SHAM:'Upper Southampton Township',PHIL:'Philadelphia'};
 const DEMO=new URLSearchParams(location.search).has('demo');
 const MEMBER_COLS='id,eso_id,name,eso_name,title,ems_level,fire_quals,member_type,is_officer,active';
-const VERSION='2026-11-25e';
+const VERSION='2026-11-25f';
 const SLIDES={roster:'On duty',tomorrow:"Tomorrow's crew",calendar:'Upcoming events',apparatus:'Apparatus status',announce:'Announcements',calls:'Recent calls',weather:'Weather',news:'News & sports',traffic:'Traffic',deck:'Google Slides deck'};
 const DEF={screen:'',rot:20,run:90,vol:0.8,name:'Station 19-1',station:'2815 Buck Rd, Bryn Athyn, PA 19009',appCsv:'',annCsv:'',deckUrl:'',tzoom:15,theme:'auto',slides:{roster:true,tomorrow:true,calendar:true,news:true,apparatus:true,announce:true,calls:true,weather:true,traffic:true,deck:false}};
 // Samples shown until a Google Sheet is connected (Settings > sheet links)
@@ -733,10 +733,15 @@ setInterval(()=>{renderActive();},60*1000);
 
 // ================= our ambulances (WebCAD, logged-on units only) =================
 function renderAmb(){
-  const L=(ambs.length?ambs:DEMO?demoAmbs():[]).filter(a=>/^319-\d+$/.test(a.unit)),box=$('#ambSide');
-  $('#side').classList.toggle('busy',L.length>=2);box.classList.toggle('hide',!L.length);
-  box.innerHTML=`<h4>Ambulances</h4>`+L.map(a=>{const avail=/^available$/i.test(a.status);
-    return `<div class="u ${avail?'aok':'busy'}"><b>${esc(a.unit)}</b><span>${esc(avail?'Available':a.status)}</span></div>`}).join('');
+  // Fred 2026-11-25: show only which 319-n units are logged on with the county (in service), not their call status.
+  // 319-1/2/3 green; 319-6x amber. Units on a call stay listed.
+  const num=u=>+u.split('-')[1];
+  const L=(ambs.length?ambs:DEMO?demoAmbs():[]).filter(a=>/^319-\d+$/.test(a.unit)).sort((p,q)=>num(p.unit)-num(q.unit)),box=$('#ambSide');
+  $('#side').classList.toggle('busy',L.length>=2);box.classList.toggle('hide',!lastLoad&&!DEMO);
+  const stale=!DEMO&&settings.webcad_last_sync&&Date.now()-D(settings.webcad_last_sync)>5*60e3;
+  if(stale){box.innerHTML='<h4>Ambulance Status</h4><div class="u none"><b>County status not updating</b></div>';return}
+  box.innerHTML=`<h4>Ambulance Status</h4>`+(L.map(a=>`<div class="u ${/^319-6\d$/.test(a.unit)?'amb6':'aok'}"><b>${esc(a.unit)}</b><span>In Service</span></div>`).join('')
+    ||'<div class="u none"><b>No ambulance in service</b></div>');
 }
 
 // ================= unit available (clear report) =================
@@ -873,7 +878,7 @@ function demoData(){
   settings.hospital_codes={AMH:'Abington Hospital',HRH:'Holy Redeemer Hospital'};
   firstCheck=true;checkNewCalls();
 }
-function demoAmbs(){return [{unit:'319-2',status:'Available'},{unit:'319-3',status:'Transport',incident:'E2600003'},{unit:'319-62',status:'Acknowledged'},{unit:'M319',status:'Available'}]}
+function demoAmbs(){return [{unit:'319-2',status:'Available'},{unit:'319-3',status:'Transport',incident:'E2600003'},{unit:'319-62',status:'Acknowledged'}]}
 function demoPreplans(){return [{address:'900 CATHEDRAL RD',mun:'BRYA',place:'Bryn Athyn Cathedral (SAMPLE)',notes:'SAMPLE: Knox box at main entrance. FDC on east side. Hydrant at Cathedral Rd & Paper Mill Rd.'}]}
 function demoEvents(){const d=n=>{const x=new Date();x.setDate(x.getDate()+n);x.setHours(19,0,0,0);return x.toISOString()};
   return [{title:'SAMPLE: Monthly Drill · Ladder Ops',starts_at:d(1),location:'Station 19'},{title:'SAMPLE: Board Meeting',starts_at:d(3),location:'Meeting room'},{title:'SAMPLE: EMS Con Ed · Airway',starts_at:d(6)},{title:'SAMPLE: Holiday',starts_at:d(9),all_day:true}]}
