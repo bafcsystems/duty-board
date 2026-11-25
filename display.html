@@ -355,7 +355,7 @@ const RADAR='https://radar.weather.gov/ridge/standard/KDIX_loop.gif';
 const TOWNS={BRYA:'Bryn Athyn',LMOR:'Lower Moreland Township',UMOR:'Upper Moreland Township',ABGN:'Abington Township',CHEL:'Cheltenham Township',UDUB:'Upper Dublin Township',HATB:'Hatboro',SHAM:'Upper Southampton Township',PHIL:'Philadelphia'};
 const DEMO=new URLSearchParams(location.search).has('demo');
 const MEMBER_COLS='id,eso_id,name,eso_name,title,ems_level,fire_quals,member_type,is_officer,active';
-const VERSION='2026-11-25b';
+const VERSION='2026-11-25c';
 const SLIDES={roster:'On duty',tomorrow:"Tomorrow's crew",calendar:'Upcoming events',apparatus:'Apparatus status',announce:'Announcements',calls:'Recent calls',weather:'Weather',news:'News & sports',traffic:'Traffic',deck:'Google Slides deck'};
 const DEF={screen:'',rot:20,run:90,vol:0.8,name:'Station 19-1',station:'2815 Buck Rd, Bryn Athyn, PA 19009',appCsv:'',annCsv:'',deckUrl:'',tzoom:15,theme:'auto',slides:{roster:true,tomorrow:true,calendar:true,news:true,apparatus:true,announce:true,calls:true,weather:true,traffic:true,deck:false}};
 // Samples shown until a Google Sheet is connected (Settings > sheet links)
@@ -532,7 +532,7 @@ function renderSide(R){
 }
 
 // ================= weather (National Weather Service) =================
-let wx={now:null,periods:[],alerts:[]},wxUrls=null;
+let wx={now:null,periods:[],alerts:[]},wxUrls=null;let wxSeen=false;
 async function loadWx(){
   try{
     if(!wxUrls){const p=await fetch(`https://api.weather.gov/points/${LAT},${LON}`).then(r=>r.json());wxUrls={f:p.properties.forecast,h:p.properties.forecastHourly}}
@@ -543,7 +543,8 @@ async function loadWx(){
     wx.alerts=(a.features||[]).map(x=>({id:x.id,event:x.properties.event,headline:x.properties.headline,ends:x.properties.ends||x.properties.expires,severity:x.properties.severity,level:lvl(x.properties.event)}))
       .sort((p,q)=>['warning','watch','advisory'].indexOf(p.level)-['warning','watch','advisory'].indexOf(q.level));
     const fresh=wx.alerts.filter(x=>!old.has(x.id));
-    if(fresh.length&&booted) showWxAlert(fresh[0]);
+    if(fresh.length&&booted&&wxSeen) showWxAlert(fresh[0]); // only alerts issued after this screen started
+    wxSeen=true;
   }catch(e){console.warn('weather',e)}
   if(DEMO&&!wx.alerts.some(x=>x.demo)){const e=new Date(Date.now()+6*H).toISOString();
     wx.alerts=[{id:'d1',demo:1,event:'Severe Thunderstorm Warning',headline:'SAMPLE warning',ends:e,level:'warning'},...wx.alerts.filter(x=>x.level!=='advisory'),{id:'d2',demo:1,event:'Winter Storm Watch',headline:'SAMPLE watch',ends:e,level:'watch'}]
