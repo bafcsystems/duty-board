@@ -86,6 +86,8 @@ html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font-family
 .ni{border-bottom:1px solid var(--line);padding-bottom:1.1vh}.ni:last-child{border-bottom:0}
 .nt2{font:600 2.5vh/1.2 Barlow;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
 .ns{font-size:1.6vh;color:var(--mute);margin-top:.4vh}
+.nsum{font-size:2vh;line-height:1.3;color:var(--ink);opacity:.85;margin-top:.6vh;display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden}
+.nt2{-webkit-line-clamp:2!important}
 /* ---------- DAY THEME (0600-1800): brighter ---------- */
 body.day{--bg:#e9edf2;--panel:#ffffff;--panel2:#ffffff;--line:#cfd6de;--ink:#0f161d;--mute:#4f5a66;--gold:#c48a00}
 body.day #side{background:#ffffff}
@@ -214,7 +216,7 @@ body.mouse #gear{opacity:1}
   .chip{font-size:12px;padding:1px 6px}
   .wxgrid{grid-template-columns:1fr;height:auto;gap:10px}.fcp{padding:8px 10px}.fcp .pn{font-size:16px}.fcp .pt{font-size:26px}.fcp .ps{font-size:13px}
   .radar{height:280px}
-  .news{grid-template-columns:1fr;height:auto;gap:10px}.ncol{padding:10px;gap:8px}.nh{font-size:18px}.nt2{font-size:15px}.ns{font-size:11px}
+  .news{grid-template-columns:1fr;height:auto;gap:10px}.ncol{padding:10px;gap:8px}.nh{font-size:18px}.nt2{font-size:15px}.nsum{font-size:13px}.ns{font-size:11px}
   .body.flush{min-height:60dvh}
   /* run screen */
   #run{overflow:auto;grid-template-rows:auto auto auto}
@@ -438,11 +440,17 @@ const tomorrowWin=()=>{const a=new Date();a.setDate(a.getDate()+1);a.setHours(6,
 // ================= news (RSS via rss2json, free) =================
 const FEEDS={national:[['NPR','https://feeds.npr.org/1001/rss.xml']],local:[['NBC10','https://www.nbcphiladelphia.com/?rss=y'],['6abc','https://6abc.com/feed/']],sports:[['Inquirer Sports','https://www.inquirer.com/arc/outboundfeeds/rss/category/sports/?outputType=xml'],['ESPN','https://www.espn.com/espn/rss/news']]};
 let news={};
+const NEWS_PER_COL=3;
+// The feed's own short summary, cleaned up and cut to about two sentences
+function summary(h){const d=document.createElement('div');d.innerHTML=String(h||'').replace(/<(script|style)[^>]*>[\s\S]*?<\/\1>/gi,'');
+  let t=(d.textContent||'').replace(/\s+/g,' ').trim();if(!t)return '';
+  const sn=t.match(/[^.!?]+[.!?]+(["'”’)]+)?/g)||[t];let o='';for(const x of sn){if((o+x).length>260&&o)break;o+=x;if(o.split(/[.!?]/).length>2)break}
+  o=o.trim();if(o.length>280)o=o.slice(0,277).replace(/\s\S*$/,'')+'…';return o}
 const ago=d=>{const m=Math.round((Date.now()-d)/6e4);return isNaN(m)?'':m<60?m+' min ago':m<1440?Math.round(m/60)+' hr ago':Math.round(m/1440)+' d ago'};
 async function loadNews(){
   for(const [k,list] of Object.entries(FEEDS)){const out=[];
     for(const [src,u] of list){try{const j=await fetch('https://api.rss2json.com/v1/api.json?rss_url='+encodeURIComponent(u)).then(r=>r.json());
-      (j.items||[]).forEach(it=>out.push({title:it.title,src,t:D((it.pubDate||'').replace(' ','T')+'Z')}))}catch(e){console.warn('news',src,e)}}
+      (j.items||[]).forEach(it=>out.push({title:it.title,sum:summary(it.description||it.content),src,t:D((it.pubDate||'').replace(' ','T')+'Z')}))}catch(e){console.warn('news',src,e)}}
     out.sort((a,b)=>(b.t||0)-(a.t||0));const seenT=new Set();
     news[k]=out.filter(n=>n.title&&!seenT.has(n.title)&&seenT.add(n.title)).map(n=>({...n,ago:ago(n.t)}));}
 }
@@ -536,7 +544,7 @@ function slideHtml(k){
       <div class="radar"><img src="${RADAR}?t=${Date.now()}" alt="Radar loop, Mount Holly NJ"></div></div>`}}
   if(k==='traffic') return {h:'Traffic',sub:'Live from Waze · centered on Bryn Athyn',flush:true,body:`<iframe class="fill" src="https://embed.waze.com/iframe?zoom=${cfg.tzoom||15}&lat=${LAT}&lon=${LON}&pin=1&ct=livemap" loading="lazy" title="Traffic map"></iframe>`};
   if(k==='news'){
-    const col=(h,L)=>`<div class="ncol"><div class="nh">${esc(h)}</div>${(L||[]).slice(0,6).map(n=>`<div class="ni"><div class="nt2">${esc(n.title)}</div><div class="ns">${esc(n.src)}${n.ago?' · '+esc(n.ago):''}</div></div>`).join('')||'<div class="ns">Loading…</div>'}</div>`;
+    const col=(h,L)=>`<div class="ncol"><div class="nh">${esc(h)}</div>${(L||[]).slice(0,NEWS_PER_COL).map(n=>`<div class="ni"><div class="nt2">${esc(n.title)}</div>${n.sum?`<div class="nsum">${esc(n.sum)}</div>`:''}<div class="ns">${esc(n.src)}${n.ago?' · '+esc(n.ago):''}</div></div>`).join('')||'<div class="ns">Loading…</div>'}</div>`;
     return {h:'News & Sports',sub:'Headlines',body:`<div class="news">${col('National',news.national)}${col('Local',news.local)}${col('Sports',news.sports)}</div>`}}
   if(k==='apparatus'){const L=apps(),smp=!appData;
     const cls=s=>/out/i.test(s)?'oos':/limit|reserve|restrict/i.test(s)?'lim':'';
