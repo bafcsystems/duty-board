@@ -152,6 +152,11 @@ iframe.fill{border:0;width:100%;height:100%;border-radius:1vh;background:#111}
 #run .pp b{color:var(--gold);font:700 1.9vh "Barlow Condensed";letter-spacing:.08em;display:block}
 #run .prior{font:500 2.4vh Barlow}#run .prior small{display:block;color:var(--mute);font-size:1.8vh}
 #run .chip.also{opacity:.85}
+#run.two .prior{display:none}
+#run .rsp .lbl b{color:var(--ink)}#run .rsp .rl{display:flex;flex-wrap:wrap;gap:.6vh .5vw;margin-top:.4vh}
+.rch{display:inline-flex;align-items:center;gap:.4vw;padding:.4vh .7vw;border-radius:.8vh;background:#1f6f3a;color:#fff;font:600 2.3vh Barlow}
+.rch i{font-style:normal;font-size:1.7vh;opacity:.9}.rch em{font-style:normal;font-weight:700;background:#0005;padding:0 .4vw;border-radius:.5vh}.rch.sc{background:#1d4e89}.rch.due em{background:var(--gold);color:#1a1300}
+.actr{display:flex;flex-wrap:wrap;align-items:center;gap:.5vh .5vw;padding:0 .4vw .3vh;font:700 2vh "Barlow Condensed";letter-spacing:.05em;color:var(--mute)}.actr .rch{font-size:2vh}
 #run.avail .avbox{display:grid;place-items:center;text-align:center;padding:4vh 4vw}
 #run.avail .top{background:#2e7d32;color:#fff}
 #run .avu{font:700 18vh/1 "Barlow Condensed"}#run .avt{font:600 6vh/1.1 "Barlow Condensed";margin-top:2vh}#run .avh{font:700 7vh/1.05 "Barlow Condensed";color:var(--gold);margin-top:1vh}
@@ -337,6 +342,7 @@ body.mouse #gear{opacity:1}
     <button type="button" class="btn" id="tWarn" style="background:#d32f2f;border-color:#d32f2f;color:#fff">Weather warning</button>
     <button type="button" class="btn" id="tWatch" style="background:#ffd600;border-color:#ffd600;color:#111">Weather watch</button>
     <button type="button" class="btn blue" id="tTwo">Two calls</button>
+    <button type="button" class="btn blue" id="tResp">Sample responders</button>
     <button type="button" class="btn" id="tAvail" style="background:#2e7d32;border-color:#2e7d32;color:#fff">Unit available</button>
     <button type="button" class="btn" id="tNight" style="background:#0f1419;border-color:#4a5563;color:#e8edf2">Night view (2 min)</button>
     <button type="button" class="btn" id="tDay" style="background:#fff;border-color:#9aa6b2;color:#111">Day view (2 min)</button>
@@ -358,7 +364,7 @@ const RADAR='https://radar.weather.gov/ridge/standard/KDIX_loop.gif';
 const TOWNS={BRYA:'Bryn Athyn',LMOR:'Lower Moreland Township',UMOR:'Upper Moreland Township',ABGN:'Abington Township',CHEL:'Cheltenham Township',UDUB:'Upper Dublin Township',HATB:'Hatboro',SHAM:'Upper Southampton Township',PHIL:'Philadelphia'};
 const DEMO=new URLSearchParams(location.search).has('demo');
 const MEMBER_COLS='id,eso_id,name,eso_name,title,ems_level,fire_quals,member_type,is_officer,active';
-const VERSION='2026-11-25g';
+const VERSION='2026-11-25h';
 const SLIDES={roster:'On duty',tomorrow:"Tomorrow's crew",calendar:'Upcoming events',apparatus:'Apparatus status',announce:'Announcements',calls:'Recent calls',weather:'Weather',news:'News & sports',traffic:'Traffic',deck:'Google Slides deck'};
 const DEF={screen:'',rot:20,run:90,vol:0.8,name:'Station 19-1',station:'2815 Buck Rd, Bryn Athyn, PA 19009',appCsv:'',annCsv:'',deckUrl:'',tzoom:15,theme:'auto',slides:{roster:true,tomorrow:true,calendar:true,news:true,apparatus:true,announce:true,calls:true,weather:true,traffic:true,deck:false}};
 // Samples shown until a Google Sheet is connected (Settings > sheet links)
@@ -388,7 +394,7 @@ if(cfg.run===120)cfg.run=90; // 2026-11-25: run screen is a 1:30 countdown
 const saveCfg=()=>{try{localStorage.setItem('bafcDisplay',JSON.stringify(cfg))}catch(e){}};
 
 const sb=DEMO?null:window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{persistSession:true,autoRefreshToken:true}});
-let me=null,members=[],settings={},eso=[],unav=[],vols=[],overrides=[],calls=[],canCalls=false,canManage=false,lastLoad=null;
+let resps=[];let me=null,members=[],settings={},eso=[],unav=[],vols=[],overrides=[],calls=[],canCalls=false,canManage=false,lastLoad=null;
 let ambs=[],clears=[],preplans=[],events=[];
 
 // ================= sign in =================
@@ -424,19 +430,21 @@ async function load(){
     sb.from('roster_overrides').select('*').is('restored_at',null),sb.from('members').select(MEMBER_COLS).eq('active',true)];
   q.push(sb.from('unit_status').select('*').order('unit'),sb.from('events').select('*').gte('starts_at',new Date(+now-12*H).toISOString()).lte('starts_at',new Date(+now+21*24*H).toISOString()).order('starts_at').limit(30));
   if(canCalls) q.push(sb.from('calls').select('incident,kind,code,nature,priority,place,address,apt,cross_streets,map_page,mun,units,ems_units,fire_units,run_screen,additional_info,prior_events,first_dispatch_email,last_dispatch_email,closed_at').gt('updated_at',from).order('last_dispatch_email',{ascending:false,nullsFirst:false}).limit(40),
-    sb.from('unit_clears').select('*').gt('created_at',from).order('created_at',{ascending:false}).limit(20),sb.from('preplans').select('address,mun,place,notes'));
-  const [s,e,u,v,o,m,us,ev,c,uc,pp]=await Promise.all(q);
+    sb.from('unit_clears').select('*').gt('created_at',from).order('created_at',{ascending:false}).limit(20),sb.from('preplans').select('address,mun,place,notes'),
+    sb.from('responses').select('incident,member_id,mode,eta_at,responded_at').gt('responded_at',from).order('responded_at'));
+  const [s,e,u,v,o,m,us,ev,c,uc,pp,rs]=await Promise.all(q);
   if(e.error){showStale('Data error: '+e.error.message);return}
   settings=Object.fromEntries((s.data||[]).map(r=>[r.key,r.value]));
   eso=e.data||[];unav=u.data||[];vols=v.data||[];overrides=o.data||[];if(m.data)members=m.data;
   ambs=us.data||[];events=ev.data||[];if(pp&&pp.data)preplans=pp.data;
   if(c&&c.data){calls=c.data;checkNewCalls()}
   if(uc&&uc.data){clears=uc.data;checkClears()}
+  if(rs&&rs.data){resps=rs.data;renderResp()}
   lastLoad=new Date();showStale('');renderAll();renderActive();renderAmb();
 }
 function subscribe(){
   const ch=sb.channel('display');let t;const re=()=>{clearTimeout(t);t=setTimeout(load,500)};
-  ['eso_shifts','unavailability','volunteer_shifts','roster_overrides','settings','calls','unit_clears','unit_status','events','preplans'].forEach(x=>ch.on('postgres_changes',{event:'*',schema:'public',table:x},re));
+  ['eso_shifts','unavailability','volunteer_shifts','roster_overrides','settings','calls','unit_clears','unit_status','events','preplans','responses'].forEach(x=>ch.on('postgres_changes',{event:'*',schema:'public',table:x},re));
   ch.subscribe();
 }
 function showStale(msg){$('#stale').textContent=msg;$('#stale').classList.toggle('hide',!msg)}
@@ -679,6 +687,19 @@ function priors(c){const out=[],yr=Date.now()-365*24*H;
   return out.sort((a,b)=>b.d-a.d)}
 const normAddr=a=>String(a||'').toUpperCase().replace(/\s+/g,' ').replace(/\b(ROAD)\b/g,'RD').replace(/\b(STREET)\b/g,'ST').replace(/\b(AVENUE)\b/g,'AVE').replace(/\b(DRIVE)\b/g,'DR').replace(/\b(LANE)\b/g,'LN').replace(/\b(PIKE)\b/g,'PK').trim();
 const preplanFor=c=>c.address&&(preplans.length?preplans:DEMO?demoPreplans():[]).find(p=>normAddr(p.address)===normAddr(c.address)&&(!p.mun||!c.mun||p.mun===c.mun));
+// ================= who is responding (from the call page) =================
+function respFor(inc){return resps.filter(r=>r.incident===inc).map(r=>({...r,m:members.find(x=>x.id===r.member_id)}))
+  .sort((a,b)=>(a.mode==='scene')-(b.mode==='scene')||(D(a.eta_at||a.responded_at)-D(b.eta_at||b.responded_at)))}
+const lastName=n=>{const p=String(n||'Member').replace(/\s+(Jr\.?|Sr\.?|II|III)$/,'').split(' ');return p[p.length-1]};
+function respChip(r,short){const m=r.m||{},q=[m.ems_level==='Paramedic'?'Medic':m.ems_level,...(m.fire_quals||[]).filter(x=>x!=='Fire Police')].filter(Boolean).join('/');
+  const left=r.eta_at?Math.ceil((D(r.eta_at)-Date.now())/6e4):null;
+  const eta=r.mode==='scene'?'scene':left===null?'':left<=0?'due':left+' min';
+  return `<span class="rch${r.mode==='scene'?' sc':''}${left!==null&&left<=0&&r.mode!=='scene'?' due':''}">${esc(short?lastName(m.name):m.name||'Member')}${q?`<i>${esc(q)}</i>`:''}${eta?`<em>${esc(eta)}</em>`:''}</span>`}
+function respHtml(inc){const L=respFor(inc);
+  return `<div class="lbl">Responding${L.length?` · <b>${L.length}</b>`:''}</div>${L.length?`<div class="rl">${L.map(r=>respChip(r)).join('')}</div>`:'<div class="val" style="color:var(--mute)">No one yet</div>'}`}
+function renderResp(){document.querySelectorAll('#run [data-resp]').forEach(e=>e.innerHTML=respHtml(e.dataset.resp));renderActive()}
+setInterval(()=>{if(resps.length)renderResp()},30*1000);
+
 let runToken=0,runCalls=[];
 let runT=null,runEnd=0,cdT=null;
 function panelHtml(c,isNew){
@@ -696,6 +717,7 @@ function panelHtml(c,isNew){
      ${also.length?`<div class="units"><div class="lbl">Also due</div>${also.map(u=>`<span class="chip also">${esc(u)}</span>`).join('')}</div>`:''}
      ${pp?`<div class="pp"><b>PRE-PLAN${pp.place?' · '+esc(pp.place.toUpperCase()):''}</b>${esc(pp.notes||'')}</div>`:''}
      ${!two&&c.additional_info&&!/NOT ON FILE/i.test(c.additional_info)?`<div><div class="lbl">Location notes</div><div class="notes">${esc(c.additional_info)}</div></div>`:''}
+     <div class="rsp" data-resp="${esc(c.incident)}">${respHtml(c.incident)}</div>
      <div class="prior"><div class="lbl">Prior calls here · last 12 months</div>${pr.length?`<b>${pr.length}</b> prior call${pr.length===1?'':'s'}<small>${pr.slice(0,3).map(x=>esc(x.d.toLocaleDateString('en-US',{month:'numeric',day:'numeric',year:'2-digit'}))+' '+esc(title(x.what))).join(' · ')}</small>`:'None'}</div>
    </div><div class="maps">${c.address?`<div class="map"><span class="tag">ROUTE FROM STATION</span><iframe class="fill" src="${routeUrl(c)}" title="Route"></iframe></div>${two?'':'<div class="map" id="sv"><span class="tag">STREET VIEW</span></div>'}`:''}</div></div></div>`;
 }
@@ -726,7 +748,7 @@ function renderActive(){
   const L=activeCalls(),bar=$('#activebar');bar.classList.toggle('hide',!L.length);
   bar.innerHTML=L.map(c=>{const st=(c.ems_units||[]).map(u=>{const a=ambs.find(x=>x.unit===u);return a&&a.incident===c.incident?u+' '+a.status:''}).filter(Boolean).join(' · ');
     const mins=Math.round((Date.now()-D(c.first_dispatch_email))/6e4);
-    return `<button class="act ${c.run_screen}" data-inc="${esc(c.incident)}"><b>ACTIVE ${c.run_screen==='fire'?'FIRE':'EMS'}</b><span class="ad">${esc(title(c.nature||''))} · ${esc(c.address||'')}${c.mun?' · '+esc(TOWNS[c.mun]||c.mun):''}</span>${st?`<span class="st">${esc(st)}</span>`:''}<span class="st">${mins} min</span></button>`}).join('');
+    return `<button class="act ${c.run_screen}" data-inc="${esc(c.incident)}"><b>ACTIVE ${c.run_screen==='fire'?'FIRE':'EMS'}</b><span class="ad">${esc(title(c.nature||''))} · ${esc(c.address||'')}${c.mun?' · '+esc(TOWNS[c.mun]||c.mun):''}</span>${st?`<span class="st">${esc(st)}</span>`:''}<span class="st">${mins} min</span></button>${(L2=>L2.length?`<div class="actr">RESPONDING ${L2.map(r=>respChip(r,true)).join('')}</div>`:'')(respFor(c.incident))}`}).join('');
   bar.querySelectorAll('.act').forEach(b=>b.onclick=()=>{const c=calls.find(x=>x.incident===b.dataset.inc);if(c)showRun(c)});
 }
 setInterval(()=>{renderActive();},60*1000);
@@ -828,6 +850,13 @@ $('#tWarn').onclick=()=>simAlert('warning');$('#tWatch').onclick=()=>simAlert('w
 $('#tTone').onclick=()=>{tone('ems');setTimeout(()=>tone('fire'),14000)};
 $('#tFull').onclick=()=>document.documentElement.requestFullscreen?.();
 $('#run').onclick=closeRun;
+// test: sample people tap I'm responding, one every 3 seconds (only on this screen; nothing saved)
+$('#tResp').onclick=()=>{$('#settings').classList.add('hide');
+  const incs=[...new Set([...runCalls.map(c=>c.incident),...activeCalls().map(c=>c.incident)])];if(!incs.length){incs.push('E0000000');showRun({...sample('ems'),first_dispatch_email:new Date().toISOString()})}
+  const pool=members.filter(m=>m.ems_level||(m.fire_quals||[]).length).slice(0,8),plan=[[4,'station'],[9,'station'],[null,'scene'],[15,'station']];
+  plan.forEach(([eta,mode],i)=>setTimeout(()=>{incs.forEach((inc,j)=>{const m=pool[(i+j*2)%pool.length];if(!m)return;
+      resps=resps.filter(r=>!(r.incident===inc&&r.member_id===m.id));
+      resps.push({incident:inc,member_id:m.id,mode,eta_at:eta===null?null:new Date(Date.now()+eta*6e4).toISOString(),responded_at:new Date().toISOString()})});renderResp()},800+i*3000))};
 $('#tTwo').onclick=()=>{$('#settings').classList.add('hide');closeRun();const n=new Date().toISOString();showRun({...sample('ems'),first_dispatch_email:n});setTimeout(()=>showRun({...sample('fire'),first_dispatch_email:n}),1500)};
 $('#tAvail').onclick=()=>{$('#settings').classList.add('hide');closeRun();clearQ.push({incident:'E0000000',unit:'319-2',hospital_code:'AMH',available_at:new Date().toISOString()});nextClear()};
 
@@ -890,6 +919,10 @@ function demoData(){
   calls[0].prior_events='E2604171 01-16-2026 CARDIAC EMERGENCY\nE2590001 08-02-2026 FALL VICTIM';
   calls.push({incident:'E2600003',run_screen:'ems',nature:'BREATHING PROBLEMS',priority:'E1',address:'2950 PAPER MILL RD',mun:'BRYA',units:['319-3'],ems_units:['319-3'],fire_units:[],first_dispatch_email:iso(+t-14*60e3),last_dispatch_email:iso(+t-14*60e3),closed_at:null});
   settings.hospital_codes={AMH:'Abington Hospital',HRH:'Holy Redeemer Hospital'};
+  const em=n=>iso(+t+n*6e4);
+  resps=[{incident:'E2600001',member_id:'m4',mode:'station',eta_at:em(3),responded_at:em(-2)},{incident:'E2600001',member_id:'m3',mode:'station',eta_at:em(9),responded_at:em(-1)},
+    {incident:'E2600001',member_id:'m1',mode:'scene',eta_at:null,responded_at:em(-1)},{incident:'E2600003',member_id:'m5',mode:'station',eta_at:em(6),responded_at:em(-3)},
+    {incident:'F2600002',member_id:'m6',mode:'station',eta_at:em(12),responded_at:em(-1)},{incident:'F2600002',member_id:'m2',mode:'scene',eta_at:null,responded_at:em(0)}];
   firstCheck=true;checkNewCalls();
 }
 function demoAmbs(){return [{unit:'319-2',status:'Available'},{unit:'319-3',status:'Transport',incident:'E2600003'},{unit:'319-62',status:'Acknowledged'}]}
