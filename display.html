@@ -372,7 +372,7 @@ const RADAR='https://radar.weather.gov/ridge/standard/KDIX_loop.gif';
 const TOWNS={BRYA:'Bryn Athyn',LMOR:'Lower Moreland Township',UMOR:'Upper Moreland Township',ABGN:'Abington Township',CHEL:'Cheltenham Township',UDUB:'Upper Dublin Township',HATB:'Hatboro',SHAM:'Upper Southampton Township',PHIL:'Philadelphia'};
 const DEMO=new URLSearchParams(location.search).has('demo');
 const MEMBER_COLS='id,eso_id,name,eso_name,title,ems_level,fire_quals,member_type,is_officer,active';
-const VERSION='2026-11-26b';
+const VERSION='2026-11-26c';
 const SLIDES={roster:'On duty',tomorrow:"Tomorrow's crew",calendar:'Upcoming events',apparatus:'Apparatus status',announce:'Announcements',calls:'Recent calls',weather:'Weather',news:'News & sports',traffic:'Traffic',deck:'Google Slides deck'};
 const DEF={screen:'',rot:20,run:90,vol:0.8,name:'Station 19-1',station:'2815 Buck Rd, Bryn Athyn, PA 19009',appCsv:'',annCsv:'',deckUrl:'',tzoom:15,theme:'auto',slides:{roster:true,tomorrow:true,calendar:true,news:true,apparatus:true,announce:true,calls:true,weather:true,traffic:true,deck:false}};
 // Samples shown until a Google Sheet is connected (Settings > sheet links)
@@ -489,7 +489,9 @@ function roster(from=new Date(),to=null){
   const LT=settings.lieutenants||{},CMD=settings.command_staff||[];
   const byLast=(x,y)=>isMedic(y.name)-isMedic(x.name)||last(x.name).localeCompare(last(y.name));
   let cmd=sh.filter(s=>/supervisor/i.test(s.grp)&&CMD.includes(s.name));
-  let lts=sh.filter(s=>plt(s.grp)&&LT[plt(s.grp)]===s.name);
+  // Lieutenant row: the platoon's own LT; a covering LT only if that platoon's own LT is not on (Fred 2026-11-26)
+  const allLT=Object.values(LT).filter(Boolean),ownOn=p=>sh.some(x=>plt(x.grp)===p&&x.name===LT[p]);
+  let lts=sh.filter(s=>{const p=plt(s.grp);return !!p&&(LT[p]===s.name||(allLT.includes(s.name)&&!ownOn(p)))});
   let rest=sh.filter(s=>plt(s.grp)&&!lts.includes(s)).sort(byLast);
   let sup=sh.filter(s=>/supervisor/i.test(s.grp)&&!cmd.includes(s));
   let ps=sh.filter(s=>/power/i.test(s.grp)).sort(byLast);

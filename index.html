@@ -275,7 +275,9 @@ function render(){
 
   const byLast=(x,y)=>isMedic(y.name)-isMedic(x.name)||last(x.name).localeCompare(last(y.name));
   let cmd=sh.filter(s=>/supervisor/i.test(s.grp)&&CMD().includes(s.name));
-  let lts=sh.filter(s=>plt(s.grp)&&LT()[plt(s.grp)]===s.name);
+  // Lieutenant row: the platoon's own LT; a covering LT only if that platoon's own LT is not on (Fred 2026-11-26)
+  const allLT=Object.values(LT()).filter(Boolean),ownOn=p=>sh.some(x=>plt(x.grp)===p&&x.name===LT()[p]);
+  let lts=sh.filter(s=>{const p=plt(s.grp);return !!p&&(LT()[p]===s.name||(allLT.includes(s.name)&&!ownOn(p)))});
   let rest=sh.filter(s=>plt(s.grp)&&!lts.includes(s)).sort(byLast);
   let sup=sh.filter(s=>/supervisor/i.test(s.grp)&&!cmd.includes(s));
   let ps=sh.filter(s=>/power/i.test(s.grp)).sort(byLast);
