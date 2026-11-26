@@ -372,7 +372,7 @@ const RADAR='https://radar.weather.gov/ridge/standard/KDIX_loop.gif';
 const TOWNS={BRYA:'Bryn Athyn',LMOR:'Lower Moreland Township',UMOR:'Upper Moreland Township',ABGN:'Abington Township',CHEL:'Cheltenham Township',UDUB:'Upper Dublin Township',HATB:'Hatboro',SHAM:'Upper Southampton Township',PHIL:'Philadelphia'};
 const DEMO=new URLSearchParams(location.search).has('demo');
 const MEMBER_COLS='id,eso_id,name,eso_name,title,ems_level,fire_quals,member_type,is_officer,active';
-const VERSION='2026-11-26a';
+const VERSION='2026-11-26b';
 const SLIDES={roster:'On duty',tomorrow:"Tomorrow's crew",calendar:'Upcoming events',apparatus:'Apparatus status',announce:'Announcements',calls:'Recent calls',weather:'Weather',news:'News & sports',traffic:'Traffic',deck:'Google Slides deck'};
 const DEF={screen:'',rot:20,run:90,vol:0.8,name:'Station 19-1',station:'2815 Buck Rd, Bryn Athyn, PA 19009',appCsv:'',annCsv:'',deckUrl:'',tzoom:15,theme:'auto',slides:{roster:true,tomorrow:true,calendar:true,news:true,apparatus:true,announce:true,calls:true,weather:true,traffic:true,deck:false}};
 // Samples shown until a Google Sheet is connected (Settings > sheet links)
@@ -780,7 +780,7 @@ function renderAmb(){
   box.classList.toggle('stale',!!stale);box.classList.toggle('alarm',!stale&&!L.length&&(!!lastLoad||DEMO));
   if(stale){box.innerHTML='<h4>Ambulance Status</h4><div class="u none"><b>County status not updating</b></div>';return}
   box.innerHTML=`<h4>Ambulance Status</h4>`+(L.map(a=>`<div class="u ${/^319-6\d$/.test(a.unit)?'amb6':'aok'}"><b>${esc(a.unit)}</b><span>In Service</span></div>`).join('')
-    ||'<div class="u none"><b>No ambulance in service</b></div>');
+    ||'<div class="u none"><b>NO AMBULANCE IN SERVICE</b></div>');
 }
 
 // ================= unit available (clear report) =================
