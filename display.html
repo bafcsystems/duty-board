@@ -52,6 +52,8 @@ html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font-family
 .wxa span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .wxa.warning{background:#d32f2f;color:#fff;border-color:#ff8a80}
 .wxa.watch{background:#ffd600;color:#111;border-color:#fff59d}
+.wxa.pin{background:#1f3a5c;color:#fff;border-color:#4f7db3}.wxa.pin b{white-space:normal}
+.evtag{display:inline-block;font:700 1.6vh Barlow;padding:.1vh .6vw;border-radius:.6vh;color:#fff;margin-right:.6vw;vertical-align:middle}
 .wxa.advisory{background:#37474f;color:#fff;border-color:#90a4ae}
 #run.wx-warning .top{background:#d32f2f!important;color:#fff}
 #run.wx-watch .top{background:#ffd600!important;color:#111}
@@ -364,7 +366,7 @@ const RADAR='https://radar.weather.gov/ridge/standard/KDIX_loop.gif';
 const TOWNS={BRYA:'Bryn Athyn',LMOR:'Lower Moreland Township',UMOR:'Upper Moreland Township',ABGN:'Abington Township',CHEL:'Cheltenham Township',UDUB:'Upper Dublin Township',HATB:'Hatboro',SHAM:'Upper Southampton Township',PHIL:'Philadelphia'};
 const DEMO=new URLSearchParams(location.search).has('demo');
 const MEMBER_COLS='id,eso_id,name,eso_name,title,ems_level,fire_quals,member_type,is_officer,active';
-const VERSION='2026-11-25h';
+const VERSION='2026-11-25i';
 const SLIDES={roster:'On duty',tomorrow:"Tomorrow's crew",calendar:'Upcoming events',apparatus:'Apparatus status',announce:'Announcements',calls:'Recent calls',weather:'Weather',news:'News & sports',traffic:'Traffic',deck:'Google Slides deck'};
 const DEF={screen:'',rot:20,run:90,vol:0.8,name:'Station 19-1',station:'2815 Buck Rd, Bryn Athyn, PA 19009',appCsv:'',annCsv:'',deckUrl:'',tzoom:15,theme:'auto',slides:{roster:true,tomorrow:true,calendar:true,news:true,apparatus:true,announce:true,calls:true,weather:true,traffic:true,deck:false}};
 // Samples shown until a Google Sheet is connected (Settings > sheet links)
@@ -395,14 +397,14 @@ const saveCfg=()=>{try{localStorage.setItem('bafcDisplay',JSON.stringify(cfg))}c
 
 const sb=DEMO?null:window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{persistSession:true,autoRefreshToken:true}});
 let resps=[];let me=null,members=[],settings={},eso=[],unav=[],vols=[],overrides=[],calls=[],canCalls=false,canManage=false,lastLoad=null;
-let ambs=[],clears=[],preplans=[],events=[];
+let ambs=[],clears=[],preplans=[],events=[],dbAnn=[],dbApp=[],tagColors={};
 
 // ================= sign in =================
 let pendingEmail='';
 $('#lf').addEventListener('submit',async e=>{e.preventDefault();
   const email=$('#lEmail').value.trim().toLowerCase();$('#lErr').textContent='';
   if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)){$('#lErr').textContent='Enter a valid email.';return}
-  const {error}=await sb.auth.signInWithOtp({email,options:{shouldCreateUser:false}});
+  const {error}=await sb.auth.signInWithOtp({email});
   if(error){$('#lErr').textContent='Could not send: '+error.message;return}
   pendingEmail=email;$('#sendActs').classList.add('hide');$('#codeWrap').classList.remove('hide');$('#codeActs').classList.remove('hide');$('#lCode').focus();
 });
@@ -428,23 +430,26 @@ async function load(){
     sb.from('unavailability').select('*').is('cancelled_at',null).gt('end_at',now.toISOString()),
     sb.from('volunteer_shifts').select('*').is('cancelled_at',null).gt('end_at',now.toISOString()),
     sb.from('roster_overrides').select('*').is('restored_at',null),sb.from('members').select(MEMBER_COLS).eq('active',true)];
+  q.push(sb.from('announcements').select('*').order('pinned',{ascending:false}).order('starts_at',{ascending:false}),sb.from('apparatus').select('*').order('sort').order('unit'),sb.from('reminder_rules').select('tag,color'));
   q.push(sb.from('unit_status').select('*').order('unit'),sb.from('events').select('*').gte('starts_at',new Date(+now-12*H).toISOString()).lte('starts_at',new Date(+now+21*24*H).toISOString()).order('starts_at').limit(30));
   if(canCalls) q.push(sb.from('calls').select('incident,kind,code,nature,priority,place,address,apt,cross_streets,map_page,mun,units,ems_units,fire_units,run_screen,additional_info,prior_events,first_dispatch_email,last_dispatch_email,closed_at').gt('updated_at',from).order('last_dispatch_email',{ascending:false,nullsFirst:false}).limit(40),
     sb.from('unit_clears').select('*').gt('created_at',from).order('created_at',{ascending:false}).limit(20),sb.from('preplans').select('address,mun,place,notes'),
     sb.from('responses').select('incident,member_id,mode,eta_at,responded_at').gt('responded_at',from).order('responded_at'));
-  const [s,e,u,v,o,m,us,ev,c,uc,pp,rs]=await Promise.all(q);
+  const [s,e,u,v,o,m,an,ap,rr,us,ev,c,uc,pp,rs]=await Promise.all(q);
   if(e.error){showStale('Data error: '+e.error.message);return}
   settings=Object.fromEntries((s.data||[]).map(r=>[r.key,r.value]));
   eso=e.data||[];unav=u.data||[];vols=v.data||[];overrides=o.data||[];if(m.data)members=m.data;
+  if(!an.error){const n=Date.now();dbAnn=(an.data||[]).filter(a=>D(a.starts_at)<=n&&(!a.ends_at||D(a.ends_at)>n))}
+  if(!ap.error)dbApp=ap.data||[];if(!rr.error)tagColors=Object.fromEntries((rr.data||[]).map(r=>[r.tag,r.color]));
   ambs=us.data||[];events=ev.data||[];if(pp&&pp.data)preplans=pp.data;
   if(c&&c.data){calls=c.data;checkNewCalls()}
   if(uc&&uc.data){clears=uc.data;checkClears()}
   if(rs&&rs.data){resps=rs.data;renderResp()}
-  lastLoad=new Date();showStale('');renderAll();renderActive();renderAmb();
+  lastLoad=new Date();showStale('');renderAll();renderActive();renderAmb();renderAlertBar();
 }
 function subscribe(){
   const ch=sb.channel('display');let t;const re=()=>{clearTimeout(t);t=setTimeout(load,500)};
-  ['eso_shifts','unavailability','volunteer_shifts','roster_overrides','settings','calls','unit_clears','unit_status','events','preplans','responses'].forEach(x=>ch.on('postgres_changes',{event:'*',schema:'public',table:x},re));
+  ['eso_shifts','unavailability','volunteer_shifts','roster_overrides','settings','calls','unit_clears','unit_status','events','preplans','responses','announcements','apparatus'].forEach(x=>ch.on('postgres_changes',{event:'*',schema:'public',table:x},re));
   ch.subscribe();
 }
 function showStale(msg){$('#stale').textContent=msg;$('#stale').classList.toggle('hide',!msg)}
@@ -526,7 +531,10 @@ async function loadSheets(){
   try{if(cfg.annCsv){const r=parseCsv(await fetch(cfg.annCsv,{cache:'no-store'}).then(x=>x.text())),now=new Date();
     annData=r.filter(x=>(!x.start||D(x.start)<=now)&&(!x.end||D(x.end)>now)).map(x=>({type:x.type||'Notice',title:x.title,when:x.when,details:x.details}))}else annData=null}catch(e){console.warn('announcement sheet',e);annData=null}
 }
-const apps=()=>appData||SAMPLE_APP, anns=()=>annData||SAMPLE_ANN;
+// Admin page data first; the old Google Sheets links still work if no rows exist; samples only when nothing is set up
+const apps=()=>dbApp.length?dbApp.map(a=>({unit:a.unit,type:a.kind,status:a.status,note:a.note,ret:a.expected})):appData||SAMPLE_APP;
+const anns=()=>dbAnn.length?dbAnn.filter(a=>!a.pinned||a.details).map(a=>({type:a.kind,title:a.title,when:a.when_text,details:a.details})):annData||SAMPLE_ANN;
+const isSampleApp=()=>!dbApp.length&&!appData,isSampleAnn=()=>!dbAnn.length&&!annData;
 
 // ================= sidebar =================
 function renderSide(R){
@@ -572,8 +580,10 @@ function wxIcon(f,day=true){f=String(f||'').toLowerCase();
 function allAlerts(){return [...(wx.sim||[]),...wx.alerts].sort((p,q)=>['warning','watch','advisory'].indexOf(p.level)-['warning','watch','advisory'].indexOf(q.level))}
 function renderAlertBar(){
   const A=allAlerts(),L=A.slice(0,3);$('#alertbar').classList.toggle('hide',!L.length);
+  const P=dbAnn.filter(a=>a.pinned).slice(0,2);$('#alertbar').classList.toggle('hide',!L.length&&!P.length);
   $('#alertbar').innerHTML=L.map(a=>`<div class="wxa ${a.level}"><b>⚠ ${esc(a.event.toUpperCase())}</b><span>${a.ends?'Until '+esc(fmt(D(a.ends))):''}</span></div>`).join('')
-    +(A.length>3?`<div class="wxa advisory"><span>+${A.length-3} more alerts</span></div>`:'');
+    +(A.length>3?`<div class="wxa advisory"><span>+${A.length-3} more alerts</span></div>`:'')
+    +P.map(a=>`<div class="wxa pin"><b>📌 ${esc(a.title)}</b><span>${esc(a.when_text||'')}</span></div>`).join('');
 }
 function showWxAlert(a){ // full-screen takeover for 30 seconds
   if(!$('#run').classList.contains('hide')) return;
@@ -599,8 +609,8 @@ function slideHtml(k){
       body:`<div class="roster">${b||`<div class="empty">${tw?'No shifts scheduled for tomorrow yet.':'No one is on duty.'}</div>`}</div>`}}
   if(k==='calendar'){const L=(events.length?events:DEMO?demoEvents():[]).filter(e=>D(e.ends_at||e.starts_at)>=new Date()).slice(0,6),smp=!events.length&&DEMO;
     const when=e=>{const d=D(e.starts_at);return `${esc(d.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'}))}<small>${e.all_day?'All day':esc(hm(d))}</small>`};
-    return {h:'Upcoming Events',sub:(smp?'<span class="sample">SAMPLE</span> ':'')+'Station Google Calendar',raw:true,
-      body:`<div class="cal">${L.map(e=>`<div class="ev"><div class="when">${when(e)}</div><div><div class="tt">${esc(e.title)}</div>${e.location?`<div class="lo">${esc(e.location)}</div>`:''}</div></div>`).join('')||'<div class="empty">No events on the station calendar yet.</div>'}</div>`}}
+    return {h:'Upcoming Events',sub:(smp?'<span class="sample">SAMPLE</span> ':'')+'Company calendars',raw:true,
+      body:`<div class="cal">${L.map(e=>`<div class="ev"><div class="when">${when(e)}</div><div><div class="tt">${e.tag?`<span class="evtag" style="background:${esc(tagColors[e.tag]||'#555')}">${esc(e.tag)}</span>`:''}${esc(e.title)}</div>${e.location?`<div class="lo">${esc(e.location)}</div>`:''}</div></div>`).join('')||'<div class="empty">No events on the station calendar yet.</div>'}</div>`}}
   if(k==='weather'){
     const p=wx.periods.slice(0,6);
     return {h:'Weather',sub:'National Weather Service · Bryn Athyn',body:`<div class="wxgrid"><div class="fc">${p.map(x=>`<div class="fcp"><div class="pn">${esc(x.name)}</div><div class="pt">${x.temperature}°</div><div class="ps">${esc(x.shortForecast)} · ${esc(x.windSpeed)}</div></div>`).join('')||'<div class="empty">Weather unavailable</div>'}</div>
@@ -609,10 +619,10 @@ function slideHtml(k){
   if(k==='news'){
     const col=(h,L)=>`<div class="ncol"><div class="nh">${esc(h)}</div>${(L||[]).slice(0,NEWS_PER_COL).map(n=>`<div class="ni"><div class="nt2">${esc(n.title)}</div>${n.sum?`<div class="nsum">${esc(n.sum)}</div>`:''}<div class="ns">${esc(n.src)}${n.ago?' · '+esc(n.ago):''}</div></div>`).join('')||'<div class="ns">Loading…</div>'}</div>`;
     return {h:'News & Sports',sub:'Headlines',body:`<div class="news">${col('National',news.national)}${col('Local',news.local)}${col('Sports',news.sports)}</div>`}}
-  if(k==='apparatus'){const L=apps(),smp=!appData;
+  if(k==='apparatus'){const L=apps(),smp=isSampleApp();
     const cls=s=>/out/i.test(s)?'oos':/limit|reserve|restrict/i.test(s)?'lim':'';
-    return {h:'Apparatus Status',sub:(smp?'<span class="sample">SAMPLE</span> ':'')+'Updated by officers',raw:true,body:`<div class="app">${L.map(a=>`<div class="unit ${cls(a.status)}"><div class="id">${esc(a.unit)}</div><div class="ty">${esc(a.type||'')}</div><div class="stt">${esc((a.status||'').toUpperCase())}</div>${a.note?`<div class="nt">${esc(a.note)}</div>`:''}${a.ret?`<div class="nt">Expected: ${esc(a.ret)}</div>`:''}</div>`).join('')}</div>`}}
-  if(k.startsWith('ann:')){const a=anns()[+k.slice(4)]||{},smp=!annData,ty=(a.type||'Notice').toLowerCase();
+    return {h:'Apparatus Status',sub:(smp?'<span class="sample">SAMPLE</span> ':'')+(dbApp.length?'Updated on the admin page':'Updated by officers'),raw:true,body:`<div class="app">${L.map(a=>`<div class="unit ${cls(a.status)}"><div class="id">${esc(a.unit)}</div><div class="ty">${esc(a.type||'')}</div><div class="stt">${esc((a.status||'').toUpperCase())}</div>${a.note?`<div class="nt">${esc(a.note)}</div>`:''}${a.ret?`<div class="nt">Expected: ${esc(a.ret)}</div>`:''}</div>`).join('')}</div>`}}
+  if(k.startsWith('ann:')){const a=anns()[+k.slice(4)]||{},smp=isSampleAnn(),ty=(a.type||'Notice').toLowerCase();
     const icon={training:'🎓',birthday:'🎂',meeting:'📋',notice:'📣'}[ty]||'📣';
     return {h:a.type||'Announcement',sub:smp?'<span class="sample">SAMPLE</span>':'',raw:true,body:`<div class="ann ${esc(ty)}"><div class="ic">${icon}</div><div><div class="ty">${esc(a.type||'')}</div><div class="tt">${esc(a.title||'')}</div>${a.when?`<div class="wh">${esc(a.when)}</div>`:''}${a.details?`<div class="dt2">${esc(a.details)}</div>`:''}</div></div>`}}
   if(k==='deck'){const u=cfg.deckUrl.replace(/\/(edit|pub|embed).*$/,'');
@@ -923,12 +933,15 @@ function demoData(){
   resps=[{incident:'E2600001',member_id:'m4',mode:'station',eta_at:em(3),responded_at:em(-2)},{incident:'E2600001',member_id:'m3',mode:'station',eta_at:em(9),responded_at:em(-1)},
     {incident:'E2600001',member_id:'m1',mode:'scene',eta_at:null,responded_at:em(-1)},{incident:'E2600003',member_id:'m5',mode:'station',eta_at:em(6),responded_at:em(-3)},
     {incident:'F2600002',member_id:'m6',mode:'station',eta_at:em(12),responded_at:em(-1)},{incident:'F2600002',member_id:'m2',mode:'scene',eta_at:null,responded_at:em(0)}];
+  dbAnn=[{kind:'Training',title:'Vehicle extrication drill',when_text:'Thursday 1900, apparatus bay',details:'SAMPLE: bring full PPE. New spreaders and cutters.',pinned:false},
+         {kind:'Notice',title:'SAMPLE: Bay door 2 sticking, use door 1',when_text:'',details:null,pinned:true}];
+  tagColors={'BOD Meeting':'#6d4cc2',Training:'#1f7a41','Town Hall':'#b8860b',Events:'#1d4e89'};
   firstCheck=true;checkNewCalls();
 }
 function demoAmbs(){return [{unit:'319-2',status:'Available'},{unit:'319-3',status:'Transport',incident:'E2600003'},{unit:'319-62',status:'Acknowledged'}]}
 function demoPreplans(){return [{address:'900 CATHEDRAL RD',mun:'BRYA',place:'Bryn Athyn Cathedral (SAMPLE)',notes:'SAMPLE: Knox box at main entrance. FDC on east side. Hydrant at Cathedral Rd & Paper Mill Rd.'}]}
 function demoEvents(){const d=n=>{const x=new Date();x.setDate(x.getDate()+n);x.setHours(19,0,0,0);return x.toISOString()};
-  return [{title:'SAMPLE: Monthly Drill · Ladder Ops',starts_at:d(1),location:'Station 19'},{title:'SAMPLE: Board Meeting',starts_at:d(3),location:'Meeting room'},{title:'SAMPLE: EMS Con Ed · Airway',starts_at:d(6)},{title:'SAMPLE: Holiday',starts_at:d(9),all_day:true}]}
+  return [{title:'SAMPLE: Monthly Drill · Ladder Ops',tag:'Training',starts_at:d(1),location:'Station 19'},{title:'SAMPLE: Board of Directors',tag:'BOD Meeting',starts_at:d(3),location:'Meeting room'},{title:'SAMPLE: Career staff town hall',tag:'Town Hall',starts_at:d(5),location:'Day room'},{title:'SAMPLE: EMS Con Ed · Airway',tag:'Training',starts_at:d(6)},{title:'SAMPLE: Holiday party',tag:'Events',starts_at:d(9)}]}
 
 // ================= start =================
 if(DEMO){$('#demoTag').classList.remove('hide');demoData();boot()}
