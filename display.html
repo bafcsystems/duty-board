@@ -176,16 +176,26 @@ iframe.fill{border:0;width:100%;height:100%;border-radius:1vh;background:#111}
 .cal .when{font:700 3vh/1.1 "Barlow Condensed";color:var(--gold)}.cal .when small{display:block;font:500 2vh Barlow;color:var(--mute)}
 .cal .tt{font:700 3.6vh/1.1 "Barlow Condensed"}.cal .lo{font-size:2.1vh;color:var(--mute)}
 body.day #run .pp{background:#fff4d6}body.day .amb .u{background:#eef1f4}
-/* Turnout times slide */
-.turn{display:grid;grid-template-columns:1fr 1fr;gap:2.5vw;height:100%}
-.tcol{background:var(--panel);border-radius:1.2vh;padding:2.2vh 2vw;display:flex;flex-direction:column;gap:1.6vh}
-.th{font-size:4vh;font-weight:800;display:flex;justify-content:space-between;align-items:baseline}.th span{font-size:2.2vh;font-weight:600;opacity:.7}
-.tbig{font-size:13vh;font-weight:800;line-height:1}.tsub{font-size:2.2vh;opacity:.8}
-.trow{display:grid;grid-template-columns:repeat(3,1fr);gap:1vw}.trow div{font-size:1.9vh;opacity:.85}.trow b{display:block;font-size:4.5vh;opacity:1}
+/* Turnout times slide: EMS blue, Fire red; status shown as a pill / underline so it never clashes with the theme */
+.turn{display:grid;grid-template-columns:1fr 1fr;gap:2vw;height:100%}
+.tcol{border-radius:1.2vh;overflow:hidden;display:flex;flex-direction:column;background:var(--panel);border:.35vh solid var(--tc)}
+.tcol.ems{--tc:var(--blue);--tc2:#0f2747;background:linear-gradient(180deg,#0f2747 0%,var(--panel) 55%)}
+.tcol.fire{--tc:var(--red);--tc2:#4a1212;background:linear-gradient(180deg,#4a1212 0%,var(--panel) 55%)}
+body.day .tcol.ems{background:linear-gradient(180deg,#dce8f7 0%,#fff 55%)}body.day .tcol.fire{background:linear-gradient(180deg,#f8dede 0%,#fff 55%)}
+.th{background:var(--tc);color:#fff;padding:1.3vh 1.6vw;display:flex;align-items:center;gap:1vw;font:800 4.4vh/1 "Barlow Condensed",Barlow,sans-serif;letter-spacing:.08em}
+.th .ic{font-size:4vh}.th span{margin-left:auto;font:600 2.3vh Barlow,sans-serif;letter-spacing:0;opacity:.9}
+.tin{padding:1.8vh 1.6vw;display:flex;flex-direction:column;gap:1.5vh;flex:1}
+.tmain{display:flex;align-items:center;gap:1.4vw}
+.tbig{font:800 12vh/1 Barlow,sans-serif}
+.pill{font:800 2.1vh/1 Barlow,sans-serif;padding:.9vh .9vw;border-radius:99px;letter-spacing:.04em;white-space:nowrap}
+.pill.ok{background:#2e7d4a;color:#fff}.pill.warn{background:#e0a21a;color:#1a1300}.pill.bad{background:#fff;color:#b3261e;box-shadow:inset 0 0 0 .3vh #b3261e}
+.tsub{font-size:2.2vh;opacity:.85}
+.trow{display:grid;grid-template-columns:repeat(3,1fr);gap:1vw}.trow div{font-size:1.9vh;opacity:.85}.trow b{display:block;font-size:4.4vh;opacity:1;padding-bottom:.3vh;border-bottom:.5vh solid transparent;width:max-content}
 .tps{display:grid;grid-template-columns:repeat(4,1fr);gap:.8vw;margin-top:auto}
-.tp{background:rgba(127,127,127,.12);border-radius:1vh;padding:1.2vh .6vw;text-align:center}.tpl{font-size:2vh;font-weight:700;opacity:.75}.tpv{font-size:5vh;font-weight:800}.tpn{font-size:1.6vh;opacity:.7}
-.ok{color:#3fae68}.warn{color:#e0a21a}.bad{color:#e0533d}
-body.day .ok{color:#1f7a3f}body.day .warn{color:#9a6a00}body.day .bad{color:#b3261e}
+.tp{background:rgba(127,127,127,.13);border-radius:1vh;padding:1vh .5vw;text-align:center;display:flex;flex-direction:column;align-items:center;gap:.4vh}
+.tp img{height:7.5vh;width:auto;filter:drop-shadow(0 .2vh .5vh #0006)}.tp .tpl{font:800 3vh/7.5vh "Barlow Condensed"}
+.tpv{font:800 4.4vh/1 Barlow,sans-serif;padding-bottom:.3vh;border-bottom:.5vh solid transparent}.tpn{font-size:1.6vh;opacity:.7}
+.s-ok{border-bottom-color:#2e7d4a!important}.s-warn{border-bottom-color:#e0a21a!important}.s-bad{border-bottom-color:#e0533d!important}
 /* No ambulance logged on: the whole box turns red and pulses (Fred 2026-11-26), day and night */
 .amb.alarm{background:#c62828;border-radius:1vh;padding:.8vh .7vw;animation:ambpulse 2s ease-in-out infinite}
 .amb.alarm h4{color:#fff}.amb.alarm .u.none,body.day .amb.alarm .u.none{background:transparent;color:#fff;padding:.4vh 0}
@@ -382,7 +392,7 @@ const RADAR='https://radar.weather.gov/ridge/standard/KDIX_loop.gif';
 const TOWNS={BRYA:'Bryn Athyn',LMOR:'Lower Moreland Township',UMOR:'Upper Moreland Township',ABGN:'Abington Township',CHEL:'Cheltenham Township',UDUB:'Upper Dublin Township',HATB:'Hatboro',SHAM:'Upper Southampton Township',PHIL:'Philadelphia'};
 const DEMO=new URLSearchParams(location.search).has('demo');
 const MEMBER_COLS='id,eso_id,name,eso_name,title,ems_level,fire_quals,member_type,is_officer,active';
-const VERSION='2026-11-26d';
+const VERSION='2026-11-26e';
 const SLIDES={roster:'On duty',tomorrow:"Tomorrow's crew",calendar:'Upcoming events',apparatus:'Apparatus status',announce:'Announcements',calls:'Recent calls',turnout:'Turnout times',weather:'Weather',news:'News & sports',traffic:'Traffic',deck:'Google Slides deck'};
 const DEF={screen:'',rot:20,run:90,vol:0.8,name:'Station 19-1',station:'2815 Buck Rd, Bryn Athyn, PA 19009',appCsv:'',annCsv:'',deckUrl:'',tzoom:15,theme:'auto',slides:{roster:true,tomorrow:true,calendar:true,news:true,apparatus:true,announce:true,calls:true,turnout:true,weather:true,traffic:true,deck:false}};
 // Samples shown until a Google Sheet is connected (Settings > sheet links)
@@ -476,15 +486,18 @@ function turnoutHtml(){
   const T=turnout;if(!T||!(T.rows||[]).length)return '<div class="empty">No turnout times yet this quarter.</div>';
   const get=(kind,grp,k)=>(T.rows||[]).find(r=>r.kind===kind&&r.grp===grp&&r.k===k);
   const ms=s=>s==null?'--':Math.floor(s/60)+':'+String(s%60).padStart(2,'0');
-  const cls=(s,t)=>s==null?'':s<=t?'ok':s<=t+20?'warn':'bad';
-  const col=(kind,label)=>{const t=(T.targets||{})[kind]||(kind==='ems'?60:80),a=get(kind,'all','all'),f=get(kind,'first','all'),d=get(kind,'period','day'),n=get(kind,'period','night');
-    const pl=['A','B','C','D'].map(p=>{const r=get(kind,'platoon',p);return `<div class="tp"><div class="tpl">${p}</div><div class="tpv ${cls(r&&r.avg_s,t)}">${ms(r&&r.avg_s)}</div><div class="tpn">${r?r.n+' runs':'none'}</div></div>`}).join('');
-    return `<div class="tcol"><div class="th">${label}<span>Target ${ms(t)}</span></div>
-      <div class="tbig ${cls(a&&a.avg_s,t)}">${ms(a&&a.avg_s)}</div>
-      <div class="tsub">average · ${a?a.n:0} unit responses · ${a&&a.pct_target!=null?a.pct_target+'% within target':''}</div>
-      <div class="trow"><div><b class="${cls(f&&f.avg_s,t)}">${ms(f&&f.avg_s)}</b>first unit out</div><div><b class="${cls(d&&d.avg_s,t)}">${ms(d&&d.avg_s)}</b>day 0600-1800</div><div><b class="${cls(n&&n.avg_s,t)}">${ms(n&&n.avg_s)}</b>night 1800-0600</div></div>
-      <div class="tps">${pl}</div></div>`};
-  return `<div class="turn">${col('ems','EMS')}${col('fire','Fire')}</div>`;
+  const st=(s,t)=>s==null?'':s<=t?'ok':s<=t+20?'warn':'bad';
+  const pillTxt={ok:'ON TARGET',warn:'NEAR TARGET',bad:'OVER TARGET'};
+  const col=(kind,label,icon)=>{const t=(T.targets||{})[kind]||(kind==='ems'?60:80),a=get(kind,'all','all'),f=get(kind,'first','all'),d=get(kind,'period','day'),n=get(kind,'period','night');
+    const sa=st(a&&a.avg_s,t),sm=(r)=>{const x=st(r&&r.avg_s,t);return x?'s-'+x:''};
+    const pl=['A','B','C','D'].map(p=>{const r=get(kind,'platoon',p);
+      return `<div class="tp"><img src="patches/${p}.png" alt="${p} Platoon" onerror="this.outerHTML='<div class=&quot;tpl&quot;>${p}</div>'"><div class="tpv ${sm(r)}">${ms(r&&r.avg_s)}</div><div class="tpn">${r?r.n+' runs':'none'}</div></div>`}).join('');
+    return `<div class="tcol ${kind}"><div class="th"><span class="ic">${icon}</span>${label}<span>Target ${ms(t)}</span></div><div class="tin">
+      <div class="tmain"><div class="tbig">${ms(a&&a.avg_s)}</div>${sa?`<div class="pill ${sa}">${pillTxt[sa]}</div>`:''}</div>
+      <div class="tsub">average · ${a?a.n:0} responses · ${a&&a.pct_target!=null?a.pct_target+'% within target':''}</div>
+      <div class="trow"><div><b class="${sm(f)}">${ms(f&&f.avg_s)}</b>first unit out</div><div><b class="${sm(d)}">${ms(d&&d.avg_s)}</b>day 0600-1800</div><div><b class="${sm(n)}">${ms(n&&n.avg_s)}</b>night 1800-0600</div></div>
+      <div class="tps">${pl}</div></div></div>`};
+  return `<div class="turn">${col('ems','EMS','🚑')}${col('fire','FIRE','🚒')}</div>`;
 }
 function subscribe(){
   const ch=sb.channel('display');let t;const re=()=>{clearTimeout(t);t=setTimeout(load,500)};
