@@ -29,6 +29,12 @@ body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.4 Barlow,system-
 .resp{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
 .btn{font:700 18px Barlow,sans-serif;min-height:56px;padding:0 22px;border-radius:8px;border:2px solid var(--ok);background:var(--ok);color:#fff;cursor:pointer;flex:1 1 220px}
 .btn.on{background:transparent;color:var(--ok)}
+.etas{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;width:100%}.etas .btn{flex:none;min-height:60px;font-size:19px}
+.etas .btn.scene{border-color:var(--blue);background:var(--blue)}.etas .btn.sel{outline:4px solid light-dark(#111,#fff);outline-offset:2px}
+.cancel{background:none;border:0;color:var(--mute);text-decoration:underline;font:600 15px Barlow,sans-serif;cursor:pointer;padding:6px 0}
+.rl{display:grid;gap:6px}.rr{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:8px 10px;border:1px solid var(--line);border-radius:8px}
+.rr b{font-size:17px}.rr .q{font-size:12px;font-weight:700;padding:1px 7px;border-radius:9px;background:light-dark(#e3ecf8,#1d2a3a);color:light-dark(#1d4e89,#9cc3f0)}
+.rr .q.f{background:light-dark(#f8e3e3,#3a1d1d);color:light-dark(#9a1c1c,#f09c9c)}.rr .eta{margin-left:auto;font-weight:700;font-size:17px}.rr .eta.sc{color:var(--blue)}
 .who{font-size:15px;color:var(--mute)}.who b{color:var(--ink)}
 iframe{width:100%;height:min(55vh,420px);border:0;display:block;border-top:1px solid var(--line)}
 .links{display:flex;gap:10px;flex-wrap:wrap}.links a{font-weight:600;color:var(--ink);padding:10px 14px;border:1px solid var(--line);border-radius:8px;text-decoration:none}
@@ -47,14 +53,16 @@ iframe{width:100%;height:min(55vh,420px);border:0;display:block;border-top:1px s
 <script>
 (function(){
 const now=Date.now(),iso=t=>new Date(t).toISOString();
-const members=[{id:'m0',name:'Fred Ellinger',is_officer:true},{id:'m1',name:'James McGuire',is_officer:true},{id:'m2',name:'Brandon Felldin'}];
-let resp=[{member_id:'m1',responded_at:iso(now-3*60e3)},{member_id:'m2',responded_at:iso(now-2*60e3)}];
+const members=[{id:'m0',name:'Fred Ellinger',ems_level:'Paramedic',fire_quals:['INT']},{id:'m1',name:'James McGuire',ems_level:'Paramedic',fire_quals:['INT']},{id:'m2',name:'Brandon Felldin',ems_level:'EMT',fire_quals:['INT']},{id:'m3',name:'Dylan Logue',ems_level:null,fire_quals:['INT','AO']}];
+let resp=[{member_id:'m1',mode:'station',eta_at:iso(now+4*60e3),responded_at:iso(now-3*60e3)},{member_id:'m2',mode:'scene',eta_at:null,responded_at:iso(now-2*60e3)},{member_id:'m3',mode:'station',eta_at:iso(now+11*60e3),responded_at:iso(now-60e3)}];
 const call={incident:'E2690001',run_screen:'ems',nature:'BREATHING PROBLEMS',priority:'E1',place:'SAMPLE: BRYN ATHYN CATHEDRAL',address:'900 CATHEDRAL RD',apt:null,cross_streets:'PAPER MILL RD AND ALDEN RD',map_page:'27-01',town:'Bryn Athyn',units:['319-2','NC381','AC319'],dispatched:iso(now-4*60e3),closed_at:null};
-function q(t){const o={};['select','eq','order','limit'].forEach(k=>o[k]=()=>o);o.then=r=>r({data:t==='members'?members:t==='responses'?resp:[],error:null});return o}
+function q(t){const o={};['select','eq','order','limit'].forEach(k=>o[k]=()=>o);o.then=r=>r({data:t==='members'?members:[],error:null});return o}
 window.supabase={createClient:()=>({auth:{onAuthStateChange:cb=>setTimeout(()=>cb('INITIAL_SESSION',{user:{}}),10)},from:q,
  rpc:async(n,a)=>{if(n==='my_member_id')return{data:'m0'};
-  if(n==='call_page'){const me=resp.some(r=>r.member_id==='m0');return{data:{...call,responding:resp.length,me_responding:me}}}
-  if(n==='respond'){if(a.p_on)resp.push({member_id:'m0',responded_at:iso(Date.now())});else resp=resp.filter(r=>r.member_id!=='m0');return{data:resp.length}}
+  if(n==='call_page'){const me=resp.some(r=>r.member_id==='m0');
+    const responders=resp.map(r=>{const m=members.find(x=>x.id===r.member_id);return{name:m.name,ems_level:m.ems_level,fire_quals:m.fire_quals,mode:r.mode,eta_at:r.eta_at,responded_at:r.responded_at,me:r.member_id==='m0'}});
+    return{data:{...call,responding:resp.length,me_responding:me,responders}}}
+  if(n==='respond'){resp=resp.filter(r=>r.member_id!=='m0');if(a.p_on)resp.push({member_id:'m0',mode:a.p_mode||'station',eta_at:a.p_eta==null?null:iso(Date.now()+a.p_eta*60e3),responded_at:iso(Date.now())});return{data:resp.length}}
   if(n==='recent_alert_calls')return{data:[{incident:'E2690001',run_screen:'ems',nature:'BREATHING PROBLEMS',address:'900 CATHEDRAL RD',town:'Bryn Athyn',dispatched:call.dispatched}]};
   return{data:null}}})};
 if(!location.hash)location.hash='E2690001';
@@ -66,6 +74,7 @@ const sb=window.supabase.createClient('https://svdbmigojyttlqftuvxb.supabase.co'
 const STATION='2815 Buck Rd, Bryn Athyn, PA 19009';
 const $=s=>document.querySelector(s);
 const esc=t=>String(t??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
+const D=d=>new Date(d);
 const hm=d=>new Date(d).toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',hour12:false});
 const title=s=>String(s||'').toLowerCase().replace(/\b\w/g,c=>c.toUpperCase());
 const ours=u=>/319/.test(u)||/19-1$/.test(u);
@@ -85,9 +94,11 @@ async function show(){
   const kind=c.run_screen==='fire'?'fire':'ems',closed=!!c.closed_at;
   const dest=`${c.address||''}, ${c.town||''}, PA`;
   const route=`https://maps.google.com/maps?saddr=${encodeURIComponent(STATION)}&daddr=${encodeURIComponent(dest)}&dirflg=d&output=embed`;
-  let who='';
-  if(isOfficer){const {data:r}=await sb.from('responses').select('member_id,responded_at').eq('incident',inc).order('responded_at');
-    who=(r||[]).map(x=>`<b>${esc(members.find(m=>m.id===x.member_id)?.name||'Member')}</b> ${esc(hm(x.responded_at))}`).join(' · ')||'No one yet.'}
+  const R=(c.responders||[]).slice().sort((a,b)=>(a.mode==='scene')-(b.mode==='scene')||(D(a.eta_at||a.responded_at)-D(b.eta_at||b.responded_at))),mine=R.find(x=>x.me);
+  const etaTxt=x=>x.mode==='scene'?'To scene':x.eta_at?(m=>m<=0?'Due now':m+' min')(Math.ceil((D(x.eta_at)-Date.now())/6e4)):'Responding';
+  const quals=x=>[x.ems_level?`<span class="q">${esc(x.ems_level)}</span>`:'',...(x.fire_quals||[]).map(q=>`<span class="q f">${esc(q)}</span>`)].join('');
+  const who=R.length?`<div class="rl">${R.map(x=>`<div class="rr"><b>${esc(x.name)}</b>${quals(x)}<span class="eta${x.mode==='scene'?' sc':''}">${esc(etaTxt(x))}</span></div>`).join('')}</div>`:'<div class="who">No one yet.</div>';
+  const sel=(e,mo)=>mine&&mine.mode===mo&&(mo==='scene'||Math.abs(Math.ceil((D(mine.eta_at)-D(mine.responded_at))/6e4)-e)<1)?' sel':'';
   $('#out').innerHTML=`<div class="hd ${closed?'closed':kind}"><b>${kind==='fire'?'FIRE':'EMS'} DISPATCH</b>${c.priority?`<span>${esc(c.priority)}</span>`:''}<span>${esc(c.incident)}</span><span class="t">${closed?'Cleared '+esc(hm(c.closed_at)):'Dispatched '+esc(hm(c.dispatched))}</span></div>
    <div class="card"><div class="in">
      <div class="nature">${esc(title(c.nature||c.code||'Call'))}</div>
@@ -95,21 +106,26 @@ async function show(){
      <div><div class="addr">${esc(c.address||'Address pending')}</div>${c.apt?`<div class="val">Apt ${esc(c.apt)}</div>`:''}<div class="val">${esc(c.town||'')}${c.map_page?' · Map '+esc(c.map_page):''}</div></div>
      <div><div class="lbl">Cross streets</div><div class="val">${esc(c.cross_streets||'-')}</div></div>
      <div><div class="lbl">Units due</div><div class="units">${(c.units||[]).map(u=>`<span class="u${ours(u)?' ours':''}">${esc(u)}</span>`).join('')||'-'}</div></div>
-     ${closed?'':`<div class="resp"><button class="btn${c.me_responding?' on':''}" id="resp">${c.me_responding?'Responding ✓ (tap to cancel)':"I'm responding"}</button>
-       <div class="who">${c.responding} responding</div></div>`}
-     ${isOfficer?`<div><div class="lbl">Responding</div><div class="who">${who}</div></div>`:''}
+     ${closed?'':`<div><div class="lbl">${mine?"You're responding · tap to change":"I'm responding · ETA to station"}</div><div class="resp"><div class="etas">
+       <button class="btn${sel(5,'station')}" data-eta="5" data-mode="station">5 min</button><button class="btn${sel(10,'station')}" data-eta="10" data-mode="station">10 min</button>
+       <button class="btn${sel(15,'station')}" data-eta="15" data-mode="station">15+ min</button><button class="btn scene${sel(0,'scene')}" data-mode="scene">Direct to scene</button></div>
+       ${mine?'<button class="cancel" id="cancel">Cancel, not responding</button>':''}</div></div>`}
+     <div><div class="lbl">Responding (${R.length})</div>${who}</div>
      <p class="err" id="err"></p>
      <div class="links"><a href="https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(dest)}" target="_blank" rel="noopener">Open in Google Maps</a><a href="https://maps.apple.com/?daddr=${encodeURIComponent(dest)}" target="_blank" rel="noopener">Apple Maps</a></div>
    </div>${c.address?`<iframe src="${route}" title="Route from station" loading="lazy"></iframe>`:''}</div>`;
-  const b=$('#resp');if(b)b.onclick=async()=>{b.disabled=true;const {error}=await sb.rpc('respond',{p_incident:inc,p_on:!c.me_responding});
-    if(error){$('#err').textContent=error.message;b.disabled=false;return}show()};
+  const go=async(args,el)=>{document.querySelectorAll('.etas .btn,#cancel').forEach(x=>x.disabled=true);
+    const {error}=await sb.rpc('respond',{p_incident:inc,...args});
+    if(error){$('#err').textContent=error.message;document.querySelectorAll('.etas .btn,#cancel').forEach(x=>x.disabled=false);return}show()};
+  document.querySelectorAll('.etas .btn').forEach(b=>b.onclick=()=>go({p_on:true,p_eta:b.dataset.eta?+b.dataset.eta:null,p_mode:b.dataset.mode}));
+  const cx=$('#cancel');if(cx)cx.onclick=()=>go({p_on:false});
 }
 async function list(){
   const {data}=await sb.rpc('recent_alert_calls');
   $('#out').innerHTML=`<div class="card" style="border-radius:10px"><div class="list">${(data||[]).map(c=>`<a href="#${esc(c.incident)}"><b>${c.run_screen==='fire'?'FIRE':'EMS'} · ${esc(title(c.nature||''))}</b><small>${esc(c.address||'')} · ${esc(c.town||'')} · ${esc(hm(c.dispatched))}${c.closed_at?' · cleared':''}</small></a>`).join('')||'<div class="msg">No calls in the last 12 hours.</div>'}</div></div>`;
 }
 window.addEventListener('hashchange',()=>me&&show());
-setInterval(()=>{if(me&&!document.hidden)show()},30000);
+setInterval(()=>{if(me&&!document.hidden)show()},15000);
 sb.auth.onAuthStateChange((ev,s)=>{if(ev==='INITIAL_SESSION'||ev==='SIGNED_IN')start(s);if(ev==='SIGNED_OUT')start(null)});
 }
 </script>
