@@ -176,6 +176,16 @@ iframe.fill{border:0;width:100%;height:100%;border-radius:1vh;background:#111}
 .cal .when{font:700 3vh/1.1 "Barlow Condensed";color:var(--gold)}.cal .when small{display:block;font:500 2vh Barlow;color:var(--mute)}
 .cal .tt{font:700 3.6vh/1.1 "Barlow Condensed"}.cal .lo{font-size:2.1vh;color:var(--mute)}
 body.day #run .pp{background:#fff4d6}body.day .amb .u{background:#eef1f4}
+/* Turnout times slide */
+.turn{display:grid;grid-template-columns:1fr 1fr;gap:2.5vw;height:100%}
+.tcol{background:var(--panel);border-radius:1.2vh;padding:2.2vh 2vw;display:flex;flex-direction:column;gap:1.6vh}
+.th{font-size:4vh;font-weight:800;display:flex;justify-content:space-between;align-items:baseline}.th span{font-size:2.2vh;font-weight:600;opacity:.7}
+.tbig{font-size:13vh;font-weight:800;line-height:1}.tsub{font-size:2.2vh;opacity:.8}
+.trow{display:grid;grid-template-columns:repeat(3,1fr);gap:1vw}.trow div{font-size:1.9vh;opacity:.85}.trow b{display:block;font-size:4.5vh;opacity:1}
+.tps{display:grid;grid-template-columns:repeat(4,1fr);gap:.8vw;margin-top:auto}
+.tp{background:rgba(127,127,127,.12);border-radius:1vh;padding:1.2vh .6vw;text-align:center}.tpl{font-size:2vh;font-weight:700;opacity:.75}.tpv{font-size:5vh;font-weight:800}.tpn{font-size:1.6vh;opacity:.7}
+.ok{color:#3fae68}.warn{color:#e0a21a}.bad{color:#e0533d}
+body.day .ok{color:#1f7a3f}body.day .warn{color:#9a6a00}body.day .bad{color:#b3261e}
 /* No ambulance logged on: the whole box turns red and pulses (Fred 2026-11-26), day and night */
 .amb.alarm{background:#c62828;border-radius:1vh;padding:.8vh .7vw;animation:ambpulse 2s ease-in-out infinite}
 .amb.alarm h4{color:#fff}.amb.alarm .u.none,body.day .amb.alarm .u.none{background:transparent;color:#fff;padding:.4vh 0}
@@ -372,9 +382,9 @@ const RADAR='https://radar.weather.gov/ridge/standard/KDIX_loop.gif';
 const TOWNS={BRYA:'Bryn Athyn',LMOR:'Lower Moreland Township',UMOR:'Upper Moreland Township',ABGN:'Abington Township',CHEL:'Cheltenham Township',UDUB:'Upper Dublin Township',HATB:'Hatboro',SHAM:'Upper Southampton Township',PHIL:'Philadelphia'};
 const DEMO=new URLSearchParams(location.search).has('demo');
 const MEMBER_COLS='id,eso_id,name,eso_name,title,ems_level,fire_quals,member_type,is_officer,active';
-const VERSION='2026-11-26c';
-const SLIDES={roster:'On duty',tomorrow:"Tomorrow's crew",calendar:'Upcoming events',apparatus:'Apparatus status',announce:'Announcements',calls:'Recent calls',weather:'Weather',news:'News & sports',traffic:'Traffic',deck:'Google Slides deck'};
-const DEF={screen:'',rot:20,run:90,vol:0.8,name:'Station 19-1',station:'2815 Buck Rd, Bryn Athyn, PA 19009',appCsv:'',annCsv:'',deckUrl:'',tzoom:15,theme:'auto',slides:{roster:true,tomorrow:true,calendar:true,news:true,apparatus:true,announce:true,calls:true,weather:true,traffic:true,deck:false}};
+const VERSION='2026-11-26d';
+const SLIDES={roster:'On duty',tomorrow:"Tomorrow's crew",calendar:'Upcoming events',apparatus:'Apparatus status',announce:'Announcements',calls:'Recent calls',turnout:'Turnout times',weather:'Weather',news:'News & sports',traffic:'Traffic',deck:'Google Slides deck'};
+const DEF={screen:'',rot:20,run:90,vol:0.8,name:'Station 19-1',station:'2815 Buck Rd, Bryn Athyn, PA 19009',appCsv:'',annCsv:'',deckUrl:'',tzoom:15,theme:'auto',slides:{roster:true,tomorrow:true,calendar:true,news:true,apparatus:true,announce:true,calls:true,turnout:true,weather:true,traffic:true,deck:false}};
 // Samples shown until a Google Sheet is connected (Settings > sheet links)
 const SAMPLE_APP=[
   {unit:'E19-1',type:'Engine',status:'In Service'},{unit:'SD19-1',type:'Squad',status:'In Service'},{unit:'SS19-1',type:'Support',status:'Out of Service',note:'Sample: body damage repair',ret:'Dec 2'},
@@ -452,6 +462,29 @@ async function load(){
   if(uc&&uc.data){clears=uc.data;checkClears()}
   if(rs&&rs.data){resps=rs.data;renderResp()}
   lastLoad=new Date();showStale('');renderAll();renderActive();renderAmb();renderAlertBar();
+}
+// ================= turnout times (dispatch to en route), this quarter =================
+let turnout=null;
+async function loadTurnout(){if(DEMO){turnout=demoTurnout();return}const {data,error}=await sb.rpc('turnout_stats');if(!error)turnout=data}
+function demoTurnout(){const R=[],add=(kind,grp,k,a,n,p)=>R.push({kind,grp,k,avg_s:a,n,pct_target:p,excluded:1});
+  add('ems','all','all',58,212,64);add('ems','first','all',52,180,71);add('ems','period','day',49,120,78);add('ems','period','night',69,92,45);
+  [['A',55],['B',61],['C',57],['D',60]].forEach(([k,a])=>add('ems','platoon',k,a,53,60));
+  add('fire','all','all',84,96,52);add('fire','first','all',77,61,58);add('fire','period','day',71,52,66);add('fire','period','night',99,44,35);
+  [['A',80],['B',88],['C',83],['D',85]].forEach(([k,a])=>add('fire','platoon',k,a,24,50));
+  return {from:new Date(Date.UTC(2026,9,1,4)).toISOString(),targets:{ems:60,fire:80},rows:R}}
+function turnoutHtml(){
+  const T=turnout;if(!T||!(T.rows||[]).length)return '<div class="empty">No turnout times yet this quarter.</div>';
+  const get=(kind,grp,k)=>(T.rows||[]).find(r=>r.kind===kind&&r.grp===grp&&r.k===k);
+  const ms=s=>s==null?'--':Math.floor(s/60)+':'+String(s%60).padStart(2,'0');
+  const cls=(s,t)=>s==null?'':s<=t?'ok':s<=t+20?'warn':'bad';
+  const col=(kind,label)=>{const t=(T.targets||{})[kind]||(kind==='ems'?60:80),a=get(kind,'all','all'),f=get(kind,'first','all'),d=get(kind,'period','day'),n=get(kind,'period','night');
+    const pl=['A','B','C','D'].map(p=>{const r=get(kind,'platoon',p);return `<div class="tp"><div class="tpl">${p}</div><div class="tpv ${cls(r&&r.avg_s,t)}">${ms(r&&r.avg_s)}</div><div class="tpn">${r?r.n+' runs':'none'}</div></div>`}).join('');
+    return `<div class="tcol"><div class="th">${label}<span>Target ${ms(t)}</span></div>
+      <div class="tbig ${cls(a&&a.avg_s,t)}">${ms(a&&a.avg_s)}</div>
+      <div class="tsub">average · ${a?a.n:0} unit responses · ${a&&a.pct_target!=null?a.pct_target+'% within target':''}</div>
+      <div class="trow"><div><b class="${cls(f&&f.avg_s,t)}">${ms(f&&f.avg_s)}</b>first unit out</div><div><b class="${cls(d&&d.avg_s,t)}">${ms(d&&d.avg_s)}</b>day 0600-1800</div><div><b class="${cls(n&&n.avg_s,t)}">${ms(n&&n.avg_s)}</b>night 1800-0600</div></div>
+      <div class="tps">${pl}</div></div>`};
+  return `<div class="turn">${col('ems','EMS')}${col('fire','Fire')}</div>`;
 }
 function subscribe(){
   const ch=sb.channel('display');let t;const re=()=>{clearTimeout(t);t=setTimeout(load,500)};
@@ -635,6 +668,8 @@ function slideHtml(k){
     return {h:a.type||'Announcement',sub:smp?'<span class="sample">SAMPLE</span>':'',raw:true,body:`<div class="ann ${esc(ty)}"><div class="ic">${icon}</div><div><div class="ty">${esc(a.type||'')}</div><div class="tt">${esc(a.title||'')}</div>${a.when?`<div class="wh">${esc(a.when)}</div>`:''}${a.details?`<div class="dt2">${esc(a.details)}</div>`:''}</div></div>`}}
   if(k==='deck'){const u=cfg.deckUrl.replace(/\/(edit|pub|embed).*$/,'');
     return {h:'Slides',sub:'',flush:true,body:u?`<iframe class="fill" src="${esc(u)}/embed?start=true&loop=true&delayms=10000&rm=minimal" title="Slides"></iframe>`:'<div class="empty">No Google Slides deck linked yet.</div>'}}
+  if(k==='turnout'){const f=turnout&&turnout.from?D(turnout.from).toLocaleDateString('en-US',{month:'short',day:'numeric'}):'';
+    return {h:'Turnout Times',sub:(DEMO?'<span class="sample">SAMPLE</span> ':'')+'Dispatch to en route · this quarter'+(f?' ('+esc(f)+' to today)':''),raw:true,body:turnoutHtml()}}
   if(k==='calls'){
     const L=calls.filter(c=>c.first_dispatch_email).slice(0,9);
     return {h:'Recent Calls',sub:'Last 24 hours · BAFC units highlighted',body:`<div class="calls">${L.map(c=>{const ours=[...(c.ems_units||[]),...(c.fire_units||[])];
@@ -644,7 +679,7 @@ function slideHtml(k){
       <div>${(c.units||[]).map(u=>`<span class="chip${ours.includes(u)?' ours':''}">${esc(u)}</span>`).join('')}</div></div>`}).join('')||'<div class="empty">No calls in the last 24 hours.</div>'}</div>`}}
   return {h:k,sub:'',body:''};
 }
-function buildOrder(){order=[];for(const k of Object.keys(SLIDES)){if(!cfg.slides[k])continue;if(k==='calls'&&!canCalls&&!DEMO)continue;if(k==='deck'&&!cfg.deckUrl)continue;if(k==='calendar'&&!events.length&&!DEMO)continue;
+function buildOrder(){order=[];for(const k of Object.keys(SLIDES)){if(!cfg.slides[k])continue;if(k==='calls'&&!canCalls&&!DEMO)continue;if(k==='deck'&&!cfg.deckUrl)continue;if(k==='calendar'&&!events.length&&!DEMO)continue;if(k==='turnout'&&!(turnout&&(turnout.rows||[]).length))continue;
   if(k==='announce')anns().forEach((_,i)=>order.push('ann:'+i));else order.push(k)}if(!order.length)order=['roster']}
 function showSlide(i){
   buildOrder();idx=(i+order.length)%order.length;const k=order[idx],s=slideHtml(k);
@@ -909,7 +944,7 @@ function boot(){
   const go=()=>{$('#soundGate').classList.add('hide');try{ac=ac||new (window.AudioContext||window.webkitAudioContext)();ac.resume()}catch(e){}};
   try{const probe=new (window.AudioContext||window.webkitAudioContext)();if(probe.state==='suspended'){$('#soundGate').classList.remove('hide');$('#soundGo').onclick=go}else{ac=probe}}catch(e){}
   applyTheme();setInterval(applyTheme,60*1000);
-  Promise.all([load(),loadSheets()]).then(()=>{booted=true;showSlide(0)});loadWx();loadNews();setInterval(loadNews,30*60*1000);
+  Promise.all([load(),loadSheets()]).then(()=>{booted=true;showSlide(0)});loadWx();loadNews();setInterval(loadNews,30*60*1000);loadTurnout();setInterval(loadTurnout,15*60*1000);
   setInterval(loadSheets,5*60*1000);
   if(!DEMO){subscribe();setInterval(load,30*1000);checkin();setInterval(checkin,60*1000)}
   renderAmb();renderActive();
