@@ -239,7 +239,7 @@ const CMD=()=>settings.command_staff||[];
 const plt=g=>(String(g).match(/^([A-D]) Platoon\b/i)||[])[1]?.toUpperCase();
 function unavList(){
   const a=unav.map(u=>({id:u.id,name:byId(u.member_id)?.name||'Unknown',member_id:u.member_id,created_by:u.created_by,start:D(u.start_at),end:D(u.end_at),src:'member'}));
-  const b=eso.filter(s=>s.kind==='pto').map(s=>({id:'pto'+s.id,name:memberForShift(s)?.name||s.eso_name,start:D(s.start_at),end:D(s.end_at),src:'eso'}));
+  const b=[];   // ESO time off (blue/PTO) is never shown (Fred 2026-11-26): unavailable = what members enter themselves
   return [...a,...b];
 }
 function render(){

@@ -176,6 +176,12 @@ iframe.fill{border:0;width:100%;height:100%;border-radius:1vh;background:#111}
 .cal .when{font:700 3vh/1.1 "Barlow Condensed";color:var(--gold)}.cal .when small{display:block;font:500 2vh Barlow;color:var(--mute)}
 .cal .tt{font:700 3.6vh/1.1 "Barlow Condensed"}.cal .lo{font-size:2.1vh;color:var(--mute)}
 body.day #run .pp{background:#fff4d6}body.day .amb .u{background:#eef1f4}
+/* No ambulance logged on: the whole box turns red and pulses (Fred 2026-11-26), day and night */
+.amb.alarm{background:#c62828;border-radius:1vh;padding:.8vh .7vw;animation:ambpulse 2s ease-in-out infinite}
+.amb.alarm h4{color:#fff}.amb.alarm .u.none,body.day .amb.alarm .u.none{background:transparent;color:#fff;padding:.4vh 0}
+.amb.alarm .u.none b{font-size:3vh;line-height:1.1;text-align:center}
+@keyframes ambpulse{0%,100%{box-shadow:0 0 0 0 #ff525299}50%{box-shadow:0 0 0 .8vh #ff525200}}
+.amb.stale .u.none,body.day .amb.stale .u.none{background:#f2b51a;color:#1a1300}
 #run .top{display:flex;align-items:center;gap:2vw;padding:2vh 2.5vw;color:#fff}
 .panel.ems .top{background:var(--blue)}.panel.fire .top{background:var(--red)}
 #run .kind{font:700 8vh/1 "Barlow Condensed";letter-spacing:.04em}
@@ -366,7 +372,7 @@ const RADAR='https://radar.weather.gov/ridge/standard/KDIX_loop.gif';
 const TOWNS={BRYA:'Bryn Athyn',LMOR:'Lower Moreland Township',UMOR:'Upper Moreland Township',ABGN:'Abington Township',CHEL:'Cheltenham Township',UDUB:'Upper Dublin Township',HATB:'Hatboro',SHAM:'Upper Southampton Township',PHIL:'Philadelphia'};
 const DEMO=new URLSearchParams(location.search).has('demo');
 const MEMBER_COLS='id,eso_id,name,eso_name,title,ems_level,fire_quals,member_type,is_officer,active';
-const VERSION='2026-11-25i';
+const VERSION='2026-11-26a';
 const SLIDES={roster:'On duty',tomorrow:"Tomorrow's crew",calendar:'Upcoming events',apparatus:'Apparatus status',announce:'Announcements',calls:'Recent calls',weather:'Weather',news:'News & sports',traffic:'Traffic',deck:'Google Slides deck'};
 const DEF={screen:'',rot:20,run:90,vol:0.8,name:'Station 19-1',station:'2815 Buck Rd, Bryn Athyn, PA 19009',appCsv:'',annCsv:'',deckUrl:'',tzoom:15,theme:'auto',slides:{roster:true,tomorrow:true,calendar:true,news:true,apparatus:true,announce:true,calls:true,weather:true,traffic:true,deck:false}};
 // Samples shown until a Google Sheet is connected (Settings > sheet links)
@@ -473,7 +479,7 @@ function roster(from=new Date(),to=null){
   const t=from,win=!!to;
   const inWin=x=>win?(x.start<to&&x.end>from):(x.start<=t&&x.end>t);
   const U=[...unav.map(u=>({name:byId(u.member_id)?.name||'Unknown',start:D(u.start_at),end:D(u.end_at)})),
-           ...eso.filter(s=>s.kind==='pto').map(s=>({name:memberForShift(s)?.name||s.eso_name,start:D(s.start_at),end:D(s.end_at)}))];
+           /* ESO time off (blue/PTO) is never shown (Fred 2026-11-26): unavailable = what members enter themselves */];
   // now: out if unavailable at this moment; window: out if unavailable for the whole shift
   const isOut=(n,s)=>win?U.some(u=>u.name===n&&u.start<=s.start&&u.end>=s.end):U.some(u=>u.name===n&&u.start<=t&&u.end>t);
   const removed=new Set(overrides.map(o=>o.source_key));
@@ -771,6 +777,7 @@ function renderAmb(){
   const L=(ambs.length?ambs:DEMO?demoAmbs():[]).filter(a=>/^319-\d+$/.test(a.unit)).sort((p,q)=>num(p.unit)-num(q.unit)),box=$('#ambSide');
   $('#side').classList.toggle('busy',L.length>=2);box.classList.toggle('hide',!lastLoad&&!DEMO);
   const stale=!DEMO&&settings.webcad_last_sync&&Date.now()-D(settings.webcad_last_sync)>5*60e3;
+  box.classList.toggle('stale',!!stale);box.classList.toggle('alarm',!stale&&!L.length&&(!!lastLoad||DEMO));
   if(stale){box.innerHTML='<h4>Ambulance Status</h4><div class="u none"><b>County status not updating</b></div>';return}
   box.innerHTML=`<h4>Ambulance Status</h4>`+(L.map(a=>`<div class="u ${/^319-6\d$/.test(a.unit)?'amb6':'aok'}"><b>${esc(a.unit)}</b><span>In Service</span></div>`).join('')
     ||'<div class="u none"><b>No ambulance in service</b></div>');
