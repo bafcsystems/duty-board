@@ -7,6 +7,9 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="BAFC Duty">
 <meta name="robots" content="noindex, nofollow">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="icon" href="icon-192.png">
 <title>BAFC On Duty</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
@@ -17,6 +20,8 @@
 body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 Barlow,system-ui,sans-serif;overflow-x:clip}
 .wrap{max-width:780px;margin:0 auto;padding:clamp(16px,3vw,32px) max(3vw,12px) 40px}
 h1{font:700 clamp(30px,5vw,44px)/1.05 "Barlow Condensed",sans-serif;margin:0 0 4px;text-wrap:balance}
+.brandhd{display:flex;align-items:center;gap:clamp(10px,2vw,18px);margin-bottom:4px}.brandhd h1{margin:0}
+.brandlogo{width:clamp(64px,11vw,96px);height:auto;flex:none;filter:drop-shadow(0 2px 4px #0003)}
 .sub{color:var(--mute);margin:0 0 18px;font-size:15px}
 .board,.login{background:var(--card);border-radius:10px;overflow:hidden;box-shadow:0 1px 2px #0002,0 8px 24px #0001}
 .bar{background:var(--bar);color:#fff;display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;padding:10px 14px}
@@ -61,13 +66,45 @@ input,select{font:16px Barlow,sans-serif;min-height:44px;padding:0 10px;border:1
 .err{grid-column:1/-1;color:var(--red);font-size:14px;margin:0;min-height:1em}
 .ok{grid-column:1/-1;color:#2f8f4e;font-size:14px;margin:0}
 .foot{color:var(--mute);font-size:13px;margin-top:14px;display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px;justify-content:space-between}
+/* messages */
+#msgs{padding:0 0 12px}
+.subtabs{display:flex;gap:4px;padding:10px 12px 0;flex-wrap:wrap}
+.subtabs button{font:600 14px Barlow,sans-serif;min-height:36px;padding:0 12px;border-radius:6px;border:1px solid var(--line);background:transparent;color:var(--mute);cursor:pointer}
+.subtabs button[aria-pressed=true]{background:var(--bar);border-color:var(--bar);color:#fff}
+.mitem{padding:12px 16px;border-top:1px solid var(--line);cursor:pointer}.mitem:nth-child(even){background:var(--alt)}
+.mitem .mh{display:flex;gap:8px;align-items:baseline;flex-wrap:wrap}.mitem .ms{font-weight:600;font-size:17px}
+.mitem .mt{margin-left:auto;color:var(--mute);font-size:13px;white-space:nowrap}.mitem .mf{color:var(--mute);font-size:13px}
+.mitem .mb{white-space:pre-wrap;margin-top:6px;font-size:15px}.mitem:not(.open) .mb{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.mitem.new .ms::before{content:"";display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--red);margin-right:6px;vertical-align:middle}
+.urg{background:var(--red);color:#fff;font-size:11px;font-weight:700;padding:1px 6px;border-radius:8px;letter-spacing:.04em}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:0 12px;border-radius:18px;border:1px solid var(--line);background:var(--bg);font:500 14px Barlow,sans-serif;color:var(--ink);cursor:pointer}
+.chip[aria-pressed=true]{background:var(--bar);border-color:var(--bar);color:#fff}.chip small{opacity:.7}
+.chip.person{background:light-dark(#e8eef7,#1b2a3d);border-color:transparent}
+.who{border:1px solid var(--line);border-radius:6px;max-height:280px;overflow:auto;background:var(--card)}
+.who h4{margin:0;padding:8px 12px 4px;font:600 13px Barlow,sans-serif;color:var(--mute);position:sticky;top:0;background:var(--card);border-top:1px solid var(--line)}
+.who h4:first-child{border-top:0}.who label{display:flex;flex-direction:row;align-items:center;gap:8px;padding:5px 12px;color:var(--ink);font-size:15px;font-weight:400}
+.who label input{min-height:0;width:20px;height:20px;flex:none}.who label.off{color:var(--mute);text-decoration:line-through}
+.who .none{padding:10px 12px;color:var(--mute);font-size:14px}
+.chip.duty{min-height:48px;font-weight:600;font-size:15px;border-width:2px}.chip.duty[aria-pressed=false]{border-color:var(--red);color:var(--red)}
+.who .src{margin-left:auto;color:var(--mute);font-size:12px}
+.pick{border:1px solid var(--line);border-radius:6px;padding:0 10px}.pick summary{cursor:pointer;min-height:44px;display:flex;align-items:center;font-weight:600}
+.pick[open]{padding-bottom:10px}.pick input#mFind{width:100%;margin-bottom:6px}
+.sugg{border:1px solid var(--line);border-radius:6px;max-height:220px;overflow:auto;margin-top:4px;background:var(--card)}
+.sugg button{display:block;width:100%;text-align:left;padding:10px 12px;border:0;border-top:1px solid var(--line);background:transparent;color:var(--ink);font:15px Barlow,sans-serif;cursor:pointer}
+.sugg button:first-child{border-top:0}.sugg button:hover,.sugg button:focus{background:var(--alt)}
+textarea{font:16px/1.4 Barlow,sans-serif;min-height:120px;padding:8px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);resize:vertical}
+.checks{display:flex;flex-wrap:wrap;gap:8px 18px}.checks label{display:flex;align-items:center;gap:6px;color:var(--ink);font-size:15px}
+.checks input{min-height:0;width:20px;height:20px}
+.res{grid-column:1/-1;background:var(--alt);border-radius:6px;padding:10px 12px;font-size:14px}.res b{display:block;margin-bottom:4px}
+.tabs .cnt{background:var(--red);color:#fff;border-radius:9px;font-size:12px;padding:0 6px;margin-left:4px}
 @media(max-width:600px){.ctl{justify-content:flex-start}.row{grid-template-columns:40px minmax(0,1fr)}.av{width:40px;height:40px}.st{grid-column:2;text-align:left}form{grid-template-columns:minmax(0,1fr)}.nm{font-size:18px}.tabs .sp{margin-left:0}}
 @media(prefers-reduced-motion:no-preference){#f.open{animation:in .18s ease-out}@keyframes in{from{opacity:0;transform:translateY(-6px)}}}
 </style>
 </head>
 <body>
 <div class="wrap">
-  <h1>Bryn Athyn Fire Company on duty</h1>
+  <div class="brandhd"><img src="logo.png" alt="Fetters Mill Fire Rescue" class="brandlogo"><h1>Bryn Athyn Fire Company On Duty</h1></div>
   <p class="sub" id="sub">Members only. Sign in with the email the company has on file.</p>
   <div class="offline hide" id="offline" role="status"></div>
 
@@ -90,9 +127,11 @@ input,select{font:16px Barlow,sans-serif;min-height:44px;padding:0 10px;border:1
     <div class="tabs" role="group" aria-label="View">
       <button type="button" data-v="now" aria-pressed="true">On duty now</button>
       <button type="button" data-v="next">Next 24 hours</button>
+      <button type="button" data-v="msgs">Messages<span class="cnt hide" id="unread"></span></button>
       <button type="button" class="act2 sp" id="addBtn">Add myself</button>
       <button type="button" class="act" id="unBtn">Report unavailability</button>
     </div>
+    <p class="note" id="srcNote" style="padding:8px 16px 0;margin:0">Shifts come from ESO Scheduling every 15 minutes. Unavailability and volunteer sign-ins appear as soon as they are submitted.</p>
     <div class="key"><span class="b title">Title</span><span class="b ems">EMS</span><span class="b fire">Fire</span><span>Blue is EMS level, red is fire qualification. Solid blue marks a paramedic.</span></div>
     <form id="f" novalidate>
       <h3 id="fTitle"></h3>
@@ -104,6 +143,70 @@ input,select{font:16px Barlow,sans-serif;min-height:44px;padding:0 10px;border:1
       <div class="acts"><button type="button" id="cancel">Cancel</button><button type="submit" class="go" id="fGo">Submit</button></div>
     </form>
     <div id="list"><div class="msg">Loading…</div></div>
+    <div id="msgs" class="hide">
+      <div class="subtabs" role="group" aria-label="Messages">
+        <button type="button" data-m="inbox" aria-pressed="true">Inbox</button>
+        <button type="button" data-m="new">New message</button>
+        <button type="button" data-m="sent">Sent</button>
+        <button type="button" data-m="prefs">My alerts</button>
+      </div>
+      <div id="mInbox"></div>
+      <div id="mSent" class="hide"></div>
+      <form id="mNew" class="hide" novalidate>
+        <h3>New message</h3>
+        <div class="full chips"><button type="button" class="chip duty" data-d="duty_now" aria-pressed="false">On duty now <small id="mDutyNow"></small></button>
+          <button type="button" class="chip duty" data-d="duty_next" aria-pressed="false">Next shift <small id="mDutyNext"></small></button></div>
+        <div class="full"><label>Or send to groups</label><div class="chips" id="mGroups"></div></div>
+        <details class="full pick" id="mIndiv"><summary>Add more names<span id="mIndivN" style="margin-left:6px;font-weight:400;color:var(--mute)"></span></summary>
+          <input id="mFind" placeholder="Filter by name" autocomplete="off">
+          <div class="who" id="mPeopleList"></div></details>
+        <div class="full hide" id="mWhoWrap"><label id="mWhoH">This message will go to</label><div class="who" id="mWho"></div><p class="note" style="padding:4px 0 0">Untick anyone to leave them out.</p></div>
+        <label class="full">Subject<input id="mSubj" maxlength="120"></label>
+        <label class="full">Message<textarea id="mBody" maxlength="1000"></textarea></label>
+        <div class="full note" id="mCount" style="padding:0"></div>
+        <div class="full"><label>Send by</label><div class="checks">
+          <label><input type="checkbox" id="chEmail" checked> Email</label>
+          <label><input type="checkbox" id="chSms"> Text</label>
+          <label><input type="checkbox" id="chPush" checked> Push alert</label>
+          <label style="color:var(--red);font-weight:600"><input type="checkbox" id="chUrgent"> Urgent: send every way</label>
+          <label><input type="checkbox" id="chQuiet"> Send during quiet hours</label>
+        </div></div>
+        <p class="err" id="mErr" aria-live="polite"></p>
+        <div class="res hide" id="mRes" aria-live="polite"></div>
+        <div class="acts"><button type="button" id="mClear">Clear</button><button type="submit" class="go" id="mSend">Send</button></div>
+      </form>
+      <form id="mPrefs" class="hide" novalidate>
+        <h3>My alerts</h3>
+        <div class="full checks" style="flex-direction:column;gap:12px">
+          <label><input type="checkbox" id="pEmail"> Email me messages</label>
+          <label><input type="checkbox" id="pSms"> Text me messages</label>
+          <label><input type="checkbox" id="pPush"> Push alerts on my devices</label>
+        </div>
+        <div class="full" style="border-top:1px solid var(--line);padding-top:10px"><b>Alerts</b>
+          <div class="checks" style="flex-direction:column;gap:12px;margin-top:8px">
+            <label id="pDispWrap"><input type="checkbox" id="pEms"> EMS dispatch alerts</label>
+            <label id="pDispWrap2"><input type="checkbox" id="pFire"> Fire dispatch alerts</label>
+            <p class="note" id="pDispNote" style="padding:0"></p>
+            <label><input type="checkbox" id="pWx"> Weather warnings and watches</label>
+            <label><input type="checkbox" id="pRem"> Event reminders (training, meetings, BOD, events you are invited to)</label>
+            <label><input type="checkbox" id="pDigest"> Weekly digest email (Monday 0800: call counts and the week's events)</label>
+          </div></div>
+        <div class="full"><b>Quiet hours</b> <span class="note" style="padding:0">Alerts and pushes wait until quiet hours end, unless the sender marks a message to go through. Email is not affected.</span>
+          <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:6px">
+            <label style="display:flex;flex-direction:row;align-items:center;gap:6px">From <input type="time" id="pQs"></label>
+            <label style="display:flex;flex-direction:row;align-items:center;gap:6px">To <input type="time" id="pQe"></label>
+            <button type="button" class="btn" id="pQclear" style="min-height:38px">No quiet hours</button></div></div>
+        <label class="full">Mobile number for texts <span id="pMobileNow"></span><input id="pMobile" inputmode="tel" placeholder="Leave blank to keep the number on file"></label>
+        <p class="note full" style="padding:0">By turning on texts you agree to receive messages from Bryn Athyn Fire Company about staffing, schedules and company business. Message and data rates may apply. Reply STOP to any text to stop.</p>
+        <p class="err" id="pErr" aria-live="polite"></p>
+        <div class="acts"><button type="submit" class="go">Save</button></div>
+        <div class="full" style="border-top:1px solid var(--line);padding-top:12px">
+          <b>Push alerts on this device</b>
+          <p class="note" id="pushState" style="padding:4px 0"></p>
+          <div class="acts" style="justify-content:flex-start"><button type="button" class="go" id="pushOn">Turn on alerts on this device</button><button type="button" id="pushTest" class="hide">Send me a test</button></div>
+        </div>
+      </form>
+    </div>
   </div>
 
   <div class="foot"><span id="sync"></span><span id="who"></span></div>
@@ -116,7 +219,7 @@ const SUPABASE_URL='https://svdbmigojyttlqftuvxb.supabase.co';
 const SUPABASE_KEY='sb_publishable_skgMY3FbCCt5E_hN-ZzM6Q_q9dirLU5';
 const sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
 
-const MEMBER_COLS='id,eso_id,name,eso_name,title,ems_level,fire_quals,member_type,is_officer,active';
+const MEMBER_COLS='id,eso_id,name,eso_name,title,ems_level,fire_quals,member_type,is_officer,active,is_screen';
 const $=s=>document.querySelector(s);
 const esc=t=>String(t??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
 const H=36e5,EMS=['EMT','AEMT','Paramedic','MD'],FIRE=['FF','INT','EXT','AO','Fire Police'];
@@ -152,23 +255,26 @@ $('#lVerify').addEventListener('click',async()=>{
 });
 
 async function start(session){
-  if(!session){$('#login').classList.remove('hide');$('#board').classList.add('hide');$('#who').textContent='';return}
+  if(!session){$('#sub').classList.remove('hide');$('#login').classList.remove('hide');$('#board').classList.add('hide');$('#who').textContent='';return}
   const email=(session.user.email||'').toLowerCase();
   const [{data,error},{data:myId}]=await Promise.all([sb.from('members').select(MEMBER_COLS).eq('active',true),sb.rpc('my_member_id')]);
-  members=data||[];
+  members=(data||[]).filter(m=>!m.is_screen||m.id===myId);   // station TV accounts never listed as people
   me=members.find(m=>m.id===myId)||null;
   $('#login').classList.add('hide');
   if(error||!me){
     $('#board').classList.add('hide');
+    $('#sub').classList.remove('hide');
     $('#sub').textContent=email+' is not on the BAFC member list. Contact the Deputy Chief of EMS to be added.';
     $('#who').innerHTML='<button class="lnk" id="out">Sign out</button>';$('#out').onclick=()=>sb.auth.signOut();
     return;
   }
   $('#board').classList.remove('hide');
-  $('#sub').textContent='Shifts come from ESO Scheduling every 15 minutes. Unavailability and volunteer sign-ins appear as soon as they are submitted.';
+  $('#sub').textContent='';$('#sub').classList.add('hide');
   $('#who').innerHTML=`Signed in as ${esc(me.name)}${me.is_officer?' (officer)':''} · <button class="lnk" id="out">Sign out</button>`;
+  sb.rpc('my_roles').then(({data})=>{if((data||[]).length||me.is_officer){const o=$('#out');if(o&&!$('#admLink'))o.insertAdjacentHTML('beforebegin','<a id="admLink" href="admin.html" style="color:inherit">Admin</a> · ')}});
   $('#out').onclick=()=>sb.auth.signOut();
-  await load();subscribe();
+  await load();subscribe();loadInbox();
+  if(location.hash==='#messages')setView('msgs');
 }
 let started=false;
 sb.auth.onAuthStateChange((ev,session)=>{
@@ -187,7 +293,7 @@ async function load(){
     sb.from('roster_overrides').select('*').is('restored_at',null),
     sb.from('members').select(MEMBER_COLS).eq('active',true)
   ]);
-  if(m.data) members=m.data;
+  if(m.data) members=m.data.filter(x=>!x.is_screen||(me&&x.id===me.id));
   settings=Object.fromEntries((s.data||[]).map(r=>[r.key,r.value]));
   eso=e.data||[];unav=u.data||[];vols=v.data||[];overrides=o.data||[];
   lastPull=eso.reduce((a,r)=>!a||D(r.pulled_at)>a?D(r.pulled_at):a,null);
@@ -207,6 +313,7 @@ function subscribe(){
   if(chan) sb.removeChannel(chan);
   chan=sb.channel('board');
   ['eso_shifts','unavailability','volunteer_shifts','roster_overrides','settings','members'].forEach(t=>chan.on('postgres_changes',{event:'*',schema:'public',table:t},reload));
+  chan.on('postgres_changes',{event:'INSERT',schema:'public',table:'message_deliveries'},()=>{clearTimeout(inboxT);inboxT=setTimeout(loadInbox,800)});
   chan.subscribe();
 }
 setInterval(()=>loaded&&load(),5*60*1000);
@@ -388,8 +495,176 @@ $('#f').addEventListener('submit',async e=>{
   if(r?.error){$('#fErr').textContent='That did not save: '+r.error.message;return}
   $('#f').classList.remove('open');load();
 });
-function setView(v){view=v;document.querySelectorAll('.tabs [data-v]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.v===v));render()}
+function setView(v){view=v;document.querySelectorAll('.tabs [data-v]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.v===v));
+  const m=v==='msgs';$('#msgs').classList.toggle('hide',!m);$('#list').classList.toggle('hide',m);$('.key').classList.toggle('hide',m);$('#srcNote').classList.toggle('hide',m);$('#addBtn').classList.toggle('hide',m);$('#unBtn').classList.toggle('hide',m);
+  if(m){$('#f').classList.remove('open');openMsgs()}else render()}
 document.querySelectorAll('.tabs [data-v]').forEach(b=>b.addEventListener('click',()=>setView(b.dataset.v)));
+
+// ---------- messages ----------
+let inbox=[],sent=[],groups=[],picked=new Set(),gMem={},excluded=new Set(),indiv=new Set(),mTab='inbox',inboxT=null,groupsLoaded=false;
+const when=d=>{const x=D(d),t=new Date();return x.toDateString()===t.toDateString()?fmt(x).split(' ')[0]:x.toLocaleDateString('en-US',{month:'short',day:'numeric'})+' '+fmt(x).split(' ')[0]};
+const seenKey=()=>'bafcMsgSeen:'+me?.id;
+async function loadInbox(){
+  if(!me)return;
+  const {data}=await sb.from('message_deliveries').select('message_id,messages(id,subject,body,urgent,created_at,sender_id,audience_label)')
+    .eq('member_id',me.id).eq('channel','board').order('id',{ascending:false}).limit(50);
+  inbox=(data||[]).map(r=>r.messages).filter(Boolean);
+  const seen=+(localStorage.getItem(seenKey())||0),n=inbox.filter(m=>+D(m.created_at)>seen).length;
+  $('#unread').textContent=n;$('#unread').classList.toggle('hide',!n||view==='msgs');
+  if(view==='msgs'&&mTab==='inbox')renderInbox();
+}
+function renderInbox(){
+  const seen=+(localStorage.getItem(seenKey())||0);
+  $('#mInbox').innerHTML=inbox.map(m=>`<div class="mitem${+D(m.created_at)>seen?' new':''}" tabindex="0"><div class="mh">${m.urgent?'<span class="urg">URGENT</span>':''}<span class="ms">${esc(m.subject)}</span><span class="mt">${esc(when(m.created_at))}</span></div>
+    <div class="mf">From ${esc(byId(m.sender_id)?.name||'a member')} · to ${esc(m.audience_label||'you')}</div><div class="mb">${esc(m.body)}</div></div>`).join('')||'<div class="empty">No messages yet.</div>';
+  if(inbox[0])localStorage.setItem(seenKey(),String(+D(inbox[0].created_at)));
+  $('#unread').classList.add('hide');
+}
+async function loadSent(){
+  const {data}=await sb.from('messages').select('id,subject,body,urgent,created_at,audience_label,recipients,channels').eq('sender_id',me.id).order('created_at',{ascending:false}).limit(30);
+  sent=data||[];
+  $('#mSent').innerHTML=sent.map(m=>`<div class="mitem" data-id="${m.id}" tabindex="0"><div class="mh">${m.urgent?'<span class="urg">URGENT</span>':''}<span class="ms">${esc(m.subject)}</span><span class="mt">${esc(when(m.created_at))}</span></div>
+    <div class="mf">To ${esc(m.audience_label||'')} · ${m.recipients} people · ${esc(m.channels.map(chName).join(', '))}</div><div class="mb">${esc(m.body)}</div><div class="mstat note" style="padding:6px 0 0"></div></div>`).join('')||'<div class="empty">You have not sent any messages.</div>';
+}
+const chName=c=>({email:'Email',sms:'Text',push:'Push',board:'Board inbox'})[c]||c;
+const stName=s=>({sent:'sent',queued:'waiting',sending:'sending',failed:'failed',skipped:'not sent',not_configured:'not set up yet'})[s]||s;
+async function statusHtml(id){
+  const {data}=await sb.rpc('message_status',{p_message:id});
+  const by={};(data||[]).forEach(r=>{(by[r.channel]??=[]).push(`${r.n} ${stName(r.status)}${r.detail&&r.status!=='sent'?' ('+r.detail+')':''}`)});
+  return ['email','sms','push'].filter(c=>by[c]).map(c=>`<div><b style="display:inline">${chName(c)}:</b> ${esc(by[c].join(', '))}</div>`).join('')||'Delivered to board inboxes.';
+}
+$('#mSent').addEventListener('click',async e=>{const it=e.target.closest('.mitem');if(!it)return;it.classList.toggle('open');
+  if(it.classList.contains('open'))it.querySelector('.mstat').innerHTML=await statusHtml(it.dataset.id)});
+$('#mInbox').addEventListener('click',e=>{const it=e.target.closest('.mitem');if(it)it.classList.toggle('open')});
+function showM(t){mTab=t;document.querySelectorAll('.subtabs [data-m]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.m===t));
+  $('#mInbox').classList.toggle('hide',t!=='inbox');$('#mSent').classList.toggle('hide',t!=='sent');
+  $('#mNew').classList.toggle('hide',t!=='new');$('#mPrefs').classList.toggle('hide',t!=='prefs');
+  if(t==='inbox')renderInbox();if(t==='sent')loadSent();if(t==='new')loadGroups();if(t==='prefs')loadPrefs()}
+document.querySelectorAll('.subtabs [data-m]').forEach(b=>b.addEventListener('click',()=>showM(b.dataset.m)));
+function openMsgs(){showM(mTab)}
+
+// On duty now / next 24 hours: the same rules as the board's two tabs
+function dutyIds(){
+  const t=new Date(),to=new Date(+t+24*H),U=unavList();
+  const unNow=n=>U.some(u=>u.name===n&&u.start<=t&&u.end>t);
+  const removed=new Set(overrides.map(o=>o.source_key));
+  const sh=eso.filter(s=>s.kind==='shift'&&!removed.has(s.source_key)).map(s=>{const m=memberForShift(s);return {id:m?.id,name:m?.name||s.eso_name,start:D(s.start_at),end:D(s.end_at)}}).filter(s=>!unNow(s.name));
+  const V=vols.map(v=>({id:v.member_id,name:byId(v.member_id)?.name,start:D(v.start_at),end:D(v.end_at)})).filter(v=>!unNow(v.name));
+  const all=[...sh,...V].filter(x=>x.id&&x.end>t);
+  const now=[...new Set(all.filter(x=>x.start<=t).map(x=>x.id))];
+  const next=[...new Set(all.filter(x=>x.start>t&&x.start<=to).map(x=>x.id))].filter(id=>!now.includes(id));
+  return {now,next};
+}
+async function loadGroups(){
+  if(!groupsLoaded){
+    const {data,error}=await sb.rpc('message_groups');if(error){$('#mErr').textContent=error.message;return}
+    groups=data||[];groupsLoaded=true;
+  }
+  const d=dutyIds();gMem.duty_now=d.now;gMem.duty_next=d.next;
+  $('#mDutyNow').textContent=d.now.length;$('#mDutyNext').textContent=d.next.length;
+  renderGroups();renderPeople();
+}
+async function fetchGroupMembers(keys){
+  const need=keys.filter(k=>!gMem[k]);if(!need.length)return;
+  const {data,error}=await sb.rpc('message_group_members',{p_keys:need});if(error){$('#mErr').textContent=error.message;return}
+  need.forEach(k=>gMem[k]=[]);(data||[]).forEach(r=>gMem[r.key].push(r.member_id));
+}
+const sortName=ids=>[...ids].filter(byId).sort((a,b)=>last(byId(a).name).localeCompare(last(byId(b).name))||byId(a).name.localeCompare(byId(b).name));
+function finalIds(){const set=new Set();picked.forEach(k=>(gMem[k]||[]).forEach(id=>{if(!excluded.has(id))set.add(id)}));indiv.forEach(id=>set.add(id));return [...set]}
+function renderGroups(){
+  document.querySelectorAll('[data-d]').forEach(b=>b.setAttribute('aria-pressed',picked.has(b.dataset.d)));
+  $('#mGroups').innerHTML=groups.map(g=>`<button type="button" class="chip" data-g="${esc(g.key)}" aria-pressed="${picked.has(g.key)}">${esc(g.name)} <small>${g.members}</small></button>`).join('');
+  // one combined list of everyone this message will reach, with where each name came from
+  const from={};
+  picked.forEach(k=>(gMem[k]||[]).forEach(id=>{(from[id]??=[]).push(k==='duty_now'?'on duty now':k==='duty_next'?'next shift':(groups.find(g=>g.key===k)?.name||''))}));
+  indiv.forEach(id=>(from[id]??=[]).push('added'));
+  const ids=sortName(Object.keys(from)),n=finalIds().length;
+  $('#mWhoWrap').classList.toggle('hide',!ids.length);
+  $('#mWhoH').textContent=`This message will go to ${n} ${n===1?'person':'people'}`;
+  $('#mWho').innerHTML=ids.map(id=>{const off=excluded.has(id)&&!indiv.has(id);
+    return `<label class="${off?'off':''}"><input type="checkbox" data-x="${id}"${off?'':' checked'}> ${esc(byId(id).name)}<span class="src">${esc([...new Set(from[id])].join(', '))}</span></label>`}).join('');
+  $('#mCount').textContent=n?'':'Pick on duty now, next shift, groups or names.';
+}
+function renderPeople(){
+  const q=$('#mFind').value.trim().toLowerCase();
+  $('#mPeopleList').innerHTML=sortName(members.map(m=>m.id)).filter(id=>!q||byId(id).name.toLowerCase().includes(q))
+    .map(id=>`<label><input type="checkbox" data-i="${id}"${indiv.has(id)?' checked':''}> ${esc(byId(id).name)}${byId(id).title?' <span class="note" style="padding:0">· '+esc(byId(id).title)+'</span>':''}</label>`).join('');
+  $('#mIndivN').textContent=indiv.size?`(${indiv.size} selected)`:'';
+}
+$('#mGroups').addEventListener('click',async e=>{const b=e.target.closest('[data-g]');if(!b)return;const k=b.dataset.g;
+  if(picked.has(k))picked.delete(k);else{picked.add(k);await fetchGroupMembers([k])}renderGroups()});
+$('#mWho').addEventListener('change',e=>{const c=e.target.closest('[data-x]');if(!c)return;const id=c.dataset.x;
+  if(c.checked)excluded.delete(id);else{excluded.add(id);if(indiv.delete(id))renderPeople()}renderGroups()});
+document.querySelectorAll('[data-d]').forEach(b=>b.addEventListener('click',()=>{const k=b.dataset.d;picked.has(k)?picked.delete(k):picked.add(k);renderGroups()}));
+$('#mPeopleList').addEventListener('change',e=>{const c=e.target.closest('[data-i]');if(!c)return;if(c.checked){indiv.add(c.dataset.i);excluded.delete(c.dataset.i)}else indiv.delete(c.dataset.i);$('#mIndivN').textContent=indiv.size?`(${indiv.size} selected)`:'';renderGroups()});
+$('#mFind').addEventListener('input',renderPeople);
+$('#chUrgent').addEventListener('change',()=>{const u=$('#chUrgent').checked;['chEmail','chSms','chPush'].forEach(id=>{const c=$('#'+id);if(u)c.checked=true;c.disabled=u})});
+const resetNew=()=>{$('#mNew').reset();picked.clear();excluded.clear();indiv.clear();renderPeople();['chEmail','chSms','chPush'].forEach(id=>$('#'+id).disabled=false);$('#mErr').textContent='';renderGroups()};
+$('#mClear').addEventListener('click',()=>{resetNew();$('#mRes').classList.add('hide')});
+$('#mNew').addEventListener('submit',async e=>{e.preventDefault();$('#mErr').textContent='';$('#mRes').classList.add('hide');
+  const ch=[['chEmail','email'],['chSms','sms'],['chPush','push']].filter(([id])=>$('#'+id).checked).map(x=>x[1]);
+  const ids=finalIds();
+  if(!ids.length){$('#mErr').textContent='Pick on duty now, next shift, a group or names.';return}
+  if(!$('#mSubj').value.trim()||!$('#mBody').value.trim()){$('#mErr').textContent='Add a subject and a message.';return}
+  if(!ch.length){$('#mErr').textContent='Pick at least one way to send.';return}
+  $('#mSend').disabled=true;$('#mSend').textContent='Sending…';
+  const {data,error}=await sb.rpc('send_message',{p_subject:$('#mSubj').value,p_body:$('#mBody').value,p_channels:ch,p_urgent:$('#chUrgent').checked,p_groups:[...picked],p_members:ids,p_extra_label:[...indiv],p_override_quiet:$('#chQuiet').checked});
+  if(error){$('#mSend').disabled=false;$('#mSend').textContent='Send';$('#mErr').textContent=error.message;return}
+  const inv=await sb.functions.invoke('send-messages',{body:{}}).catch(x=>({error:x}));
+  $('#mSend').disabled=false;$('#mSend').textContent='Send';
+  $('#mRes').innerHTML=`<b>Sent to ${data.recipients} ${data.recipients===1?'person':'people'}.</b>`+(await statusHtml(data.message_id))+(inv?.error?'<div style="color:var(--red)">The sender did not respond; anything waiting goes out with the next message.</div>':'');
+  $('#mRes').classList.remove('hide');resetNew();loadInbox();
+});
+
+// my alerts
+async function loadPrefs(){
+  const {data}=await sb.rpc('my_contact_settings');const p=data||{};
+  $('#pEmail').checked=p.email_on!==false;$('#pSms').checked=!!p.sms_on;$('#pPush').checked=p.push_on!==false;
+  $('#pMobileNow').textContent=p.mobile_last4?`(on file: ending ${p.mobile_last4})`:'(none on file)';
+  $('#pEms').checked=!!p.alert_ems;$('#pFire').checked=!!p.alert_fire;$('#pWx').checked=!!p.alert_weather;$('#pDigest').checked=!!p.digest_on;$('#pRem').checked=p.reminders_on!==false;
+  $('#pQs').value=p.quiet_start||'';$('#pQe').value=p.quiet_end||'';
+  ['pEms','pFire'].forEach(id=>$('#'+id).disabled=!p.dispatch_allowed);
+  $('#pDispNote').textContent=p.dispatch_allowed?'Tap a dispatch alert to open the call page, with directions and an I\'m responding button.':'Dispatch alerts are being tested and will open to members soon.';
+  pushStatus(p.push_devices||0);
+}
+$('#mPrefs').addEventListener('submit',async e=>{e.preventDefault();$('#pErr').textContent='';
+  const {error}=await sb.rpc('set_my_contact_settings',{p_email_on:$('#pEmail').checked,p_sms_on:$('#pSms').checked,p_push_on:$('#pPush').checked,p_mobile:$('#pMobile').value.trim()||null});
+  if(error){$('#pErr').textContent=error.message;return}
+  if(($('#pQs').value&&!$('#pQe').value)||(!$('#pQs').value&&$('#pQe').value)){$('#pErr').textContent='Set both quiet-hours times, or neither.';return}
+  const r2=await sb.rpc('set_my_alert_settings',{p_alert_ems:$('#pEms').checked,p_alert_fire:$('#pFire').checked,p_alert_weather:$('#pWx').checked,p_digest_on:$('#pDigest').checked,p_quiet_start:$('#pQs').value,p_quiet_end:$('#pQe').value});
+  if(r2.error){$('#pErr').textContent=r2.error.message;return}
+  const r3=await sb.rpc('set_my_reminders',{p_on:$('#pRem').checked});if(r3.error){$('#pErr').textContent=r3.error.message;return}
+  $('#pMobile').value='';$('#pErr').style.color='#2f8f4e';$('#pErr').textContent='Saved.';setTimeout(()=>{$('#pErr').textContent='';$('#pErr').style.color=''},2500);loadPrefs()});
+const isIOS=/iPhone|iPad|iPod/.test(navigator.userAgent),standalone=matchMedia('(display-mode: standalone)').matches||navigator.standalone;
+async function pushStatus(devices){
+  let t='';const ok='serviceWorker' in navigator&&'PushManager' in window;
+  if(isIOS&&!standalone) t='On iPhone, first tap Share, then "Add to Home Screen", then open the board from that icon and come back here.';
+  else if(!ok) t='This browser does not support push alerts. Use Chrome on Android or a computer, or Safari from the Home Screen on iPhone.';
+  else if(Notification.permission==='denied') t='Alerts are blocked for this site in your browser settings.';
+  else {const reg=await navigator.serviceWorker.getRegistration();const sub=reg&&await reg.pushManager.getSubscription();
+    t=sub?'Alerts are on for this device.':'Alerts are not on for this device yet.';$('#pushTest').classList.toggle('hide',!sub)}
+  $('#pushState').textContent=t+(devices?` (${devices} device${devices===1?'':'s'} signed up in total)`:'');
+  $('#pushOn').classList.toggle('hide',(isIOS&&!standalone)||!ok);
+}
+const keyBytes=b=>{const p=b.replace(/-/g,'+').replace(/_/g,'/')+'==='.slice((b.length+3)%4);return Uint8Array.from(atob(p),c=>c.charCodeAt(0))};
+$('#pushOn').addEventListener('click',async()=>{
+  try{
+    const reg=await navigator.serviceWorker.register('sw.js');await navigator.serviceWorker.ready;
+    if(await Notification.requestPermission()!=='granted'){pushStatus(0);return}
+    let {data:key}=await sb.rpc('vapid_public_key');
+    if(!key){const r=await sb.functions.invoke('send-messages',{body:{action:'vapid'}});key=r.data?.publicKey}
+    if(!key)throw new Error('push is not set up on the server yet');
+    const sub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:keyBytes(key)});
+    const j=sub.toJSON();
+    const {error}=await sb.rpc('save_push_subscription',{p_endpoint:j.endpoint,p_p256dh:j.keys.p256dh,p_auth:j.keys.auth,p_agent:navigator.userAgent});
+    if(error)throw error;loadPrefs();
+  }catch(x){$('#pushState').textContent='Could not turn on alerts: '+(x.message||x)}
+});
+$('#pQclear').addEventListener('click',()=>{$('#pQs').value='';$('#pQe').value=''});
+$('#pushTest').addEventListener('click',async()=>{
+  const {data,error}=await sb.rpc('send_message',{p_subject:'Test alert',p_body:'This is a test push alert from the BAFC duty board.',p_channels:['push'],p_urgent:false,p_groups:[],p_members:[me.id],p_extra_label:[me.id],p_override_quiet:true});
+  if(error){$('#pushState').textContent=error.message;return}await sb.functions.invoke('send-messages',{body:{}});$('#pushState').textContent='Test sent. It should arrive in a few seconds.'});
+if('serviceWorker' in navigator)navigator.serviceWorker.addEventListener('message',e=>{if(e.data==='open-messages')setView('msgs')});
 }
 </script>
 </body>

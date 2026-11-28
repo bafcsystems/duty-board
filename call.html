@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#1b2026">
+<meta name="robots" content="noindex, nofollow">
+<title>BAFC Call</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* Call page opened from a dispatch alert. Shows only call type, address, cross streets, map and units: never dispatcher comments. */
+:root{color-scheme:light dark;--bg:light-dark(#eceef1,#0e1114);--card:light-dark(#fff,#171b20);--ink:light-dark(#16191d,#eef0f2);--mute:light-dark(#5d6670,#9aa4ae);--line:light-dark(#e1e4e8,#2a3038);--red:#b22222;--blue:#1c4f8c;--bar:#1b2026;--ok:#1f7a41}
+*{box-sizing:border-box;min-width:0}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.4 Barlow,system-ui,sans-serif}
+.wrap{max-width:820px;margin:0 auto;padding:12px max(3vw,10px) 40px}
+.top{display:flex;align-items:center;gap:10px;margin-bottom:10px}.top img{width:44px;height:auto}.top a{margin-left:auto;color:var(--mute);font-size:14px}
+.hd{border-radius:10px 10px 0 0;padding:12px 16px;color:#fff;display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 14px}
+.hd.ems{background:var(--blue)}.hd.fire{background:var(--red)}.hd.closed{background:#59616b}
+.hd b{font:700 clamp(26px,6vw,36px)/1 "Barlow Condensed",sans-serif;letter-spacing:.02em}.hd span{font-size:15px;opacity:.9}.hd .t{margin-left:auto}
+.card{background:var(--card);border-radius:0 0 10px 10px;box-shadow:0 1px 2px #0002,0 8px 24px #0001;overflow:hidden}
+.in{padding:14px 16px;display:grid;gap:12px}
+.nature{font:700 clamp(26px,6vw,34px)/1.05 "Barlow Condensed",sans-serif}
+.place{font-weight:600;color:var(--mute)}.addr{font:700 clamp(28px,7vw,40px)/1.05 "Barlow Condensed",sans-serif}
+.lbl{font-size:12px;font-weight:600;color:var(--mute);text-transform:uppercase;letter-spacing:.06em}
+.val{font-size:18px}
+.units{display:flex;flex-wrap:wrap;gap:6px}.u{padding:3px 10px;border-radius:12px;background:light-dark(#eceff2,#262c33);font-weight:600}.u.ours{background:var(--red);color:#fff}
+.resp{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.btn{font:700 18px Barlow,sans-serif;min-height:56px;padding:0 22px;border-radius:8px;border:2px solid var(--ok);background:var(--ok);color:#fff;cursor:pointer;flex:1 1 220px}
+.btn.on{background:transparent;color:var(--ok)}
+.etas{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;width:100%}.etas .btn{flex:none;min-height:60px;font-size:19px}
+.etas .btn.scene{border-color:var(--blue);background:var(--blue)}.etas .btn.sel{outline:4px solid light-dark(#111,#fff);outline-offset:2px}
+.cancel{background:none;border:0;color:var(--mute);text-decoration:underline;font:600 15px Barlow,sans-serif;cursor:pointer;padding:6px 0}
+.rl{display:grid;gap:6px}.rr{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:8px 10px;border:1px solid var(--line);border-radius:8px}
+.rr b{font-size:17px}.rr .q{font-size:12px;font-weight:700;padding:1px 7px;border-radius:9px;background:light-dark(#e3ecf8,#1d2a3a);color:light-dark(#1d4e89,#9cc3f0)}
+.rr .q.f{background:light-dark(#f8e3e3,#3a1d1d);color:light-dark(#9a1c1c,#f09c9c)}.rr .eta{margin-left:auto;font-weight:700;font-size:17px}.rr .eta.sc{color:var(--blue)}
+.who{font-size:15px;color:var(--mute)}.who b{color:var(--ink)}
+iframe{width:100%;height:min(55vh,420px);border:0;display:block;border-top:1px solid var(--line)}
+.links{display:flex;gap:10px;flex-wrap:wrap}.links a{font-weight:600;color:var(--ink);padding:10px 14px;border:1px solid var(--line);border-radius:8px;text-decoration:none}
+.list a{display:block;padding:12px 16px;border-top:1px solid var(--line);color:var(--ink);text-decoration:none}.list a:first-child{border-top:0}
+.list small{color:var(--mute);display:block}
+.msg{padding:22px 16px;color:var(--mute);text-align:center}
+.err{color:var(--red)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top"><img src="logo.png" alt="Fetters Mill Fire Rescue"><b>BAFC call</b><a href="./">Duty board</a></div>
+  <div id="out"><div class="msg">Loading…</div></div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script>
+{
+const sb=window.supabase.createClient('https://svdbmigojyttlqftuvxb.supabase.co','sb_publishable_skgMY3FbCCt5E_hN-ZzM6Q_q9dirLU5',{auth:{persistSession:true,autoRefreshToken:true}});
+const STATION='2815 Buck Rd, Bryn Athyn, PA 19009';
+const $=s=>document.querySelector(s);
+const esc=t=>String(t??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
+const D=d=>new Date(d);
+const hm=d=>new Date(d).toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',hour12:false});
+const title=s=>String(s||'').toLowerCase().replace(/\b\w/g,c=>c.toUpperCase());
+const ours=u=>/319/.test(u)||/19-1$/.test(u);
+let me=null,isOfficer=false,members=[];
+
+async function start(session){
+  if(!session){$('#out').innerHTML='<div class="card" style="border-radius:10px"><div class="msg">Sign in on the <a href="./">duty board</a> first, then open this alert again.</div></div>';return}
+  const [{data:id},{data:m}]=await Promise.all([sb.rpc('my_member_id'),sb.from('members').select('id,name,is_officer').eq('active',true)]);
+  members=m||[];me=members.find(x=>x.id===id);isOfficer=!!me?.is_officer;
+  show();
+}
+async function show(){
+  const inc=decodeURIComponent(location.hash.slice(1));
+  if(!inc){return list()}
+  const {data:c,error}=await sb.rpc('call_page',{p_incident:inc});
+  if(error||!c){$('#out').innerHTML='<div class="card" style="border-radius:10px"><div class="msg">This call is not available. Call pages are being tested and are not open to all members yet.</div></div>';return}
+  const kind=c.run_screen==='fire'?'fire':'ems',closed=!!c.closed_at;
+  const dest=`${c.address||''}, ${c.town||''}, PA`;
+  const route=`https://maps.google.com/maps?saddr=${encodeURIComponent(STATION)}&daddr=${encodeURIComponent(dest)}&dirflg=d&output=embed`;
+  const R=(c.responders||[]).slice().sort((a,b)=>(a.mode==='scene')-(b.mode==='scene')||(D(a.eta_at||a.responded_at)-D(b.eta_at||b.responded_at))),mine=R.find(x=>x.me);
+  const etaTxt=x=>x.mode==='scene'?'To scene':x.eta_at?(m=>m<=0?'Due now':m+' min')(Math.ceil((D(x.eta_at)-Date.now())/6e4)):'Responding';
+  const quals=x=>[x.ems_level?`<span class="q">${esc(x.ems_level)}</span>`:'',...(x.fire_quals||[]).map(q=>`<span class="q f">${esc(q)}</span>`)].join('');
+  const who=R.length?`<div class="rl">${R.map(x=>`<div class="rr"><b>${esc(x.name)}</b>${quals(x)}<span class="eta${x.mode==='scene'?' sc':''}">${esc(etaTxt(x))}</span></div>`).join('')}</div>`:'<div class="who">No one yet.</div>';
+  const sel=(e,mo)=>mine&&mine.mode===mo&&(mo==='scene'||Math.abs(Math.ceil((D(mine.eta_at)-D(mine.responded_at))/6e4)-e)<1)?' sel':'';
+  $('#out').innerHTML=`<div class="hd ${closed?'closed':kind}"><b>${kind==='fire'?'FIRE':'EMS'} DISPATCH</b>${c.priority?`<span>${esc(c.priority)}</span>`:''}<span>${esc(c.incident)}</span><span class="t">${closed?'Cleared '+esc(hm(c.closed_at)):'Dispatched '+esc(hm(c.dispatched))}</span></div>
+   <div class="card"><div class="in">
+     <div class="nature">${esc(title(c.nature||c.code||'Call'))}</div>
+     ${c.place?`<div class="place">${esc(c.place)}</div>`:''}
+     <div><div class="addr">${esc(c.address||'Address pending')}</div>${c.apt?`<div class="val">Apt ${esc(c.apt)}</div>`:''}<div class="val">${esc(c.town||'')}${c.map_page?' · Map '+esc(c.map_page):''}</div></div>
+     <div><div class="lbl">Cross streets</div><div class="val">${esc(c.cross_streets||'-')}</div></div>
+     <div><div class="lbl">Units due</div><div class="units">${(c.units||[]).map(u=>`<span class="u${ours(u)?' ours':''}">${esc(u)}</span>`).join('')||'-'}</div></div>
+     ${closed?'':`<div><div class="lbl">${mine?"You're responding · tap to change":"I'm responding · ETA to station"}</div><div class="resp"><div class="etas">
+       <button class="btn${sel(5,'station')}" data-eta="5" data-mode="station">5 min</button><button class="btn${sel(10,'station')}" data-eta="10" data-mode="station">10 min</button>
+       <button class="btn${sel(15,'station')}" data-eta="15" data-mode="station">15+ min</button><button class="btn scene${sel(0,'scene')}" data-mode="scene">Direct to scene</button></div>
+       ${mine?'<button class="cancel" id="cancel">Cancel, not responding</button>':''}</div></div>`}
+     <div><div class="lbl">Responding (${R.length})</div>${who}</div>
+     <p class="err" id="err"></p>
+     <div class="links"><a href="https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(dest)}" target="_blank" rel="noopener">Open in Google Maps</a><a href="https://maps.apple.com/?daddr=${encodeURIComponent(dest)}" target="_blank" rel="noopener">Apple Maps</a></div>
+   </div>${c.address?`<iframe src="${route}" title="Route from station" loading="lazy"></iframe>`:''}</div>`;
+  const go=async(args,el)=>{document.querySelectorAll('.etas .btn,#cancel').forEach(x=>x.disabled=true);
+    const {error}=await sb.rpc('respond',{p_incident:inc,...args});
+    if(error){$('#err').textContent=error.message;document.querySelectorAll('.etas .btn,#cancel').forEach(x=>x.disabled=false);return}show()};
+  document.querySelectorAll('.etas .btn').forEach(b=>b.onclick=()=>go({p_on:true,p_eta:b.dataset.eta?+b.dataset.eta:null,p_mode:b.dataset.mode}));
+  const cx=$('#cancel');if(cx)cx.onclick=()=>go({p_on:false});
+}
+async function list(){
+  const {data}=await sb.rpc('recent_alert_calls');
+  $('#out').innerHTML=`<div class="card" style="border-radius:10px"><div class="list">${(data||[]).map(c=>`<a href="#${esc(c.incident)}"><b>${c.run_screen==='fire'?'FIRE':'EMS'} · ${esc(title(c.nature||''))}</b><small>${esc(c.address||'')} · ${esc(c.town||'')} · ${esc(hm(c.dispatched))}${c.closed_at?' · cleared':''}</small></a>`).join('')||'<div class="msg">No calls in the last 12 hours.</div>'}</div></div>`;
+}
+window.addEventListener('hashchange',()=>me&&show());
+setInterval(()=>{if(me&&!document.hidden)show()},15000);
+sb.auth.onAuthStateChange((ev,s)=>{if(ev==='INITIAL_SESSION'||ev==='SIGNED_IN')start(s);if(ev==='SIGNED_OUT')start(null)});
+}
+</script>
+</body>
+</html>

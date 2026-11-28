@@ -4,44 +4,70 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
-<title>BAFC Station Display Admin</title>
+<title>BAFC Admin</title>
+<link rel="icon" href="icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
-:root{color-scheme:light dark;--bg:light-dark(#eceef1,#0e1114);--card:light-dark(#fff,#171b20);--alt:light-dark(#f6f7f9,#1c2127);--ink:light-dark(#16191d,#eef0f2);--mute:light-dark(#5d6670,#9aa4ae);--line:light-dark(#e1e4e8,#2a3038);--red:#b22222;--bar:#1b2026;--gold:#e8b33a;--ok:#1f7a41}
+:root{color-scheme:light dark;--bg:light-dark(#eceef1,#0e1114);--card:light-dark(#fff,#171b20);--alt:light-dark(#f6f7f9,#1c2127);--ink:light-dark(#16191d,#eef0f2);--mute:light-dark(#5d6670,#9aa4ae);--line:light-dark(#e1e4e8,#2a3038);--red:#b22222;--bar:#1b2026;--gold:#e8b33a;--ok:#1f7a41;--amber:#b8860b;--blue:#1d4e89}
 *{box-sizing:border-box;min-width:0}
 body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 Barlow,system-ui,sans-serif}
-.wrap{max-width:900px;margin:0 auto;padding:clamp(16px,3vw,32px) max(3vw,12px) 60px}
-h1{font:700 clamp(28px,5vw,40px)/1.05 "Barlow Condensed",sans-serif;margin:0 0 4px}
-.sub{color:var(--mute);margin:0 0 18px;font-size:15px}
+.wrap{max-width:1100px;margin:0 auto;padding:clamp(16px,3vw,28px) max(3vw,12px) 60px}
+.brand{display:flex;align-items:center;gap:14px;margin-bottom:6px}.brand img{width:56px;height:56px;object-fit:contain}
+h1{font:700 clamp(28px,5vw,40px)/1.05 "Barlow Condensed",sans-serif;margin:0}
+h3{font:700 19px "Barlow Condensed",sans-serif;letter-spacing:.03em;margin:18px 0 4px}
+.sub{color:var(--mute);margin:0 0 14px;font-size:15px}
+.tabs{display:flex;gap:4px;flex-wrap:wrap;margin:10px 0 14px;border-bottom:2px solid var(--line)}
+.tabs button{border:0;background:none;border-radius:6px 6px 0 0;min-height:42px;font:700 17px "Barlow Condensed",sans-serif;letter-spacing:.03em;color:var(--mute);padding:0 14px;margin-bottom:-2px;border-bottom:3px solid transparent}
+.tabs button[aria-selected=true]{color:var(--ink);border-bottom-color:var(--red)}
 .card{background:var(--card);border-radius:10px;box-shadow:0 1px 2px #0002,0 8px 24px #0001;margin:0 0 18px;overflow:hidden}
-.card h2{margin:0;padding:12px 16px;background:var(--bar);color:#fff;font:700 20px "Barlow Condensed",sans-serif;letter-spacing:.03em;display:flex;align-items:center;gap:10px}
+.card h2{margin:0;padding:12px 16px;background:var(--bar);color:#fff;font:700 20px "Barlow Condensed",sans-serif;letter-spacing:.03em;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 .card h2 small{font:500 13px Barlow;color:#cfd6dd;margin-left:auto}
 .in{padding:12px 16px}
 table{width:100%;border-collapse:collapse;font-size:15px}
 th,td{text-align:left;padding:8px 10px;border-top:1px solid var(--line);vertical-align:top}
 th{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--mute);border-top:0}
-tr:nth-child(even) td{background:var(--alt)}
-.pill{font-size:12px;font-weight:600;padding:2px 8px;border-radius:10px;white-space:nowrap}
-.pill.on{background:var(--ok);color:#fff}.pill.off{background:var(--red);color:#fff}
+tbody tr:nth-child(even) td{background:var(--alt)}
+tr.click{cursor:pointer}tr.click:hover td{background:light-dark(#eef3fa,#1f2a36)}
+tr.inact td{opacity:.55}
+.pill{font-size:12px;font-weight:600;padding:2px 8px;border-radius:10px;white-space:nowrap;display:inline-block;margin:1px 2px 1px 0}
+.pill.on{background:var(--ok);color:#fff}.pill.off{background:var(--red);color:#fff}.pill.lim{background:var(--amber);color:#fff}
+.pill.r{background:light-dark(#e6ebf2,#26303b);color:var(--ink)}.pill.q{background:light-dark(#e3ecf8,#1d2a3a);color:light-dark(#1d4e89,#9cc3f0)}.pill.f{background:light-dark(#f8e3e3,#3a1d1d);color:light-dark(#9a1c1c,#f09c9c)}
 label{display:block;font-size:13px;font-weight:600;color:var(--mute);margin:8px 0 2px}
+label.ck{display:flex;align-items:center;gap:8px;color:var(--ink);font-size:15px;font-weight:500;margin:6px 0}
+label.ck input{width:20px;height:20px;flex:none}
 input,select,textarea{width:100%;font:16px Barlow,sans-serif;padding:8px 10px;border-radius:6px;border:1px solid var(--line);background:var(--alt);color:var(--ink)}
-textarea{min-height:90px;resize:vertical}
-.row2{display:grid;grid-template-columns:2fr 1fr;gap:10px}
+textarea{min-height:80px;resize:vertical}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:0 12px}.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:0 12px}.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:0 12px}
+.ckrow{display:flex;flex-wrap:wrap;gap:4px 16px}
 button{font:600 15px Barlow,sans-serif;min-height:38px;padding:0 14px;border-radius:6px;border:1px solid var(--line);background:var(--card);color:var(--ink);cursor:pointer}
-button.go{background:var(--bar);color:#fff;border-color:var(--bar)}button.del{color:var(--red)}
-.acts{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+button.go{background:var(--bar);color:#fff;border-color:var(--bar)}button.del{color:var(--red)}button.sm{min-height:30px;font-size:14px;padding:0 10px}
+button:disabled{opacity:.5;cursor:default}
+.acts{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;align-items:center}
 .lnk{background:none;border:0;color:inherit;text-decoration:underline;min-height:0;padding:0}
-.err{color:var(--red);min-height:1.2em}.note{color:var(--mute);font-size:14px}
+.err{color:var(--red);min-height:1.2em;margin:6px 0 0}.ok{color:var(--ok)}.note{color:var(--mute);font-size:14px}
 .hide{display:none!important}
 .pp{white-space:pre-wrap;font-size:14px;color:var(--mute)}
-@media(max-width:640px){.row2{grid-template-columns:1fr}th:nth-child(4),td:nth-child(4){display:none}}
+.bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:10px}.bar input,.bar select{width:auto;flex:1 1 200px}
+.panel{border:2px solid var(--line);border-radius:10px;padding:4px 16px 16px;margin:12px 0;background:var(--alt)}
+.panel input,.panel select,.panel textarea{background:var(--card)}
+.facts{display:flex;flex-wrap:wrap;gap:4px 18px;font-size:14px;color:var(--mute);margin-top:8px}.facts b{color:var(--ink)}
+.matrix td,.matrix th{text-align:center}.matrix td:first-child,.matrix th:first-child{text-align:left}
+.matrix input{width:20px;height:20px}
+.rule{border:1px solid var(--line);border-radius:10px;padding:4px 14px 12px;margin:10px 0}
+.rule h3{display:flex;align-items:center;gap:10px}.dot{width:14px;height:14px;border-radius:50%;display:inline-block}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}
+.chips label{display:inline-flex;align-items:center;gap:6px;margin:0;padding:4px 10px;border:1px solid var(--line);border-radius:16px;color:var(--ink);font-weight:500;font-size:14px;cursor:pointer;background:var(--card)}
+.chips input{width:16px;height:16px}
+code{background:var(--alt);border:1px solid var(--line);border-radius:4px;padding:0 5px;font-size:14px}
+.approw{display:grid;grid-template-columns:110px 150px 1fr 160px auto;gap:8px;align-items:center;padding:8px 0;border-top:1px solid var(--line)}
+.approw b{font:700 20px "Barlow Condensed",sans-serif}
+@media(max-width:760px){.g2,.g3,.g4{grid-template-columns:1fr}.hm{display:none}.approw{grid-template-columns:1fr 1fr}}
 </style>
 </head>
 <body>
 <div class="wrap">
-  <h1>Station display admin</h1>
-  <p class="sub" id="sub">Officers and screen managers only.</p>
+  <div class="brand"><img src="logo.png" alt=""><div><h1>BAFC Admin</h1><p class="sub" id="sub" style="margin:2px 0 0">Duty board, messaging and station displays</p></div></div>
 
   <div class="card hide" id="login"><h2>Sign in</h2><form class="in" id="lf" novalidate>
     <label>Email<input type="email" id="lEmail" autocomplete="email"></label>
@@ -52,33 +78,147 @@ button.go{background:var(--bar);color:#fff;border-color:var(--bar)}button.del{co
   </form></div>
 
   <div id="main" class="hide">
-    <p class="note" id="who"></p>
+    <p class="note" id="who" style="margin:0"></p>
+    <nav class="tabs" id="tabs" role="tablist"></nav>
 
-    <div class="card"><h2>Screens <small id="scNote"></small></h2><div class="in">
-      <table><thead><tr><th>Screen</th><th>Status</th><th>Last check-in</th><th>Version</th><th></th></tr></thead><tbody id="scBody"></tbody></table>
-      <p class="note">A screen appears here the first time it checks in. Open the display with <b>display.html?screen=bay</b> (or set "Screen ID" in its settings). Settings saved on a screen by a manager apply to every display using that Screen ID. Offline = no check-in for 5 minutes.</p>
-    </div></div>
+    <!-- ============ PERSONNEL ============ -->
+    <section data-tab="people" class="hide">
+      <div class="card"><h2>Personnel <small id="pCount"></small></h2><div class="in">
+        <p class="note" style="margin-top:0">Changes here show everywhere right away: the board, TVs, groups and alerts. Only the fields the system uses are kept here; HR records stay in the HR file. Making someone <b>inactive</b> signs them out, removes their phone alerts and takes them out of every group.</p>
+        <div class="bar"><input id="pFind" placeholder="Search name, title or email"><select id="pShow"><option value="active">Active</option><option value="inactive">Inactive</option><option value="all">Everyone</option></select><button class="go" id="pAdd">Add member</button></div>
+        <div id="pForm" class="panel hide"></div>
+        <table><thead><tr><th>Name</th><th>Title</th><th class="hm">Certs</th><th class="hm">Platoon</th><th class="hm">Type</th><th>Access</th><th class="hm">Last sign-in</th></tr></thead><tbody id="pBody"></tbody></table>
+      </div></div>
+    </section>
 
-    <div class="card"><h2>Pre-plans <small id="ppCount"></small></h2><div class="in">
-      <input id="ppSearch" placeholder="Search address or name">
-      <table><thead><tr><th>Address</th><th>Town</th><th>Name</th><th>Notes</th><th></th></tr></thead><tbody id="ppBody"></tbody></table>
-      <form id="ppForm" novalidate>
-        <h3 id="ppTitle" style="margin:16px 0 0">Add a pre-plan</h3>
-        <div class="row2"><label>Address, as CAD writes it<input id="ppAddr" placeholder="2895 COLLEGE DR"></label><label>Town<select id="ppMun"></select></label></div>
-        <label>Building or business name<input id="ppPlace"></label>
-        <label>Notes for crews (Knox box, FDC, hydrant, hazards, utilities). No patient or resident health information.<textarea id="ppNotes"></textarea></label>
-        <div class="acts"><button type="submit" class="go" id="ppSave">Save pre-plan</button><button type="button" id="ppCancel" class="hide">Cancel edit</button></div>
-        <p class="err" id="ppErr"></p>
-      </form>
-      <p class="note">Shown on the run screen when a dispatch address matches. Matching ignores ROAD/RD style differences.</p>
-    </div></div>
+    <!-- ============ ACCESS ============ -->
+    <section data-tab="access" class="hide">
+      <div class="card"><h2>Access <small>who can do what</small></h2><div class="in">
+        <p class="note" style="margin-top:0">Every active member can already sign in to the board, see who is on duty and unavailable, send messages and set their own alerts. Tick extra access here. Changes take effect right away. There must always be at least one Admin.</p>
+        <div id="roleHelp" class="facts" style="margin-bottom:10px"></div>
+        <div style="overflow:auto"><table class="matrix"><thead id="aHead"></thead><tbody id="aBody"></tbody></table></div>
+        <div class="bar" style="margin-top:12px"><select id="aAdd"></select><button id="aAddBtn">Add to this list</button></div>
+        <p class="err" id="aErr"></p>
+      </div></div>
+    </section>
 
-    <div class="card hide" id="hospCard"><h2>Hospital codes</h2><div class="in">
-      <label>One per line: CODE = Hospital name (from "TRANSPORTING TO: CODE" in CAD)<textarea id="hospTxt"></textarea></label>
-      <div class="acts"><button class="go" id="hospSave">Save codes</button></div><p class="err" id="hospErr"></p>
-    </div></div>
+    <!-- ============ ANNOUNCEMENTS ============ -->
+    <section data-tab="announce" class="hide">
+      <div class="card"><h2>Announcements <small>shown on the station TVs</small></h2><div class="in">
+        <form id="anForm" class="panel" novalidate>
+          <h3 id="anTitle">New announcement</h3>
+          <div class="g4"><label>Type<select id="anKind"><option>Notice</option><option>Training</option><option>Meeting</option><option>Event</option><option>Birthday</option></select></label>
+            <label style="grid-column:span 3">Headline (120 characters)<input id="anHead" maxlength="120"></label></div>
+          <div class="g3"><label>When / where (optional)<input id="anWhen" maxlength="80" placeholder="Thursday 1900, apparatus bay"></label>
+            <label>Show from<input type="datetime-local" id="anStart"></label><label>Until (blank = until removed)<input type="datetime-local" id="anEnd"></label></div>
+          <label>Details (600 characters)<textarea id="anDet" maxlength="600"></textarea></label>
+          <label class="ck"><input type="checkbox" id="anPin"> Pin: also show as a banner across the top of every TV slide</label>
+          <div class="acts"><button class="go" type="submit">Save announcement</button><button type="button" id="anCancel" class="hide">Cancel edit</button><span class="err" id="anErr"></span></div>
+        </form>
+        <table><thead><tr><th>Headline</th><th>Type</th><th>Showing</th><th class="hm">Updated</th><th></th></tr></thead><tbody id="anBody"></tbody></table>
+      </div></div>
+    </section>
 
-    <div class="card"><h2>Calendar</h2><div class="in"><p class="note" style="margin:0">Events come from the station Google Calendar (systems@). Add or change events in Google Calendar; screens update within 15 minutes.</p></div></div>
+    <!-- ============ APPARATUS ============ -->
+    <section data-tab="apparatus" class="hide">
+      <div class="card"><h2>Apparatus status <small>shown on the TVs</small></h2><div class="in">
+        <p class="note" style="margin-top:0">Change a status and press Save on that line. Every change is logged with who made it.</p>
+        <div id="apList"></div>
+        <h3>Add a unit</h3>
+        <div class="g4"><label>Unit<input id="apNewUnit" placeholder="E19"></label><label>Type<input id="apNewKind" placeholder="Engine"></label><label>Order on screen<input id="apNewSort" type="number" value="100"></label><div class="acts"><button id="apAdd">Add unit</button></div></div>
+        <p class="err" id="apErr"></p>
+      </div></div>
+    </section>
+
+    <!-- ============ CALENDAR & REMINDERS ============ -->
+    <section data-tab="calendar" class="hide">
+      <div class="card"><h2>Calendar reminders <small>automatic messages before events</small></h2><div class="in">
+        <p class="note" style="margin-top:0">Events come from the company Google calendars (one per type). Add and edit events in Google Calendar; changes reach the TVs and these reminders within 15 minutes. Each type below has a default reminder. To change one event, either use the list at the bottom, or add a line to the Google event's description:</p>
+        <ul class="note"><li><code>Notify: none</code> no reminder for this event</li><li><code>Notify: Career Staff, 1 day</code> or <code>Notify: BOD, 2 days, morning of</code> who and when</li></ul>
+        <p class="note">Reminder times: <code>2d</code> 2 days before at the event's time · <code>1d@18:00</code> day before at 1800 · <code>0d@07:00</code> morning of at 0700 · <code>3h</code> 3 hours before. Meeting links (Zoom) in the event description go in the reminder only, never on the TVs. Members can turn reminders off in My alerts; quiet hours hold pushes and texts.</p>
+        <div id="ruleList"></div><p class="err" id="ruleErr"></p>
+      </div></div>
+      <div class="card"><h2>Next 30 days <small>reminder plan for each event</small></h2><div class="in">
+        <table><thead><tr><th>When</th><th>Event</th><th>Reminder</th><th></th></tr></thead><tbody id="evBody"></tbody></table>
+        <div id="evForm" class="panel hide"></div><p class="err" id="evErr"></p>
+      </div></div>
+    </section>
+
+    <!-- ============ SCREENS ============ -->
+    <section data-tab="screens" class="hide">
+      <div class="card"><h2>Screens <small id="scNote"></small></h2><div class="in">
+        <table><thead><tr><th>Screen</th><th>Status</th><th>Last check-in</th><th class="hm">Version</th><th></th></tr></thead><tbody id="scBody"></tbody></table>
+        <p class="note">A screen appears here the first time it checks in. Open the display with <b>display.html?screen=bay</b> (or set "Screen ID" in its settings) and sign in once with the screen account. Offline = no check-in for 5 minutes. To cut off one TV, remove it here and use "Sign out all devices" on the screen account in Personnel if it was lost or stolen.</p>
+      </div></div>
+      <div class="card" id="hospCard"><h2>Hospital codes</h2><div class="in">
+        <label>One per line: CODE = Hospital name (from "TRANSPORTING TO: CODE" in CAD)<textarea id="hospTxt"></textarea></label>
+        <div class="acts"><button class="go" id="hospSave">Save codes</button><span class="err" id="hospErr"></span></div>
+      </div></div>
+    </section>
+
+    <!-- ============ PRE-PLANS ============ -->
+    <section data-tab="preplans" class="hide">
+      <div class="card"><h2>Pre-plans <small id="ppCount"></small></h2><div class="in">
+        <input id="ppSearch" placeholder="Search address or name">
+        <table><thead><tr><th>Address</th><th>Town</th><th>Name</th><th class="hm">Notes</th><th></th></tr></thead><tbody id="ppBody"></tbody></table>
+        <form id="ppForm" class="panel" novalidate>
+          <h3 id="ppTitle">Add a pre-plan</h3>
+          <div class="g2"><label>Address, as CAD writes it<input id="ppAddr" placeholder="2895 COLLEGE DR"></label><label>Town<select id="ppMun"></select></label></div>
+          <label>Building or business name<input id="ppPlace"></label>
+          <label>Notes for crews (Knox box, FDC, hydrant, hazards, utilities). No patient or resident health information.<textarea id="ppNotes"></textarea></label>
+          <div class="acts"><button type="submit" class="go">Save pre-plan</button><button type="button" id="ppCancel" class="hide">Cancel edit</button><span class="err" id="ppErr"></span></div>
+        </form>
+        <p class="note">Shown on the run screen when a dispatch address matches. Matching ignores ROAD/RD style differences.</p>
+      </div></div>
+    </section>
+
+    <!-- ============ GROUPS ============ -->
+    <section data-tab="groups" class="hide">
+      <div class="card"><h2>Message groups <small>custom groups you maintain</small></h2><div class="in">
+        <p class="note" style="margin-top:0">Built-in groups update themselves from Personnel: Active EMS, Active Fire, Active Fire/EMS, Career Staff, Fire Police and A-D Platoon. Make your own here (BOD, Officers, Drivers, a committee). Group names can be used in calendar <code>Notify:</code> lines.</p>
+        <div class="g2"><label>Group<select id="gSel"></select></label><label>New group name<input id="gNew" placeholder="e.g. BOD"></label></div>
+        <div class="acts"><button id="gCreate">Create group</button><button class="del hide" id="gDelete">Delete this group</button></div>
+        <div id="gEdit" class="hide">
+          <label>Find members<input id="gFind" placeholder="Type to filter"></label>
+          <div id="gList" style="max-height:360px;overflow:auto;border:1px solid var(--line);border-radius:6px;margin-top:6px"></div>
+          <p class="note" id="gCount"></p>
+        </div>
+        <p class="err" id="gErr"></p>
+      </div></div>
+    </section>
+
+    <!-- ============ ACTIVITY ============ -->
+    <section data-tab="activity" class="hide">
+      <div class="card"><h2>Activity log <small>last 300 changes</small></h2><div class="in">
+        <input id="lgFind" placeholder="Filter by person, action or name" style="margin-bottom:8px">
+        <table><thead><tr><th>When</th><th>Who</th><th>What</th><th class="hm">Details</th></tr></thead><tbody id="lgBody"></tbody></table>
+      </div></div>
+    </section>
+
+    <!-- ============ HELP ============ -->
+    <section data-tab="help" class="hide">
+      <div class="card"><h2>Checklists</h2><div class="in">
+        <h3>New member</h3>
+        <ol><li>Add them in <b>Personnel</b> with the email they will sign in with, certifications, fire quals, platoon and type.</li>
+          <li>Make sure they are in <b>ESO Scheduling</b>; put their ESO ID in Personnel so shifts match.</li>
+          <li>Add them to any custom <b>Groups</b> (BOD, committees).</li>
+          <li>Send them the member how-to (below). They sign in with an emailed code, then set My alerts; on iPhone they must Add to Home Screen first.</li>
+          <li>Give extra <b>Access</b> only if their job needs it.</li></ol>
+        <h3>Member leaving</h3>
+        <ol><li>In <b>Personnel</b>, open them, untick Active, Save. This signs them out everywhere, removes phone alerts, takes them out of every group and access role, and cancels anything waiting to send to them.</li>
+          <li>Remove them from ESO Scheduling and the HR file as usual.</li>
+          <li>If they had a station key, radio or account outside this system, follow the normal return list.</li></ol>
+        <h3>Lost or replaced station TV</h3>
+        <ol><li>Remove it in <b>Screens</b>.</li><li>In <b>Personnel</b>, open the screen account and press <b>Sign out all devices</b>; then sign the other TVs back in once.</li></ol>
+      </div></div>
+      <div class="card"><h2>Member how-to (send this to new members)</h2><div class="in">
+        <ol><li>Open <b>bafcsystems.github.io/duty-board</b> and enter the email the company has on file. Type the 6-digit code from the email.</li>
+          <li><b>iPhone:</b> tap Share, then <b>Add to Home Screen</b>, and open the board from that icon. (Needed for phone alerts.) Android and computers work in the browser.</li>
+          <li>Open <b>Messages → My alerts</b>: choose email, text and/or push, turn on <b>Turn on alerts on this device</b>, pick EMS/Fire dispatch alerts, weather, event reminders, the Monday digest and your quiet hours.</li>
+          <li>When a dispatch alert arrives, tap it, then tap your ETA (5, 10, 15+ minutes or Direct to scene). Everyone can see who is responding.</li>
+          <li>To report you are unavailable, or add yourself to the board, use the buttons on the On duty tab.</li></ol>
+      </div></div>
+    </section>
   </div>
 </div>
 
@@ -88,90 +228,298 @@ button.go{background:var(--bar);color:#fff;border-color:var(--bar)}button.del{co
 const SUPABASE_URL='https://svdbmigojyttlqftuvxb.supabase.co';
 const SUPABASE_KEY='sb_publishable_skgMY3FbCCt5E_hN-ZzM6Q_q9dirLU5';
 const TOWNS={BRYA:'Bryn Athyn',LMOR:'Lower Moreland Township',UMOR:'Upper Moreland Township',ABGN:'Abington Township',CHEL:'Cheltenham Township',UDUB:'Upper Dublin Township',HATB:'Hatboro',SHAM:'Upper Southampton Township',PHIL:'Philadelphia'};
+const ROLES=[['admin','Admin','Everything, including Personnel, Access and the activity log'],['message_admin','Message admin','No hourly message limit; manages message groups'],
+  ['screen_manager','Screens','Station TVs, pre-plans, hospital codes'],['content_editor','Content','Announcements and apparatus status'],
+  ['calendar_admin','Calendar','Reminder rules and per-event reminders'],['call_viewer','Call details','Call pages and call details while dispatch alerts are limited']];
+const QUALS=['INT','EXT','AO','FF','Fire Police'];
 const sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{persistSession:true,autoRefreshToken:true}});
-const $=s=>document.querySelector(s);
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
 const esc=t=>String(t??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
 const when=d=>d?new Date(d).toLocaleString('en-US',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit',hour12:false}):'never';
-let me=null,isOfficer=false,canManage=false,screens=[],preplans=[],editId=null,settings={};
+const day=d=>new Date(d).toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
+const hm=d=>new Date(d).toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',hour12:false});
+const localInput=d=>{if(!d)return'';const x=new Date(d);x.setMinutes(x.getMinutes()-x.getTimezoneOffset());return x.toISOString().slice(0,16)};
+const flash=(el,msg,ok)=>{el.textContent=msg;el.classList.toggle('ok',!!ok);if(ok)setTimeout(()=>{if(el.textContent===msg)el.textContent=''},3000)};
+// two-click confirm instead of a browser dialog
+function sure(b,label){if(b.dataset.sure)return true;b.dataset.sure=1;const t=b.textContent;b.textContent=label||'Click again to confirm';setTimeout(()=>{delete b.dataset.sure;b.textContent=t},4000);return false}
 
-// sign in
+let me=null,roles=[],isOfficer=false,can={};
+
+// ---------- sign in ----------
 let pending='';
 $('#lf').addEventListener('submit',async e=>{e.preventDefault();const email=$('#lEmail').value.trim().toLowerCase();$('#lErr').textContent='';
-  const {error}=await sb.auth.signInWithOtp({email,options:{shouldCreateUser:false}});if(error){$('#lErr').textContent='Could not send: '+error.message;return}
+  const {error}=await sb.auth.signInWithOtp({email});if(error){$('#lErr').textContent='Could not send: '+error.message;return}
   pending=email;$('#sendActs').classList.add('hide');$('#codeWrap').classList.remove('hide');$('#codeActs').classList.remove('hide');$('#lCode').focus()});
 $('#lBack').onclick=()=>{$('#sendActs').classList.remove('hide');$('#codeWrap').classList.add('hide');$('#codeActs').classList.add('hide')};
 $('#lVerify').onclick=async()=>{const {error}=await sb.auth.verifyOtp({email:pending,token:$('#lCode').value.replace(/\D/g,''),type:'email'});if(error)$('#lErr').textContent='That code did not work.'};
 
+const TABS=[['people','Personnel',()=>can.admin],['access','Access',()=>can.admin],['announce','Announcements',()=>can.content],['apparatus','Apparatus',()=>can.content],
+  ['calendar','Calendar',()=>can.calendar],['screens','Screens',()=>can.screens],['preplans','Pre-plans',()=>can.screens||isOfficer],['groups','Groups',()=>can.msg],
+  ['activity','Activity',()=>can.admin],['help','Checklists',()=>true]];
+const loaders={};let loaded={};
+function showTab(k){$$('#tabs button').forEach(b=>b.setAttribute('aria-selected',b.dataset.t===k));$$('section[data-tab]').forEach(s=>s.classList.toggle('hide',s.dataset.tab!==k));
+  history.replaceState(null,'','#'+k);if(loaders[k]&&!loaded[k]){loaded[k]=1;loaders[k]()}}
+
 async function start(session){
   if(!session){$('#login').classList.remove('hide');$('#main').classList.add('hide');return}
   $('#login').classList.add('hide');
-  const [{data:id},{data:cm}]=await Promise.all([sb.rpc('my_member_id'),sb.rpc('can_manage_screens')]);
+  const [{data:id},{data:r}]=await Promise.all([sb.rpc('my_member_id'),sb.rpc('my_roles')]);
   const {data:m}=await sb.from('members').select('id,name,is_officer').eq('id',id).maybeSingle();
-  me=m;isOfficer=!!m?.is_officer;canManage=!!cm;
-  if(!me||!(isOfficer||canManage)){$('#sub').textContent='This page is for officers and screen managers. '+(session.user.email||'')+' does not have access.';
-    $('#login').classList.add('hide');return}
+  me=m;roles=r||[];isOfficer=!!m?.is_officer;const has=x=>roles.includes('admin')||roles.includes(x);
+  can={admin:roles.includes('admin'),msg:has('message_admin'),screens:has('screen_manager'),content:has('content_editor'),calendar:has('calendar_admin'),calls:has('call_viewer')};
+  if(!me||!(roles.length||isOfficer)){$('#sub').textContent=(session.user.email||'This account')+' does not have admin access. Ask Fred or Charles if you need it.';
+    $('#main').classList.remove('hide');$('#tabs').innerHTML='';$('#who').innerHTML='<button class="lnk" id="out">Sign out</button>';$('#out').onclick=()=>sb.auth.signOut();return}
   $('#main').classList.remove('hide');
-  $('#who').innerHTML=`Signed in as ${esc(me.name)}${canManage?' (screen manager)':' (officer)'} · <button class="lnk" id="out">Sign out</button>`;
+  const rl=ROLES.filter(x=>roles.includes(x[0])).map(x=>x[1]);
+  $('#who').innerHTML=`Signed in as <b>${esc(me.name)}</b>${rl.length?' · '+esc(rl.join(', ')):' · officer'} · <button class="lnk" id="out">Sign out</button>`;
   $('#out').onclick=()=>sb.auth.signOut();
-  $('#hospCard').classList.toggle('hide',!canManage);
-  $('#ppMun').innerHTML='<option value="">Any</option>'+Object.entries(TOWNS).map(([k,v])=>`<option value="${k}">${esc(v)}</option>`).join('');
-  load();setInterval(loadScreens,60*1000);
+  const T=TABS.filter(t=>t[2]());
+  $('#tabs').innerHTML=T.map(t=>`<button role="tab" data-t="${t[0]}">${esc(t[1])}</button>`).join('');
+  $$('#tabs button').forEach(b=>b.onclick=()=>showTab(b.dataset.t));
+  const want=location.hash.slice(1);showTab(T.some(t=>t[0]===want)?want:T[0][0]);
 }
-sb.auth.onAuthStateChange((ev,s)=>{if(ev==='SIGNED_OUT'){location.reload();return}if(ev==='INITIAL_SESSION'||ev==='SIGNED_IN')start(s)});
+sb.auth.onAuthStateChange((ev,s)=>{if(ev==='SIGNED_OUT'){location.hash='';location.reload();return}if(ev==='INITIAL_SESSION'||ev==='SIGNED_IN')start(s)});
 
-async function load(){await Promise.all([loadScreens(),loadPreplans(),loadSettings()])}
+// =====================================================================
+// PERSONNEL
+// =====================================================================
+let people=[];
+loaders.people=loadPeople;
+async function loadPeople(){const {data,error}=await sb.rpc('admin_members');if(error){$('#pBody').innerHTML=`<tr><td colspan="7" class="err">${esc(error.message)}</td></tr>`;return}people=data||[];renderPeople()}
+function certs(p){return (p.ems_level?`<span class="pill q">${esc(p.ems_level)}</span>`:'')+(p.fire_quals||[]).map(q=>`<span class="pill f">${esc(q)}</span>`).join('')}
+function rolePills(p){return (p.roles||[]).map(r=>`<span class="pill r">${esc((ROLES.find(x=>x[0]===r)||[0,r])[1])}</span>`).join('')+(p.is_screen?'<span class="pill r">TV screen</span>':'')}
+function renderPeople(){
+  const q=$('#pFind').value.trim().toLowerCase(),show=$('#pShow').value;
+  const L=people.filter(p=>(show==='all'||(show==='active')===p.active)&&(!q||[p.name,p.title,p.email,p.eso_name].join(' ').toLowerCase().includes(q)));
+  $('#pCount').textContent=people.filter(p=>p.active&&!p.is_screen).length+' active members';
+  $('#pBody').innerHTML=L.map(p=>`<tr class="click${p.active?'':' inact'}" data-id="${p.id}"><td><b>${esc(p.name)}</b>${p.active?'':' <span class="pill off">Inactive</span>'}<div class="note">${esc(p.email)}</div></td><td>${esc(p.title||'')}</td>
+    <td class="hm">${certs(p)}</td><td class="hm">${esc(p.platoon||'')}</td><td class="hm">${esc(p.member_type||'')}</td><td>${rolePills(p)}</td><td class="hm note">${p.last_sign_in?esc(when(p.last_sign_in)):'never'}</td></tr>`).join('')||'<tr><td colspan="7" class="note">No one matches.</td></tr>';
+  $$('#pBody tr[data-id]').forEach(tr=>tr.onclick=()=>editPerson(people.find(p=>p.id===tr.dataset.id)));
+}
+$('#pFind').oninput=renderPeople;$('#pShow').onchange=renderPeople;$('#pAdd').onclick=()=>editPerson(null);
+function editPerson(p){
+  const n=!p;p=p||{active:true,member_type:'Volunteer',fire_quals:[]};
+  const sel=(v,opts)=>opts.map(o=>`<option value="${esc(o[0])}"${(v||'')===o[0]?' selected':''}>${esc(o[1])}</option>`).join('');
+  $('#pForm').innerHTML=`<h3>${n?'Add member':'Edit '+esc(p.name)}</h3>
+    <div class="g3"><label>Full name<input id="fName" value="${esc(p.name||'')}"></label><label>Name as ESO shows it (if different)<input id="fEso" value="${esc(p.eso_name||'')}"></label><label>ESO ID<input id="fEsoId" value="${esc(p.eso_id||'')}"></label></div>
+    <div class="g3"><label>Email (how they sign in)<input id="fEmail" type="email" value="${esc(p.email||'')}"></label><label>Title<input id="fTitle" value="${esc(p.title||'')}" placeholder="Lieutenant, Deputy Chief..."></label>
+      <label>EMS level<select id="fEms">${sel(p.ems_level,[['','None'],['EMT','EMT'],['AEMT','AEMT'],['Paramedic','Paramedic'],['MD','MD']])}</select></label></div>
+    <div class="g3"><label>Platoon<select id="fPlt">${sel(p.platoon,[['','Not set (learned from ESO)'],['A','A'],['B','B'],['C','C'],['D','D'],['Volunteer','Volunteer'],['Admin','Admin']])}</select></label>
+      <label>Type<select id="fType">${sel(p.member_type,[['Employee','Employee'],['Volunteer','Volunteer']])}</select></label><div></div></div>
+    <label>Fire qualifications</label><div class="ckrow">${QUALS.map(q=>`<label class="ck"><input type="checkbox" data-q="${esc(q)}"${(p.fire_quals||[]).includes(q)?' checked':''}> ${esc(q)}</label>`).join('')}</div>
+    <div class="ckrow"><label class="ck"><input type="checkbox" id="fOff"${p.is_officer?' checked':''}> Officer (listed as a Lieutenant/officer on the board)</label>
+      <label class="ck"><input type="checkbox" id="fScreen"${p.is_screen?' checked':''}> Station TV sign-in account (never shown as a person)</label>
+      <label class="ck"><input type="checkbox" id="fActive"${p.active?' checked':''}> Active</label></div>
+    ${n?'':`<div class="facts"><span>Last sign-in <b>${p.last_sign_in?esc(when(p.last_sign_in)):'never'}</b></span><span>Phone alerts on <b>${p.push_devices||0}</b> device${p.push_devices===1?'':'s'}</span><span>Mobile <b>${p.mobile_last4?'ending '+esc(p.mobile_last4):'none'}</b></span><span>Access ${rolePills(p)||'<b>member</b>'}</span>${p.updated_at?`<span>Last edited <b>${esc(when(p.updated_at))}</b></span>`:''}</div>`}
+    <div class="acts"><button class="go" id="fSave">${n?'Add member':'Save changes'}</button><button id="fCancel">Cancel</button>${n?'':'<button id="fOut">Sign out all devices</button>'}<span class="err" id="fErr"></span></div>`;
+  $('#pForm').classList.remove('hide');$('#pForm').scrollIntoView({behavior:'smooth',block:'start'});$('#fName').focus();
+  $('#fCancel').onclick=()=>$('#pForm').classList.add('hide');
+  $('#fActive').onchange=()=>{if(!n&&p.active&&!$('#fActive').checked)flash($('#fErr'),'Saving as inactive signs them out and removes their alerts, groups and access.')};
+  if(!n)$('#fOut').onclick=async e=>{if(!sure(e.target,'Click again: sign out everywhere'))return;const {error}=await sb.rpc('admin_sign_out',{p_member:p.id});flash($('#fErr'),error?error.message:'Signed out of all devices.',!error)};
+  $('#fSave').onclick=async()=>{
+    const body={name:$('#fName').value.trim(),eso_name:$('#fEso').value.trim(),eso_id:$('#fEsoId').value.trim(),email:$('#fEmail').value.trim(),title:$('#fTitle').value.trim(),
+      ems_level:$('#fEms').value,platoon:$('#fPlt').value,member_type:$('#fType').value,fire_quals:$$('#pForm [data-q]').filter(c=>c.checked).map(c=>c.dataset.q),
+      is_officer:$('#fOff').checked,is_screen:$('#fScreen').checked,active:$('#fActive').checked};
+    if(!n&&p.active&&!body.active&&!sure($('#fSave'),'Click again: make inactive'))return;
+    $('#fSave').disabled=true;const {error}=await sb.rpc('admin_save_member',{p_id:n?null:p.id,p:body});$('#fSave').disabled=false;
+    if(error){flash($('#fErr'),error.message);return}
+    $('#pForm').classList.add('hide');await loadPeople();loaded.access=0;loaded.activity=0;
+  };
+}
+
+// =====================================================================
+// ACCESS
+// =====================================================================
+loaders.access=async()=>{if(!people.length)await loadPeople();renderAccess()};
+const shown=new Set();
+function renderAccess(){
+  $('#roleHelp').innerHTML=ROLES.map(r=>`<span><b>${esc(r[1])}</b>: ${esc(r[2])}</span>`).join('');
+  $('#aHead').innerHTML=`<tr><th>Member</th>${ROLES.map(r=>`<th>${esc(r[1])}</th>`).join('')}</tr>`;
+  const L=people.filter(p=>p.active&&!p.is_screen&&((p.roles||[]).length||shown.has(p.id)));
+  $('#aBody').innerHTML=L.map(p=>`<tr><td><b>${esc(p.name)}</b><div class="note">${esc(p.title||'')}</div></td>${ROLES.map(r=>`<td><input type="checkbox" data-m="${p.id}" data-r="${r[0]}"${(p.roles||[]).includes(r[0])?' checked':''} aria-label="${esc(r[1])} for ${esc(p.name)}"></td>`).join('')}</tr>`).join('')||`<tr><td colspan="${ROLES.length+1}" class="note">No one has extra access yet.</td></tr>`;
+  $('#aAdd').innerHTML='<option value="">Add a person…</option>'+people.filter(p=>p.active&&!p.is_screen&&!(p.roles||[]).length&&!shown.has(p.id)).map(p=>`<option value="${p.id}">${esc(p.name)}</option>`).join('');
+}
+$('#aBody').addEventListener('change',async e=>{const c=e.target.closest('[data-r]');if(!c)return;$('#aErr').textContent='';c.disabled=true;
+  const {data,error}=await sb.rpc('admin_set_role',{p_member:c.dataset.m,p_role:c.dataset.r,p_on:c.checked});c.disabled=false;
+  if(error){c.checked=!c.checked;flash($('#aErr'),error.message);return}
+  const p=people.find(x=>x.id===c.dataset.m);p.roles=data||[];loaded.activity=0;flash($('#aErr'),'Saved. '+p.name+' now has: '+((p.roles.map(r=>(ROLES.find(x=>x[0]===r)||[0,r])[1]).join(', '))||'member access only')+'.',true);
+  if(c.dataset.m===me.id&&c.dataset.r==='admin'&&!c.checked)location.reload()});
+$('#aAddBtn').onclick=()=>{const id=$('#aAdd').value;if(!id)return;shown.add(id);renderAccess();flash($('#aErr'),'Now tick the access '+people.find(x=>x.id===id).name+' needs.',true)};
+
+// =====================================================================
+// ANNOUNCEMENTS
+// =====================================================================
+let anns=[],anEdit=null;
+loaders.announce=loadAnns;
+async function loadAnns(){const {data,error}=await sb.from('announcements').select('*').order('pinned',{ascending:false}).order('starts_at',{ascending:false});
+  if(error){$('#anBody').innerHTML=`<tr><td colspan="5" class="err">${esc(error.message)}</td></tr>`;return}anns=data||[];
+  const now=Date.now(),st=a=>new Date(a.starts_at)>now?['Starts '+day(a.starts_at),'lim']:a.ends_at&&new Date(a.ends_at)<now?['Ended','off']:['Showing'+(a.ends_at?' until '+day(a.ends_at):''),'on'];
+  $('#anBody').innerHTML=anns.map(a=>{const s=st(a);return `<tr><td><b>${esc(a.title)}</b>${a.pinned?' <span class="pill r">Pinned</span>':''}<div class="note">${esc(a.when_text||'')}</div></td><td>${esc(a.kind)}</td><td><span class="pill ${s[1]}">${esc(s[0])}</span></td>
+    <td class="hm note">${esc(when(a.updated_at))}</td><td style="white-space:nowrap"><button class="sm" data-ae="${a.id}">Edit</button> <button class="sm del" data-ad="${a.id}">Delete</button></td></tr>`}).join('')||'<tr><td colspan="5" class="note">No announcements yet.</td></tr>';
+  $$('[data-ae]').forEach(b=>b.onclick=()=>{const a=anns.find(x=>x.id===b.dataset.ae);anEdit=a.id;$('#anKind').value=a.kind;$('#anHead').value=a.title;$('#anWhen').value=a.when_text||'';
+    $('#anStart').value=localInput(a.starts_at);$('#anEnd').value=localInput(a.ends_at);$('#anDet').value=a.details||'';$('#anPin').checked=a.pinned;
+    $('#anTitle').textContent='Edit announcement';$('#anCancel').classList.remove('hide');$('#anForm').scrollIntoView({behavior:'smooth'})});
+  $$('[data-ad]').forEach(b=>b.onclick=async()=>{if(!sure(b))return;const {error}=await sb.from('announcements').delete().eq('id',b.dataset.ad);if(error)flash($('#anErr'),error.message);loadAnns()});
+}
+const anReset=()=>{anEdit=null;$('#anForm').reset();$('#anTitle').textContent='New announcement';$('#anCancel').classList.add('hide');$('#anStart').value=localInput(new Date())};
+$('#anCancel').onclick=anReset;
+$('#anForm').addEventListener('submit',async e=>{e.preventDefault();
+  const row={kind:$('#anKind').value,title:$('#anHead').value.trim(),when_text:$('#anWhen').value.trim()||null,details:$('#anDet').value.trim()||null,pinned:$('#anPin').checked,
+    starts_at:$('#anStart').value?new Date($('#anStart').value).toISOString():new Date().toISOString(),ends_at:$('#anEnd').value?new Date($('#anEnd').value).toISOString():null};
+  if(!row.title){flash($('#anErr'),'Add a headline.');return}
+  if(row.ends_at&&row.ends_at<=row.starts_at){flash($('#anErr'),'The end must be after the start.');return}
+  const {error}=anEdit?await sb.from('announcements').update(row).eq('id',anEdit):await sb.from('announcements').insert(row);
+  if(error){flash($('#anErr'),error.message);return}anReset();flash($('#anErr'),'Saved. The TVs update now.',true);loadAnns()});
+
+// =====================================================================
+// APPARATUS
+// =====================================================================
+let units=[];
+loaders.apparatus=loadUnits;
+async function loadUnits(){const {data,error}=await sb.from('apparatus').select('*').order('sort').order('unit');if(error){$('#apList').innerHTML=`<p class="err">${esc(error.message)}</p>`;return}
+  units=data||[];const who=id=>people.find(p=>p.id===id)?.name||'';
+  $('#apList').innerHTML=units.map(u=>`<div class="approw" data-u="${esc(u.unit)}"><div><b>${esc(u.unit)}</b><div class="note">${esc(u.kind||'')}</div></div>
+    <select data-f="status">${['In Service','Limited','Out of Service'].map(s=>`<option${u.status===s?' selected':''}>${s}</option>`).join('')}</select>
+    <input data-f="note" value="${esc(u.note||'')}" maxlength="200" placeholder="Note (what is wrong, what works)"><input data-f="expected" value="${esc(u.expected||'')}" maxlength="60" placeholder="Expected back">
+    <div style="white-space:nowrap"><button class="sm go" data-save>Save</button> <button class="sm del" data-rm>Remove</button><div class="note" style="font-size:12px">${esc(when(u.updated_at))}${u.updated_by?' · '+esc(who(u.updated_by)):''}</div></div></div>`).join('')||'<p class="note">No units yet.</p>';
+  $$('#apList [data-u]').forEach(r=>{const u=r.dataset.u,f=k=>r.querySelector(`[data-f="${k}"]`).value.trim();
+    const st=r.querySelector('[data-f=status]'),paint=()=>{st.style.borderColor={'Limited':'var(--amber)','Out of Service':'var(--red)'}[st.value]||'var(--ok)';st.style.borderWidth='2px'};paint();st.onchange=paint;
+    r.querySelector('[data-save]').onclick=async()=>{const {error}=await sb.from('apparatus').update({status:f('status'),note:f('note')||null,expected:f('expected')||null}).eq('unit',u);
+      flash($('#apErr'),error?error.message:u+' saved. The TVs update now.',!error);if(!error)loadUnits()};
+    r.querySelector('[data-rm]').onclick=async e=>{if(!sure(e.target))return;const {error}=await sb.from('apparatus').delete().eq('unit',u);if(error)flash($('#apErr'),error.message);loadUnits()}});
+}
+$('#apAdd').onclick=async()=>{const unit=$('#apNewUnit').value.trim().toUpperCase();if(!unit){flash($('#apErr'),'Enter the unit.');return}
+  const {error}=await sb.from('apparatus').insert({unit,kind:$('#apNewKind').value.trim()||null,sort:+$('#apNewSort').value||100});
+  if(error){flash($('#apErr'),error.message);return}$('#apNewUnit').value='';$('#apNewKind').value='';loadUnits()};
+
+// =====================================================================
+// CALENDAR & REMINDERS
+// =====================================================================
+let rules=[],groupList=[],events=[];
+loaders.calendar=loadCalendar;
+const LEAD_HELP='e.g. 2d, 1d@18:00, 0d@07:00, 3h';
+const okLead=l=>/^(\d+h|\d+d(@\d{1,2}:\d{2})?)$/.test(l);
+const gName=k=>k==='all'?'Everyone':(groupList.find(g=>g.key===k)||{name:k}).name;
+function groupChips(sel,attr){return `<div class="chips">${[{key:'all',name:'Everyone'},...groupList].map(g=>`<label><input type="checkbox" ${attr}="${esc(g.key)}"${sel.includes(g.key)?' checked':''}> ${esc(g.name)}</label>`).join('')}</div>`}
+async function loadCalendar(){
+  const [{data:r,error},{data:g}]=await Promise.all([sb.from('reminder_rules').select('*').order('tag'),sb.rpc('message_groups')]);
+  if(error){$('#ruleList').innerHTML=`<p class="err">${esc(error.message)}</p>`;return}
+  rules=r||[];groupList=(g||[]).map(x=>({key:x.key,name:x.name}));
+  $('#ruleList').innerHTML=rules.map(x=>`<div class="rule" data-tag="${esc(x.tag)}"><h3><span class="dot" style="background:${esc(x.color||'#888')}"></span>${esc(x.tag)}
+      <label class="ck" style="margin:0 0 0 auto;font-family:Barlow;font-size:15px"><input type="checkbox" data-k="enabled"${x.enabled?' checked':''}> Reminders on</label></h3>
+    <label>Send to</label>${groupChips(x.groups||[],'data-g')}
+    <div class="g2"><label>When (comma-separated; ${LEAD_HELP})<input data-k="leads" value="${esc((x.leads||[]).join(', '))}"></label>
+      <div><label>How</label><div class="ckrow">${['push','email','sms'].map(c=>`<label class="ck"><input type="checkbox" data-c="${c}"${(x.channels||[]).includes(c)?' checked':''}> ${c==='sms'?'Text':c[0].toUpperCase()+c.slice(1)}</label>`).join('')}</div></div></div>
+    ${!(x.groups||[]).length?'<p class="err" style="margin:4px 0 0">No group picked yet, so no reminders go out for this type.</p>':''}
+    <div class="acts"><button class="go sm" data-rs>Save ${esc(x.tag)} rule</button></div></div>`).join('');
+  $$('#ruleList [data-tag]').forEach(d=>d.querySelector('[data-rs]').onclick=async()=>{
+    const leads=d.querySelector('[data-k=leads]').value.split(',').map(s=>s.trim().replace(/\s+/g,'')).filter(Boolean);
+    if(leads.some(l=>!okLead(l))){flash($('#ruleErr'),'Times look like '+LEAD_HELP+'.');return}
+    const row={groups:$$(`[data-tag="${CSS.escape(d.dataset.tag)}"] [data-g]`).filter(c=>c.checked).map(c=>c.dataset.g),leads,
+      channels:[...d.querySelectorAll('[data-c]')].filter(c=>c.checked).map(c=>c.dataset.c),enabled:d.querySelector('[data-k=enabled]').checked,updated_by:me.id,updated_at:new Date().toISOString()};
+    const {error}=await sb.from('reminder_rules').update(row).eq('tag',d.dataset.tag);flash($('#ruleErr'),error?error.message:d.dataset.tag+' rule saved.',!error);if(!error){loadCalendar()}});
+  loadEvents();
+}
+async function loadEvents(){const {data,error}=await sb.rpc('admin_upcoming_events');if(error){$('#evBody').innerHTML=`<tr><td colspan="4" class="err">${esc(error.message)}</td></tr>`;return}
+  events=data||[];const col=t=>(rules.find(r=>r.tag===t)||{}).color||'#888';
+  $('#evBody').innerHTML=events.map(e=>{const p=e.plan||{};const plan=p.off?'<span class="pill off">No reminder</span>':(e.group_names?`<b>${esc(e.group_names)}</b><div class="note">${esc(e.when_labels||'')}</div>`:'<span class="note">No group set</span>');
+    return `<tr><td style="white-space:nowrap">${esc(day(e.starts_at))}<div class="note">${e.all_day?'All day':esc(hm(e.starts_at))}</div></td>
+      <td><span class="dot" style="background:${esc(col(e.tag))}"></span> <b>${esc(e.title)}</b><div class="note">${esc(e.tag||'Events')}${e.location?' · '+esc(e.location):''}${e.has_link?' · meeting link':''}</div></td>
+      <td>${plan}<div class="note">${esc(p.source||'')}${(e.sent||[]).length?' · sent '+esc(e.sent.join(', ')):''}</div></td>
+      <td style="white-space:nowrap"><button class="sm" data-ec="${esc(e.uid)}">Change</button></td></tr>`}).join('')||'<tr><td colspan="4" class="note">No events in the next 30 days. Check that the calendars are connected in the relay (CAL_FEEDS).</td></tr>';
+  $$('[data-ec]').forEach(b=>b.onclick=()=>editEvent(events.find(e=>e.uid===b.dataset.ec)));
+}
+function editEvent(e){const p=e.plan||{};
+  $('#evForm').innerHTML=`<h3>${esc(e.title)} · ${esc(day(e.starts_at))}</h3>
+    <label class="ck"><input type="checkbox" id="eOff"${p.off?' checked':''}> No reminder for this event</label>
+    <label>Send to</label>${groupChips(p.groups||[],'data-eg')}
+    <label>When (${LEAD_HELP})<input id="eLeads" value="${esc((p.leads||[]).join(', '))}"></label>
+    <div class="acts"><button class="go" id="eSave">Save for this event</button><button id="eReset">Use the ${esc(e.tag||'Events')} rule</button><button id="eCancel">Cancel</button></div>`;
+  $('#evForm').classList.remove('hide');$('#evForm').scrollIntoView({behavior:'smooth'});
+  $('#eCancel').onclick=()=>$('#evForm').classList.add('hide');
+  const go=async(args)=>{const {error}=await sb.rpc('admin_set_event_reminder',{p_uid:e.uid,...args});if(error){flash($('#evErr'),error.message);return}$('#evForm').classList.add('hide');flash($('#evErr'),'Saved.',true);loadEvents()};
+  $('#eReset').onclick=()=>go({p_off:null,p_groups:null,p_leads:null});
+  $('#eSave').onclick=()=>{const leads=$('#eLeads').value.split(',').map(s=>s.trim().replace(/\s+/g,'')).filter(Boolean);
+    if(leads.some(l=>!okLead(l))){flash($('#evErr'),'Times look like '+LEAD_HELP+'.');return}
+    go({p_off:$('#eOff').checked,p_groups:$$('#evForm [data-eg]').filter(c=>c.checked).map(c=>c.dataset.eg),p_leads:leads})};
+}
+
+// =====================================================================
+// SCREENS + HOSPITAL CODES
+// =====================================================================
+loaders.screens=()=>{loadScreens();loadHosp();setInterval(loadScreens,60e3)};
 async function loadScreens(){
   const {data,error}=await sb.from('screens').select('id,name,last_seen,version').order('id');
-  if(error){$('#scBody').innerHTML=`<tr><td colspan="5">${esc(error.message)}</td></tr>`;return}
-  screens=data||[];
-  $('#scBody').innerHTML=screens.map(s=>{const on=s.last_seen&&Date.now()-new Date(s.last_seen)<5*60e3;
-    return `<tr><td><b>${esc(s.name)}</b><br><span class="note">${esc(s.id)}</span></td><td><span class="pill ${on?'on':'off'}">${on?'Online':'Offline'}</span></td><td>${esc(when(s.last_seen))}</td><td>${esc(s.version||'')}</td>
-      <td>${canManage?`<button class="del" data-del="${esc(s.id)}">Remove</button>`:''}</td></tr>`}).join('')||'<tr><td colspan="5" class="note">No screens have checked in yet.</td></tr>';
-  document.querySelectorAll('[data-del]').forEach(b=>b.onclick=async()=>{
-    if(!confirmInline(b))return;
-    const {error}=await sb.from('screens').delete().eq('id',b.dataset.del);if(error)alertRow(error.message);loadScreens()});
+  if(error){$('#scBody').innerHTML=`<tr><td colspan="5" class="err">${esc(error.message)}</td></tr>`;return}
+  $('#scBody').innerHTML=(data||[]).map(s=>{const on=s.last_seen&&Date.now()-new Date(s.last_seen)<5*60e3;
+    return `<tr><td><b>${esc(s.name)}</b><br><span class="note">${esc(s.id)}</span></td><td><span class="pill ${on?'on':'off'}">${on?'Online':'Offline'}</span></td><td>${esc(when(s.last_seen))}</td><td class="hm">${esc(s.version||'')}</td>
+      <td><button class="sm del" data-sd="${esc(s.id)}">Remove</button></td></tr>`}).join('')||'<tr><td colspan="5" class="note">No screens have checked in yet.</td></tr>';
+  $$('[data-sd]').forEach(b=>b.onclick=async()=>{if(!sure(b))return;const {error}=await sb.from('screens').delete().eq('id',b.dataset.sd);if(error)$('#scNote').textContent=error.message;loadScreens()});
 }
-// two-click confirm instead of a browser dialog
-function confirmInline(b){if(b.dataset.sure)return true;b.dataset.sure=1;b.textContent='Click again to confirm';setTimeout(()=>{delete b.dataset.sure;b.textContent=b.dataset.del?'Remove':'Delete'},4000);return false}
-function alertRow(m){$('#sub').textContent=m}
+async function loadHosp(){const {data}=await sb.from('settings').select('value').eq('key','hospital_codes').maybeSingle();
+  $('#hospTxt').value=Object.entries(data?.value||{}).map(([k,v])=>k+' = '+v).join('\n')}
+$('#hospSave').onclick=async()=>{const obj={};for(const line of $('#hospTxt').value.split('\n')){const m=line.match(/^\s*([A-Za-z0-9]{2,6})\s*=\s*(.+?)\s*$/);if(m)obj[m[1].toUpperCase()]=m[2]}
+  const {error}=await sb.from('settings').update({value:obj,updated_at:new Date().toISOString()}).eq('key','hospital_codes');flash($('#hospErr'),error?error.message:'Saved.',!error);loadHosp()};
 
-async function loadPreplans(){
-  const {data,error}=await sb.from('preplans').select('*').order('address');
-  if(error){$('#ppBody').innerHTML=`<tr><td colspan="5">${esc(error.message)}</td></tr>`;return}
-  preplans=data||[];renderPreplans();
-}
-function renderPreplans(){
-  const q=$('#ppSearch').value.trim().toUpperCase();
-  const L=preplans.filter(p=>!q||(p.address+' '+(p.place||'')).toUpperCase().includes(q));
+// =====================================================================
+// PRE-PLANS
+// =====================================================================
+let preplans=[],ppEdit=null;
+loaders.preplans=()=>{$('#ppMun').innerHTML='<option value="">Any</option>'+Object.entries(TOWNS).map(([k,v])=>`<option value="${k}">${esc(v)}</option>`).join('');loadPreplans()};
+async function loadPreplans(){const {data,error}=await sb.from('preplans').select('*').order('address');if(error){$('#ppBody').innerHTML=`<tr><td colspan="5" class="err">${esc(error.message)}</td></tr>`;return}preplans=data||[];renderPreplans()}
+function renderPreplans(){const q=$('#ppSearch').value.trim().toUpperCase(),L=preplans.filter(p=>!q||(p.address+' '+(p.place||'')).toUpperCase().includes(q));
   $('#ppCount').textContent=preplans.length+' on file';
-  $('#ppBody').innerHTML=L.map(p=>`<tr><td><b>${esc(p.address)}</b></td><td>${esc(TOWNS[p.mun]||p.mun||'Any')}</td><td>${esc(p.place||'')}</td><td class="pp">${esc((p.notes||'').slice(0,140))}${(p.notes||'').length>140?'…':''}</td>
-    <td><button data-ed="${p.id}">Edit</button> <button class="del" data-pd="${p.id}">Delete</button></td></tr>`).join('')||'<tr><td colspan="5" class="note">No pre-plans yet.</td></tr>';
-  document.querySelectorAll('[data-ed]').forEach(b=>b.onclick=()=>{const p=preplans.find(x=>x.id===b.dataset.ed);editId=p.id;
-    $('#ppAddr').value=p.address;$('#ppMun').value=p.mun||'';$('#ppPlace').value=p.place||'';$('#ppNotes').value=p.notes||'';
+  $('#ppBody').innerHTML=L.map(p=>`<tr><td><b>${esc(p.address)}</b></td><td>${esc(TOWNS[p.mun]||p.mun||'Any')}</td><td>${esc(p.place||'')}</td><td class="pp hm">${esc((p.notes||'').slice(0,140))}${(p.notes||'').length>140?'…':''}</td>
+    <td style="white-space:nowrap"><button class="sm" data-pe="${p.id}">Edit</button> <button class="sm del" data-pd="${p.id}">Delete</button></td></tr>`).join('')||'<tr><td colspan="5" class="note">No pre-plans yet.</td></tr>';
+  $$('[data-pe]').forEach(b=>b.onclick=()=>{const p=preplans.find(x=>x.id===b.dataset.pe);ppEdit=p.id;$('#ppAddr').value=p.address;$('#ppMun').value=p.mun||'';$('#ppPlace').value=p.place||'';$('#ppNotes').value=p.notes||'';
     $('#ppTitle').textContent='Edit pre-plan';$('#ppCancel').classList.remove('hide');$('#ppAddr').focus()});
-  document.querySelectorAll('[data-pd]').forEach(b=>b.onclick=async()=>{if(!confirmInline(b))return;
-    const {error}=await sb.from('preplans').delete().eq('id',b.dataset.pd);if(error)$('#ppErr').textContent=error.message;loadPreplans()});
-}
+  $$('[data-pd]').forEach(b=>b.onclick=async()=>{if(!sure(b))return;const {error}=await sb.from('preplans').delete().eq('id',b.dataset.pd);if(error)flash($('#ppErr'),error.message);loadPreplans()})}
 $('#ppSearch').oninput=renderPreplans;
-const resetPp=()=>{editId=null;$('#ppForm').reset();$('#ppTitle').textContent='Add a pre-plan';$('#ppCancel').classList.add('hide')};
-$('#ppCancel').onclick=resetPp;
-$('#ppForm').addEventListener('submit',async e=>{e.preventDefault();$('#ppErr').textContent='';
+const ppReset=()=>{ppEdit=null;$('#ppForm').reset();$('#ppTitle').textContent='Add a pre-plan';$('#ppCancel').classList.add('hide')};$('#ppCancel').onclick=ppReset;
+$('#ppForm').addEventListener('submit',async e=>{e.preventDefault();
   const row={address:$('#ppAddr').value.trim().toUpperCase(),mun:$('#ppMun').value||null,place:$('#ppPlace').value.trim()||null,notes:$('#ppNotes').value.trim()||null,updated_at:new Date().toISOString(),updated_by:me.id};
-  if(!row.address){$('#ppErr').textContent='Enter the address.';return}
-  const {error}=editId?await sb.from('preplans').update(row).eq('id',editId):await sb.from('preplans').insert(row);
-  if(error){$('#ppErr').textContent=error.message;return}
-  resetPp();loadPreplans();
-});
+  if(!row.address){flash($('#ppErr'),'Enter the address.');return}
+  const {error}=ppEdit?await sb.from('preplans').update(row).eq('id',ppEdit):await sb.from('preplans').insert(row);if(error){flash($('#ppErr'),error.message);return}ppReset();loadPreplans()});
 
-async function loadSettings(){
-  const {data}=await sb.from('settings').select('key,value').in('key',['hospital_codes']);
-  settings=Object.fromEntries((data||[]).map(r=>[r.key,r.value]));
-  $('#hospTxt').value=Object.entries(settings.hospital_codes||{}).map(([k,v])=>k+' = '+v).join('\n');
+// =====================================================================
+// GROUPS
+// =====================================================================
+let gMembers=new Set(),groupsC=[],allMembers=[];
+loaders.groups=()=>loadGroupsAdmin();
+async function loadGroupsAdmin(keep){
+  const [{data:m},{data:g}]=await Promise.all([sb.from('members').select('id,name,title,is_screen').eq('active',true).order('name'),sb.from('msg_groups').select('id,name').order('name')]);
+  allMembers=(m||[]).filter(x=>!x.is_screen);groupsC=g||[];
+  $('#gSel').innerHTML='<option value="">Pick a group to edit</option>'+groupsC.map(x=>`<option value="${x.id}">${esc(x.name)}</option>`).join('');
+  if(keep){$('#gSel').value=keep;await openGroup(keep)}else{$('#gEdit').classList.add('hide');$('#gDelete').classList.add('hide')}
 }
-$('#hospSave').onclick=async()=>{$('#hospErr').textContent='';
-  const obj={};for(const line of $('#hospTxt').value.split('\n')){const m=line.match(/^\s*([A-Za-z0-9]{2,6})\s*=\s*(.+?)\s*$/);if(m)obj[m[1].toUpperCase()]=m[2]}
-  const {error}=await sb.from('settings').update({value:obj,updated_at:new Date().toISOString()}).eq('key','hospital_codes');
-  $('#hospErr').style.color=error?'':'var(--ok)';$('#hospErr').textContent=error?error.message:'Saved.';loadSettings()};
+async function openGroup(id){if(!id){$('#gEdit').classList.add('hide');$('#gDelete').classList.add('hide');return}
+  const {data}=await sb.from('msg_group_members').select('member_id').eq('group_id',id);gMembers=new Set((data||[]).map(r=>r.member_id));
+  $('#gEdit').classList.remove('hide');$('#gDelete').classList.remove('hide');renderGroupList()}
+function renderGroupList(){const q=$('#gFind').value.trim().toLowerCase();
+  $('#gList').innerHTML=allMembers.filter(m=>!q||m.name.toLowerCase().includes(q)).map(m=>`<label class="ck" style="padding:6px 10px;border-top:1px solid var(--line);margin:0"><input type="checkbox" data-m="${m.id}"${gMembers.has(m.id)?' checked':''}> ${esc(m.name)}${m.title?' <span class="note">· '+esc(m.title)+'</span>':''}</label>`).join('');
+  $('#gCount').textContent=gMembers.size+' in this group'}
+$('#gSel').onchange=()=>openGroup($('#gSel').value);$('#gFind').oninput=renderGroupList;
+$('#gList').addEventListener('change',async e=>{const c=e.target.closest('[data-m]');if(!c)return;const gid=$('#gSel').value,mid=c.dataset.m;$('#gErr').textContent='';
+  const r=c.checked?await sb.from('msg_group_members').insert({group_id:gid,member_id:mid}):await sb.from('msg_group_members').delete().eq('group_id',gid).eq('member_id',mid);
+  if(r.error){flash($('#gErr'),r.error.message);c.checked=!c.checked;return}c.checked?gMembers.add(mid):gMembers.delete(mid);$('#gCount').textContent=gMembers.size+' in this group'});
+$('#gCreate').onclick=async()=>{const n=$('#gNew').value.trim();if(!n){flash($('#gErr'),'Enter a group name.');return}
+  const {data,error}=await sb.from('msg_groups').insert({name:n,created_by:me.id}).select('id').single();if(error){flash($('#gErr'),error.message);return}$('#gNew').value='';loaded.calendar=0;loadGroupsAdmin(data.id)};
+$('#gDelete').onclick=async()=>{if(!sure($('#gDelete')))return;const {error}=await sb.from('msg_groups').delete().eq('id',$('#gSel').value);if(error){flash($('#gErr'),error.message);return}loaded.calendar=0;loadGroupsAdmin()};
+
+// =====================================================================
+// ACTIVITY LOG
+// =====================================================================
+let logs=[];
+loaders.activity=async()=>{if(!people.length)await loadPeople();const {data,error}=await sb.from('audit_log').select('*').order('id',{ascending:false}).limit(300);
+  if(error){$('#lgBody').innerHTML=`<tr><td colspan="4" class="err">${esc(error.message)}</td></tr>`;return}logs=data||[];renderLogs()};
+const detailTxt=d=>{if(!d)return'';if(d.role)return(ROLES.find(r=>r[0]===d.role)||[0,d.role])[1];
+  return Object.entries(d).filter(([k])=>!['id'].includes(k)).map(([k,v])=>v&&typeof v==='object'&&'to' in v?`${k}: ${JSON.stringify(v.from)} → ${JSON.stringify(v.to)}`:`${k}: ${typeof v==='object'?JSON.stringify(v):v}`).join('; ')};
+function renderLogs(){const q=$('#lgFind').value.trim().toLowerCase(),who=id=>people.find(p=>p.id===id)?.name||'system';
+  $('#lgBody').innerHTML=logs.map(l=>({l,w:who(l.actor_id),d:detailTxt(l.detail)})).filter(x=>!q||[x.w,x.l.action,x.l.target,x.d].join(' ').toLowerCase().includes(q))
+    .map(x=>`<tr><td style="white-space:nowrap">${esc(when(x.l.at))}</td><td>${esc(x.w)}</td><td><b>${esc(x.l.action)}</b> ${esc(x.l.target||'')}</td><td class="hm note">${esc(x.d)}</td></tr>`).join('')||'<tr><td colspan="4" class="note">Nothing yet.</td></tr>'}
+$('#lgFind').oninput=renderLogs;
+
+$('#anStart')&&($('#anStart').value=localInput(new Date()));
 }
 </script>
 </body>
