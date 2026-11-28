@@ -43,6 +43,10 @@ textarea{min-height:80px;resize:vertical}
 button{font:600 15px Barlow,sans-serif;min-height:38px;padding:0 14px;border-radius:6px;border:1px solid var(--line);background:var(--card);color:var(--ink);cursor:pointer}
 button.go{background:var(--bar);color:#fff;border-color:var(--bar)}button.del{color:var(--red)}button.sm{min-height:30px;font-size:14px;padding:0 10px}
 button:disabled{opacity:.5;cursor:default}
+.sl{display:grid;gap:6px;max-width:560px}
+.sli{display:flex;align-items:center;gap:10px;padding:8px 10px;border:1px solid var(--line,#d0d7de);border-radius:8px;background:#fff;cursor:grab;user-select:none}
+.sli.off{opacity:.5}.sli.drag{opacity:.4;border-style:dashed}.sli .n{font-weight:700;width:22px;color:#888}.sli .l{flex:1}
+.sli input{width:auto;margin:0}.sli button{min-height:28px;padding:0 8px}
 .acts{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;align-items:center}
 .lnk{background:none;border:0;color:inherit;text-decoration:underline;min-height:0;padding:0}
 .err{color:var(--red);min-height:1.2em;margin:6px 0 0}.ok{color:var(--ok)}.note{color:var(--mute);font-size:14px}
@@ -162,6 +166,11 @@ code{background:var(--alt);border:1px solid var(--line);border-radius:4px;paddin
       <div class="card"><h2>Screens <small id="scNote"></small></h2><div class="in">
         <table><thead><tr><th>Screen</th><th>Status</th><th>Last check-in</th><th class="hm">Version</th><th></th></tr></thead><tbody id="scBody"></tbody></table>
         <p class="note">A screen appears here the first time it checks in. Open the display with <b>display.html?screen=bay</b> (or set "Screen ID" in its settings) and sign in once with the screen account. Offline = no check-in for 5 minutes. To cut off one TV, remove it here and use "Sign out all devices" on the screen account in Personnel if it was lost or stolen.</p>
+      </div></div>
+      <div class="card" id="slCard"><h2>Display slides <small>order and on/off for every TV</small></h2><div class="in">
+        <p class="note">Drag a slide (or use the arrows) to change the order. Untick to hide it on every screen. Some slides only appear when they have something to show (recent calls, events, turnout, operations, announcements). Screens pick up changes within 30 seconds.</p>
+        <div id="slList" class="sl"></div>
+        <div class="acts"><button class="go" id="slSave">Save order</button><button id="slReset">Reset to default</button><a href="display.html?demo&amp;hold=1" target="_blank" class="note">Preview (demo, click to advance)</a><span class="err" id="slErr"></span></div>
       </div></div>
       <div class="card" id="hospCard"><h2>Hospital codes</h2><div class="in">
         <label>One per line: CODE = Hospital name (from "TRANSPORTING TO: CODE" in CAD)<textarea id="hospTxt"></textarea></label>
@@ -495,7 +504,7 @@ function editEvent(e){const p=e.plan||{};
 // =====================================================================
 // SCREENS + HOSPITAL CODES
 // =====================================================================
-loaders.screens=()=>{loadScreens();loadHosp();setInterval(loadScreens,60e3)};
+loaders.screens=()=>{loadScreens();loadHosp();loadSlides();setInterval(loadScreens,60e3)};
 // Test call (sql/14)
 async function testCall(kind){
   const only=$('#tcOnlyMe').checked;
@@ -518,6 +527,21 @@ async function loadScreens(){
       <td><button class="sm del" data-sd="${esc(s.id)}">Remove</button></td></tr>`}).join('')||'<tr><td colspan="5" class="note">No screens have checked in yet.</td></tr>';
   $$('[data-sd]').forEach(b=>b.onclick=async()=>{if(!sure(b))return;const {error}=await sb.from('screens').delete().eq('id',b.dataset.sd);if(error)$('#scNote').textContent=error.message;loadScreens()});
 }
+// ---- display slide order (settings.display_slides) ----
+const SL_DEF=[['roster','On duty'],['tomorrow',"Tomorrow's crew"],['calendar','Upcoming events'],['apparatus','Apparatus status'],['rotation','EMS unit rotation'],['announce','Announcements'],['faces','Faces of Station 19-1'],['calls','Recent calls'],['turnout','Turnout times'],['ops','Operations (calls, towns, response)'],['weather','Weather'],['news','News & sports'],['traffic','Traffic'],['deck','Google Slides deck (needs a deck link on the screen)']];
+let slOrder=[],slOff=[];
+async function loadSlides(){const {data,error}=await sb.from('settings').select('value').eq('key','display_slides').maybeSingle();
+  if(error||!data){$('#slErr').textContent=error?error.message:'Run sql/17_display_slides.sql first.';}
+  const g=data?.value||{},keys=SL_DEF.map(x=>x[0]),o=(g.order||[]).filter(k=>keys.includes(k));slOrder=[...o,...keys.filter(k=>!o.includes(k))];slOff=(g.off||[]).filter(k=>keys.includes(k));drawSlides()}
+function drawSlides(){const lab=Object.fromEntries(SL_DEF);
+  $('#slList').innerHTML=slOrder.map((k,i)=>`<div class="sli${slOff.includes(k)?' off':''}" draggable="true" data-k="${k}"><span class="n">${i+1}</span><input type="checkbox" data-on="${k}"${slOff.includes(k)?'':' checked'}><span class="l">${esc(lab[k])}</span><button class="sm" data-up="${i}" ${i?'':'disabled'}>▲</button><button class="sm" data-dn="${i}" ${i<slOrder.length-1?'':'disabled'}>▼</button></div>`).join('');
+  const mv=(a,b)=>{if(b<0||b>=slOrder.length)return;const [x]=slOrder.splice(a,1);slOrder.splice(b,0,x);drawSlides()};
+  $$('[data-up]').forEach(b=>b.onclick=()=>mv(+b.dataset.up,+b.dataset.up-1));$$('[data-dn]').forEach(b=>b.onclick=()=>mv(+b.dataset.dn,+b.dataset.dn+1));
+  $$('[data-on]').forEach(c=>c.onchange=()=>{const k=c.dataset.on;slOff=c.checked?slOff.filter(x=>x!==k):[...slOff,k];drawSlides()});
+  let src=null;$$('.sli').forEach(el=>{el.ondragstart=e=>{src=el.dataset.k;el.classList.add('drag');e.dataTransfer.effectAllowed='move'};el.ondragend=()=>el.classList.remove('drag');
+    el.ondragover=e=>e.preventDefault();el.ondrop=e=>{e.preventDefault();if(!src||src===el.dataset.k)return;mv(slOrder.indexOf(src),slOrder.indexOf(el.dataset.k))}})}
+$('#slSave').onclick=async()=>{const {error}=await sb.from('settings').update({value:{order:slOrder,off:slOff},updated_at:new Date().toISOString()}).eq('key','display_slides');flash($('#slErr'),error?error.message:'Saved. Screens update within 30 seconds.',!error)};
+$('#slReset').onclick=()=>{slOrder=SL_DEF.map(x=>x[0]);slOff=[];drawSlides();flash($('#slErr'),'Default order shown. Click Save order to apply.',true)};
 async function loadHosp(){const {data}=await sb.from('settings').select('value').eq('key','hospital_codes').maybeSingle();
   $('#hospTxt').value=Object.entries(data?.value||{}).map(([k,v])=>k+' = '+v).join('\n')}
 $('#hospSave').onclick=async()=>{const obj={};for(const line of $('#hospTxt').value.split('\n')){const m=line.match(/^\s*([A-Za-z0-9]{2,6})\s*=\s*(.+?)\s*$/);if(m)obj[m[1].toUpperCase()]=m[2]}

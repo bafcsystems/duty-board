@@ -462,7 +462,7 @@ const TOWNS={BRYA:'Bryn Athyn',LMOR:'Lower Moreland Township',UMOR:'Upper Morela
 const DEMO=new URLSearchParams(location.search).has('demo');
 const HOLD=new URLSearchParams(location.search).has('hold'); // presentation mode: slides stay until clicked
 const MEMBER_COLS='id,eso_id,name,eso_name,title,ems_level,fire_quals,member_type,is_officer,active';
-const VERSION='2026-11-28b';
+const VERSION='2026-11-28c';
 const SLIDES={roster:'On duty',tomorrow:"Tomorrow's crew",calendar:'Upcoming events',apparatus:'Apparatus status',rotation:'EMS unit rotation',announce:'Announcements',faces:'Faces of Station 19-1',calls:'Recent calls',turnout:'Turnout times',ops:'Operations (calls, towns, response)',weather:'Weather',news:'News & sports',traffic:'Traffic',deck:'Google Slides deck'};
 const DEF={screen:'',rot:20,run:90,vol:0.8,name:'Station 19-1',station:'2815 Buck Rd, Bryn Athyn, PA 19009',appCsv:'',annCsv:'',deckUrl:'',tzoom:15,theme:'auto',slides:{roster:true,tomorrow:true,calendar:true,news:true,apparatus:true,announce:true,calls:true,turnout:true,ops:true,weather:true,traffic:true,deck:false,rotation:true,faces:true}};
 // Samples shown until a Google Sheet is connected (Settings > sheet links)
@@ -831,7 +831,9 @@ function slideHtml(k){
       <div>${(c.units||[]).map(u=>`<span class="chip${ours.includes(u)?' ours':''}">${esc(u)}</span>`).join('')}</div></div>`}).join('')||'<div class="empty">No calls in the last 24 hours.</div>'}</div>`}}
   return {h:k,sub:'',body:''};
 }
-function buildOrder(){order=[];for(const k of Object.keys(SLIDES)){if(!cfg.slides[k])continue;if(k==='calls'&&!canCalls&&!DEMO)continue;if(k==='deck'&&!cfg.deckUrl)continue;if(k==='calendar'&&!events.length&&!DEMO)continue;if(k==='turnout'&&!(turnout&&(turnout.rows||[]).length))continue;if(k==='ops'&&!(ops&&ops.calls&&(ops.calls.EMS+ops.calls.FIRE)))continue;
+function slideKeys(){const g=(typeof settings!=='undefined'&&settings&&settings.display_slides)||{},o=(g.order||[]).filter(k=>k in SLIDES);return [...o,...Object.keys(SLIDES).filter(k=>!o.includes(k))]}
+function slideOffAll(k){const g=(typeof settings!=='undefined'&&settings&&settings.display_slides)||{};return (g.off||[]).includes(k)}
+function buildOrder(){order=[];for(const k of slideKeys()){if(!cfg.slides[k]||slideOffAll(k))continue;if(k==='calls'&&!canCalls&&!DEMO)continue;if(k==='deck'&&!cfg.deckUrl)continue;if(k==='calendar'&&!events.length&&!DEMO)continue;if(k==='turnout'&&!(turnout&&(turnout.rows||[]).length))continue;if(k==='ops'&&!(ops&&ops.calls&&(ops.calls.EMS+ops.calls.FIRE)))continue;
   if(k==='announce')anns().forEach((_,i)=>order.push('ann:'+i));else order.push(k)}if(!order.length)order=['roster']}
 function showSlide(i){
   buildOrder();idx=(i+order.length)%order.length;const k=order[idx],s=slideHtml(k);
