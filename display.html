@@ -68,6 +68,13 @@ html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font-family
 #slides{position:relative;flex:1}
 .body{flex:1;overflow:hidden;padding:2vh 2vw}
 .body.flush{padding:0}.body.flush iframe.fill{border-radius:0}
+.rtag{font:800 1.5vh/1 "Barlow Condensed";font-style:normal;letter-spacing:.1em;padding:.4vh .5vw;border-radius:.5vh;margin-left:.7vw;vertical-align:middle;display:inline-block}
+.rtag.p{background:#c62828;color:#fff}.rtag.s{background:#455a64;color:#fff}
+.unit .id .rtag{font-size:2vh;vertical-align:.8vh}.amb .u b .rtag{font-size:1.3vh;vertical-align:.3vh;margin-left:.5vw}
+.rotline{display:flex;align-items:center;gap:1vw;flex-wrap:wrap;background:var(--panel);border-radius:1vh;padding:1vh 1.2vw;margin-bottom:1.6vh;border-left:.8vh solid #c62828;font:600 2.2vh Barlow}
+.rotline span{font:700 2.2vh "Barlow Condensed";letter-spacing:.08em;text-transform:uppercase;color:var(--mute)}
+.rotline b{font:800 2.8vh "Barlow Condensed";background:#c62828;color:#fff;padding:.2vh .7vw;border-radius:.6vh}.rotline b.s{background:#455a64}
+.rotline em{font-style:normal;color:var(--mute);margin-left:auto}
 /* EMS unit rotation */
 .rot{height:100%;display:grid;grid-template-rows:auto 1fr auto;gap:2.2vh}
 .rothero{display:grid;grid-template-columns:1fr 1fr;gap:1.6vw}
@@ -462,7 +469,7 @@ const TOWNS={BRYA:'Bryn Athyn',LMOR:'Lower Moreland Township',UMOR:'Upper Morela
 const DEMO=new URLSearchParams(location.search).has('demo');
 const HOLD=new URLSearchParams(location.search).has('hold'); // presentation mode: slides stay until clicked
 const MEMBER_COLS='id,eso_id,name,eso_name,title,ems_level,fire_quals,member_type,is_officer,active';
-const VERSION='2026-11-28c';
+const VERSION='2026-11-28d';
 const SLIDES={roster:'On duty',tomorrow:"Tomorrow's crew",calendar:'Upcoming events',apparatus:'Apparatus status',rotation:'EMS unit rotation',announce:'Announcements',faces:'Faces of Station 19-1',calls:'Recent calls',turnout:'Turnout times',ops:'Operations (calls, towns, response)',weather:'Weather',news:'News & sports',traffic:'Traffic',deck:'Google Slides deck'};
 const DEF={screen:'',rot:20,run:90,vol:0.8,name:'Station 19-1',station:'2815 Buck Rd, Bryn Athyn, PA 19009',appCsv:'',annCsv:'',deckUrl:'',tzoom:15,theme:'auto',slides:{roster:true,tomorrow:true,calendar:true,news:true,apparatus:true,announce:true,calls:true,turnout:true,ops:true,weather:true,traffic:true,deck:false,rotation:true,faces:true}};
 // Samples shown until a Google Sheet is connected (Settings > sheet links)
@@ -772,6 +779,11 @@ function showWxAlert(a){ // full-screen takeover for 30 seconds
 
 // ================= slides =================
 let order=[],idx=-1,rotT=null,booted=false;
+function rotNow(now=new Date()){const d=now.getDate(),y=now.getFullYear(),m=now.getMonth(),last=new Date(y,m+1,0).getDate();
+  const P=[{n:'Period 1',a:1,b:10,p:'319-1',s:'319-2',c:'ra'},{n:'Period 2',a:11,b:20,p:'319-2',s:'319-3',c:'rb'},{n:'Period 3',a:21,b:last,p:'319-3',s:'319-1',c:'rc'}];
+  const cur=P.find(x=>d>=x.a&&d<=x.b),nxt=P[(P.indexOf(cur)+1)%3],nd=cur===P[2]?new Date(y,m+1,1):new Date(y,m,cur.b+1);
+  return {P,cur,nxt,nd,d,last,y,m,left:cur.b-d+1}}
+const rotTag=u=>{const r=rotNow();return u===r.cur.p?'<i class="rtag p">PRIMARY</i>':u===r.cur.s?'<i class="rtag s">SECONDARY</i>':''};
 function slideHtml(k){
   if(k==='roster'||k==='tomorrow'){
     const tw=k==='tomorrow'?tomorrowWin():null,R=tw?roster(tw[0],tw[1]):roster();
@@ -787,12 +799,9 @@ function slideHtml(k){
     const when=e=>{const d=D(e.starts_at);return `${esc(d.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'}))}<small>${e.all_day?'All day':esc(hm(d))}</small>`};
     return {h:'Upcoming Events',sub:(smp?'<span class="sample">SAMPLE</span> ':'')+'Company calendars',raw:true,
       body:`<div class="cal">${L.map(e=>`<div class="ev"><div class="when">${when(e)}</div><div><div class="tt">${e.tag?`<span class="evtag" style="background:${esc(tagColors[e.tag]||'#555')}">${esc(e.tag)}</span>`:''}${esc(e.title)}</div>${e.location?`<div class="lo">${esc(e.location)}</div>`:''}</div></div>`).join('')||'<div class="empty">No events on the station calendar yet.</div>'}</div>`}}
-  if(k==='rotation'){const now=new Date(),d=now.getDate(),y=now.getFullYear(),m=now.getMonth(),last=new Date(y,m+1,0).getDate();
-    const P=[{n:'Period 1',a:1,b:10,p:'319-1',s:'319-2',c:'ra'},{n:'Period 2',a:11,b:20,p:'319-2',s:'319-3',c:'rb'},{n:'Period 3',a:21,b:last,p:'319-3',s:'319-1',c:'rc'}];
-    const cur=P.find(x=>d>=x.a&&d<=x.b),nxt=P[(P.indexOf(cur)+1)%3],left=cur.b-d+1;
+  if(k==='rotation'){const now=new Date(),{P,cur,nxt,nd,d,last,y,left}=rotNow(now);
     const ord=n=>n+(n%100>10&&n%100<14?'th':['th','st','nd','rd'][n%10]||'th');
     const mon=now.toLocaleDateString('en-US',{month:'long'}),mo=now.toLocaleDateString('en-US',{month:'short'});
-    const nd=cur===P[2]?new Date(y,m+1,1):new Date(y,m,cur.b+1);
     const days=Array.from({length:last},(_,i)=>{const n=i+1,c=P.find(x=>n>=x.a&&n<=x.b).c;return `<i class="${c}${n<d?' past':''}${n===d?' today':''}">${n}</i>`}).join('');
     return {h:'EMS Unit Rotation',sub:`${mon} ${y} · primary ambulance rotates every 10 days`,body:`<div class="rot">
       <div class="rothero"><div class="rhb"><div class="ic">🚑</div><div><div class="lb">Primary today</div><div class="un">${cur.p}</div><div class="nx">${left===1?'Last day':left+' days left'} · ${esc(nxt.p)} takes over ${esc(nd.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'}))}</div></div></div>
@@ -812,7 +821,8 @@ function slideHtml(k){
     return {h:'News & Sports',sub:'Headlines',body:`<div class="news">${col('National',news.national)}${col('Local',news.local)}${col('Sports',news.sports)}</div>`}}
   if(k==='apparatus'){const L=apps(),smp=isSampleApp();
     const cls=s=>/out/i.test(s)?'oos':/limit|reserve|restrict/i.test(s)?'lim':'';
-    return {h:'Apparatus Status',sub:(smp?'<span class="sample">SAMPLE</span> ':'')+(dbApp.length?'Updated on the admin page':'Updated by officers'),raw:true,body:`<div class="app">${L.map(a=>`<div class="unit ${cls(a.status)}"><div class="id">${esc(a.unit)}</div><div class="ty">${esc(a.type||'')}</div><div class="stt">${esc((a.status||'').toUpperCase())}</div>${a.note?`<div class="nt">${esc(a.note)}</div>`:''}${a.ret?`<div class="nt">Expected: ${esc(a.ret)}</div>`:''}</div>`).join('')}</div>`}}
+    const R=rotNow(),rl=`<div class="rotline"><span>🚑 EMS rotation</span><b>Primary ${R.cur.p}</b><b class="s">Secondary ${R.cur.s}</b><em>${R.left===1?'Last day':R.left+' days left'} · ${esc(R.nxt.p)} becomes primary ${esc(R.nd.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'}))}</em></div>`;
+    return {h:'Apparatus Status',sub:(smp?'<span class="sample">SAMPLE</span> ':'')+(dbApp.length?'Updated on the admin page':'Updated by officers'),raw:true,body:rl+`<div class="app">${L.map(a=>`<div class="unit ${cls(a.status)}"><div class="id">${esc(a.unit)}${rotTag(a.unit)}</div><div class="ty">${esc(a.type||'')}</div><div class="stt">${esc((a.status||'').toUpperCase())}</div>${a.note?`<div class="nt">${esc(a.note)}</div>`:''}${a.ret?`<div class="nt">Expected: ${esc(a.ret)}</div>`:''}</div>`).join('')}</div>`}}
   if(k.startsWith('ann:')){const a=anns()[+k.slice(4)]||{},smp=isSampleAnn(),ty=(a.type||'Notice').toLowerCase();
     const icon={training:'🎓',birthday:'🎂',meeting:'📋',notice:'📣'}[ty]||'📣';
     return {h:a.type||'Announcement',sub:smp?'<span class="sample">SAMPLE</span>':'',raw:true,body:`<div class="ann ${esc(ty)}"><div class="ic">${icon}</div><div><div class="ty">${esc(a.type||'')}</div><div class="tt">${esc(a.title||'')}</div>${a.when?`<div class="wh">${esc(a.when)}</div>`:''}${a.details?`<div class="dt2">${esc(a.details)}</div>`:''}</div></div>`}}
@@ -970,7 +980,7 @@ function renderAmb(){
   const stale=!DEMO&&settings.webcad_last_sync&&Date.now()-D(settings.webcad_last_sync)>5*60e3;
   box.classList.toggle('stale',!!stale);box.classList.toggle('alarm',!stale&&!L.length&&(!!lastLoad||DEMO));
   if(stale){box.innerHTML='<h4>Ambulance Status</h4><div class="u none"><b>County status not updating</b></div>';return}
-  box.innerHTML=`<h4>Ambulance Status</h4>`+(L.map(a=>`<div class="u ${/^319-6\d$/.test(a.unit)?'amb6':'aok'}"><b>${esc(a.unit)}</b><span>In Service</span></div>`).join('')
+  box.innerHTML=`<h4>Ambulance Status</h4>`+(L.map(a=>`<div class="u ${/^319-6\d$/.test(a.unit)?'amb6':'aok'}"><b>${esc(a.unit)}${rotTag(a.unit).replace('PRIMARY','PRI').replace('SECONDARY','2ND')}</b><span>In Service</span></div>`).join('')
     ||'<div class="u none"><b>NO AMBULANCE IN SERVICE</b></div>');
 }
 
