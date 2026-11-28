@@ -63,6 +63,14 @@ code{background:var(--alt);border:1px solid var(--line);border-radius:4px;paddin
 .approw{display:grid;grid-template-columns:110px 150px 1fr 160px auto;gap:8px;align-items:center;padding:8px 0;border-top:1px solid var(--line)}
 .approw b{font:700 20px "Barlow Condensed",sans-serif}
 @media(max-width:760px){.g2,.g3,.g4{grid-template-columns:1fr}.hm{display:none}.approw{grid-template-columns:1fr 1fr}}
+.tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.tile{background:var(--alt);border:1px solid var(--line);border-radius:8px;padding:10px 12px}
+.tile b{display:block;font:700 28px/1.1 "Barlow Condensed",sans-serif}.tile span{font-size:13px;color:var(--mute)}
+.tile.ems b{color:var(--blue)}.tile.fire b{color:var(--red)}
+.presets{display:flex;flex-wrap:wrap;gap:6px}.presets button.on{background:var(--bar);color:#fff;border-color:var(--bar)}
+.rpt td.n,.rpt th.n{text-align:right;font-variant-numeric:tabular-nums}.rpt{font-size:14px}
+.bar{height:8px;background:var(--blue);border-radius:4px;display:inline-block;vertical-align:middle;margin-right:6px}
+.scroll{overflow:auto;max-height:70vh}
 </style>
 </head>
 <body>
@@ -200,6 +208,41 @@ code{background:var(--alt);border:1px solid var(--line);border-radius:4px;paddin
       </div></div>
     </section>
 
+
+    <!-- ============ REPORTS ============ -->
+    <section data-tab="reports" class="hide">
+      <div class="card"><h2>Reports <small id="rpCov"></small></h2><div class="in">
+        <div class="presets" id="rpPresets"></div>
+        <div class="g4" style="margin-top:6px">
+          <label>From<input type="date" id="rpFrom"></label>
+          <label>To (through)<input type="date" id="rpTo"></label>
+          <label>Group by<select id="rpGroup"><option value="day">Day</option><option value="week">Week</option><option value="month">Month</option></select></label>
+          <div class="acts" style="align-items:end"><button class="go" id="rpRun">Run</button></div>
+        </div>
+        <p class="note">From the CAD Clear Reports, one count per incident number. The monthly Board report comes from the county monthly file and is emailed on the 2nd.</p>
+      </div></div>
+      <div class="card"><h2>Summary <small id="rpRange"></small></h2><div class="in"><div class="tiles" id="rpTiles"><p class="note">Pick a period and press Run.</p></div></div></div>
+      <div class="card"><h2>By <span id="rpGroupName">day</span> <small><button class="sm" id="rpSeriesCsv">Download CSV</button></small></h2><div class="in scroll"><table class="rpt"><thead id="rpSeriesHead"></thead><tbody id="rpSeries"></tbody></table></div></div>
+      <div class="card"><h2>Ad hoc reports</h2><div class="in">
+        <div class="g4">
+          <label>Report<select id="rpType">
+            <option value="calls">Call list</option>
+            <option value="units">Unit activity</option>
+            <option value="towns">Calls and response by town</option>
+            <option value="platoons">Calls by platoon, hour and day</option>
+            <option value="turnout">Turnout times</option>
+            <option value="hosp">Transports and hospitals</option>
+            <option value="cancel">Cancels, disregards, mutual aid, 2nd ambulance</option>
+          </select></label>
+          <label>Type<select id="rpKind"><option value="">EMS and fire</option><option value="EMS">EMS</option><option value="FIRE">Fire</option></select></label>
+          <label>Town<select id="rpTown"><option value="">Any</option></select></label>
+          <label>Unit<input id="rpUnit" placeholder="e.g. 319-2"></label>
+        </div>
+        <div class="acts"><button class="go" id="rpGo">Run report</button><button id="rpCsv">Download CSV</button><span class="note" id="rpNote"></span></div>
+        <div class="scroll" style="margin-top:10px" id="rpOut"></div>
+      </div></div>
+    </section>
+
     <!-- ============ HELP ============ -->
     <section data-tab="help" class="hide">
       <div class="card"><h2>Checklists</h2><div class="in">
@@ -260,7 +303,7 @@ $('#lVerify').onclick=async()=>{const {error}=await sb.auth.verifyOtp({email:pen
 
 const TABS=[['people','Personnel',()=>can.admin],['access','Access',()=>can.admin],['announce','Announcements',()=>can.content],['apparatus','Apparatus',()=>can.content],
   ['calendar','Calendar',()=>can.calendar],['screens','Screens',()=>can.screens],['preplans','Pre-plans',()=>can.screens||isOfficer],['groups','Groups',()=>can.msg],
-  ['activity','Activity',()=>can.admin],['help','Checklists',()=>true]];
+  ['reports','Reports',()=>can.admin||can.calls],['activity','Activity',()=>can.admin],['help','Checklists',()=>true]];
 const loaders={};let loaded={};
 function showTab(k){$$('#tabs button').forEach(b=>b.setAttribute('aria-selected',b.dataset.t===k));$$('section[data-tab]').forEach(s=>s.classList.toggle('hide',s.dataset.tab!==k));
   history.replaceState(null,'','#'+k);if(loaders[k]&&!loaded[k]){loaded[k]=1;loaders[k]()}}
@@ -529,6 +572,80 @@ $('#gDelete').onclick=async()=>{if(!sure($('#gDelete')))return;const {error}=awa
 // ACTIVITY LOG
 // =====================================================================
 let logs=[];
+
+// =====================================================================
+// REPORTS (2026-11-28)
+// =====================================================================
+const RP={};
+const pad2=n=>String(n).padStart(2,'0');
+const ymd=d=>d.getFullYear()+'-'+pad2(d.getMonth()+1)+'-'+pad2(d.getDate());
+const mss=s=>s==null||isNaN(s)?'–':Math.floor(s/60)+':'+pad2(Math.round(s%60));
+const pct=(a,b)=>b?Math.round(100*a/b)+'%':'–';
+function rpPresetList(){const t=new Date();t.setHours(0,0,0,0);const d=(y,m,dd)=>new Date(y,m,dd);const y=t.getFullYear(),m=t.getMonth();
+  const dow=(t.getDay()+6)%7,wk=new Date(t);wk.setDate(t.getDate()-dow);const lw=new Date(wk);lw.setDate(wk.getDate()-7);const lwe=new Date(wk);lwe.setDate(wk.getDate()-1);
+  const yd=new Date(t);yd.setDate(t.getDate()-1);const q=Math.floor(m/3)*3;
+  return [['Today',t,t,'day'],['Yesterday',yd,yd,'day'],['This week',wk,t,'day'],['Last week',lw,lwe,'day'],['This month',d(y,m,1),t,'day'],
+    ['Last month',d(y,m-1,1),d(y,m,0),'day'],['This quarter',d(y,q,1),t,'week'],['Year to date',d(y,0,1),t,'month'],['Last year',d(y-1,0,1),d(y-1,11,31),'month']]}
+function rpRange(){const f=$('#rpFrom').value,t=$('#rpTo').value;if(!f||!t)return null;
+  const from=new Date(f+'T00:00:00'),to=new Date(t+'T00:00:00');to.setDate(to.getDate()+1);return {from:from.toISOString(),to:to.toISOString(),label:f===t?f:f+' to '+t}}
+function csvDownload(name,rows){const q=v=>{v=v==null?'':String(v);return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v};
+  const blob=new Blob([rows.map(r=>r.map(q).join(',')).join('\r\n')],{type:'text/csv'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},500)}
+loaders.reports=async()=>{
+  const P=rpPresetList();$('#rpPresets').innerHTML=P.map((p,i)=>`<button class="sm" data-i="${i}">${esc(p[0])}</button>`).join('');
+  $$('#rpPresets button').forEach(b=>b.onclick=()=>{const p=P[+b.dataset.i];$('#rpFrom').value=ymd(p[1]);$('#rpTo').value=ymd(p[2]);$('#rpGroup').value=p[3];
+    $$('#rpPresets button').forEach(x=>x.classList.toggle('on',x===b));rpRun()});
+  $('#rpTown').innerHTML='<option value="">Any</option>'+Object.entries(TOWNS).map(([k,v])=>`<option value="${k}">${esc(v)}</option>`).join('');
+  $('#rpRun').onclick=()=>{$$('#rpPresets button').forEach(x=>x.classList.remove('on'));rpRun()};
+  $('#rpGo').onclick=rpAdhoc;$('#rpCsv').onclick=()=>RP.csv?csvDownload(RP.csv[0],RP.csv[1]):null;
+  $('#rpSeriesCsv').onclick=()=>RP.scsv?csvDownload(RP.scsv[0],RP.scsv[1]):null;
+  const {data:cov}=await sb.rpc('report_coverage');if(cov&&cov.first)$('#rpCov').textContent='data '+new Date(cov.first).toLocaleDateString()+' to '+new Date(cov.last).toLocaleDateString()+' · '+cov.calls+' calls';
+  $$('#rpPresets button')[7].click()};
+async function rpRun(){const R=rpRange();if(!R)return;const g=$('#rpGroup').value;$('#rpRange').textContent=R.label;$('#rpGroupName').textContent=g;
+  $('#rpTiles').innerHTML='<p class="note">Loading…</p>';$('#rpSeries').innerHTML='';
+  const [s,o,t]=await Promise.all([sb.rpc('report_series',{p_from:R.from,p_to:R.to,p_bucket:g}),sb.rpc('ops_stats',{p_from:R.from,p_to:R.to}),sb.rpc('turnout_stats',{p_from:R.from,p_to:R.to})]);
+  if(s.error||o.error){$('#rpTiles').innerHTML='<p class="err">'+esc((s.error||o.error).message)+'</p>';return}
+  RP.ops=o.data;RP.turn=t.data;RP.R=R;const S=s.data||[];const sum=k=>S.reduce((a,x)=>a+(x[k]||0),0);
+  const wavg=(k,w)=>{let n=0,d=0;S.forEach(x=>{if(x[k]!=null&&x[w]){n+=x[k]*x[w];d+=x[w]}});return d?n/d:null};
+  const ems=sum('ems'),fire=sum('fire'),tx=sum('transports'),B=o.data.both_committed||{},MA=o.data.mutual_aid||{};
+  const T=(t.data&&t.data.rows)||[];const tv=(k)=>{const r=T.find(x=>x.kind===k&&x.grp==='all');return r?r.avg_s:null};
+  const tile=(v,l,c='')=>`<div class="tile ${c}"><b>${v}</b><span>${esc(l)}</span></div>`;
+  $('#rpTiles').innerHTML=[tile(ems,'EMS calls','ems'),tile(fire,'Fire calls','fire'),tile(tx,'Transports','ems'),tile(pct(tx,ems),'Transport rate','ems'),
+    tile(mss(wavg('ems_resp_s','ems')),'EMS response (avg, dispatch to on scene)','ems'),tile(mss(wavg('fire_resp_s','fire')),'Fire response (avg)','fire'),
+    tile(mss(tv('ems')),'EMS turnout (avg)','ems'),tile(mss(tv('fire')),'Fire turnout (avg)','fire'),
+    tile(sum('ems_lmba'),'EMS in Lower Moreland & Bryn Athyn','ems'),tile(sum('disregarded'),'Disregarded'),
+    tile(B.times??'–','2nd ambulance needed'),tile(MA.calls??'–','Mutual aid received')].join('');
+  $('#rpSeriesHead').innerHTML='<tr><th>'+esc(g)+'</th><th class="n">EMS</th><th class="n">Fire</th><th class="n">Transports</th><th class="n">EMS resp</th><th class="n">Fire resp</th><th class="n">EMS turnout</th><th class="n">Fire turnout</th><th class="n hm">Disregarded</th></tr>';
+  const mx=Math.max(1,...S.map(x=>x.ems));const lab=b=>g==='month'?new Date(b+'T12:00').toLocaleDateString(undefined,{month:'short',year:'numeric'}):g==='week'?'Week of '+b:new Date(b+'T12:00').toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric'});
+  $('#rpSeries').innerHTML=S.map(x=>`<tr><td>${esc(lab(x.bucket))}</td><td class="n"><span class="bar" style="width:${Math.round(60*x.ems/mx)}px"></span>${x.ems}</td><td class="n">${x.fire}</td><td class="n">${x.transports}</td><td class="n">${mss(x.ems_resp_s)}</td><td class="n">${mss(x.fire_resp_s)}</td><td class="n">${mss(x.ems_turnout_s)}</td><td class="n">${mss(x.fire_turnout_s)}</td><td class="n hm">${x.disregarded}</td></tr>`).join('')
+    +`<tr><td><b>Total</b></td><td class="n"><b>${ems}</b></td><td class="n"><b>${fire}</b></td><td class="n"><b>${tx}</b></td><td class="n">${mss(wavg('ems_resp_s','ems'))}</td><td class="n">${mss(wavg('fire_resp_s','fire'))}</td><td class="n">${mss(tv('ems'))}</td><td class="n">${mss(tv('fire'))}</td><td class="n hm">${sum('disregarded')}</td></tr>`;
+  RP.scsv=['BAFC '+g+' '+R.label+'.csv',[[g,'EMS','Fire','Transports','EMS response (s)','Fire response (s)','EMS turnout (s)','Fire turnout (s)','Disregarded'],...S.map(x=>[x.bucket,x.ems,x.fire,x.transports,x.ems_resp_s,x.fire_resp_s,x.ems_turnout_s,x.fire_turnout_s,x.disregarded])]]}
+const TN=c=>(RP.ops&&RP.ops.mun_names&&RP.ops.mun_names[c])||c;
+function rpTable(head,rows,num){return '<table class="rpt"><thead><tr>'+head.map((h,i)=>`<th class="${num&&num.includes(i)?'n':''}">${esc(h)}</th>`).join('')+'</tr></thead><tbody>'+rows.map(r=>'<tr>'+r.map((v,i)=>`<td class="${num&&num.includes(i)?'n':''}">${esc(v)}</td>`).join('')+'</tr>').join('')+'</tbody></table>'}
+async function rpAdhoc(){const R=rpRange();if(!R)return;const type=$('#rpType').value,kind=$('#rpKind').value||null,town=$('#rpTown').value||null,unit=$('#rpUnit').value.trim().toUpperCase()||null;
+  $('#rpOut').innerHTML='<p class="note">Loading…</p>';$('#rpNote').textContent='';RP.csv=null;let head=[],rows=[],num=[];const nm=t=>'BAFC '+t+' '+R.label+'.csv';
+  if(!RP.ops||!RP.R||RP.R.from!==R.from||RP.R.to!==R.to){const [o,t]=await Promise.all([sb.rpc('ops_stats',{p_from:R.from,p_to:R.to}),sb.rpc('turnout_stats',{p_from:R.from,p_to:R.to})]);RP.ops=o.data;RP.turn=t.data;RP.R=R}
+  const O=RP.ops||{};const tf=d=>d?new Date(d).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit',hour12:false}):'';
+  if(type==='calls'){const {data,error}=await sb.rpc('report_calls',{p_from:R.from,p_to:R.to,p_kind:kind,p_town:town,p_unit:unit});if(error){$('#rpOut').innerHTML='<p class="err">'+esc(error.message)+'</p>';return}
+    head=['Incident','Date','Time','Type','Nature','Town','Location','Platoon','Units','Response','Transport','Hospital','Notes'];num=[9];
+    rows=data.map(c=>{const ours=c.units;
+      const hosp=[...new Set(c.units.filter(u=>u.hosp).map(u=>u.hosp))].join('/');const d=new Date(c.received);
+      return [c.incident,d.toLocaleDateString(),tf(c.received),c.kind,(c.code||'')+' '+(c.nature||''),TN(c.town),c.location||'',c.platoon||'',ours.map(u=>u.unit).join(' '),c.response_s!=null&&c.response_s>=0&&c.response_s<2700?mss(c.response_s):'',c.transported?'Yes':'',hosp,[c.disregarded?'Disregarded':'',(c.other_amb||[]).length?'Other amb: '+c.other_amb.join(' '):''].filter(Boolean).join('; ')]});
+    $('#rpNote').textContent=rows.length+' calls'+(rows.length>=3000?' (first 3000)':'')}
+  else if(type==='units'){const {data}=await sb.rpc('report_units',{p_from:R.from,p_to:R.to});head=['Unit','Type','Dispatched','En route','On scene','Transports','Hours committed','Avg turnout'];num=[2,3,4,5,6,7];
+    rows=(data||[]).filter(u=>!unit||u.unit===unit).map(u=>[u.unit,u.kind,u.dispatched,u.enroute,u.onscene,u.transports,u.committed_h??'',mss(u.turnout_avg_s)])}
+  else if(type==='towns'){head=['Town','Type','Calls','Avg response'];num=[2,3];rows=(O.towns||[]).filter(t=>!kind||t.kind===kind).map(t=>[TN(t.mun_code),t.kind,t.calls,mss(t.resp_s)])}
+  else if(type==='platoons'){head=['Group','Value','Calls'];num=[2];const DN=['','Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+    rows=[...(O.platoons||[]).filter(p=>!kind||p.kind===kind).map(p=>['Platoon '+p.kind,p.platoon||'?',p.calls]),...(O.hours||[]).map(h=>['Hour',pad2(h.h)+':00',h.calls]),...(O.days||[]).map(d=>['Day',DN[d.d],d.calls])]}
+  else if(type==='turnout'){const T=(RP.turn&&RP.turn.rows)||[];head=['Type','Group','Value','Avg','90th pct','Within target','Calls','Excluded'];num=[3,4,5,6,7];
+    rows=T.filter(r=>!kind||r.kind===kind.toLowerCase()).map(r=>[r.kind.toUpperCase(),r.grp,r.k,mss(r.avg_s),mss(r.p90_s),r.pct_target!=null?r.pct_target+'%':'',r.n,r.excluded])}
+  else if(type==='hosp'){const E=O.ems||{};head=['Hospital','Transports','Avg time at hospital'];num=[1,2];rows=(O.hospitals||[]).map(h=>[h.hosp,h.n,mss(h.turnaround_s)]);
+    rows.push(['All EMS calls',E.ems_calls??'',''],['Transports',E.transports??'',''],['Avg committed per unit','',mss(E.committed_s)],['Avg time at hospital (all)','',mss(E.turnaround_s)])}
+  else if(type==='cancel'){const C=O.cancels||{},B=O.both_committed||{},MA=O.mutual_aid||{};head=['Item','Count'];num=[1];
+    rows=[['EMS disregarded',C.EMS?.disregarded??0],['EMS cancelled',C.EMS?.cancelled??0],['Fire disregarded',C.FIRE?.disregarded??0],['Fire cancelled',C.FIRE?.cancelled??0],
+      ['Mutual aid received (calls)',MA.calls??0],...Object.entries(MA.by_agency||{}).map(([a,n])=>['  covered by '+a,n]),
+      ['2nd ambulance needed',B.times??0],['  went',B.went??0],['  cancelled',B.cancelled??0],['Calls needing 2 ambulances',B.same_call??0],['Both out (minutes)',B.minutes??0]]}
+  $('#rpOut').innerHTML=rows.length?rpTable(head,rows,num):'<p class="note">Nothing in this period.</p>';RP.csv=[nm($('#rpType').selectedOptions[0].text),[head,...rows]]}
+
 loaders.activity=async()=>{if(!people.length)await loadPeople();const {data,error}=await sb.from('audit_log').select('*').order('id',{ascending:false}).limit(300);
   if(error){$('#lgBody').innerHTML=`<tr><td colspan="4" class="err">${esc(error.message)}</td></tr>`;return}logs=data||[];renderLogs()};
 const detailTxt=d=>{if(!d)return'';if(d.role)return(ROLES.find(r=>r[0]===d.role)||[0,d.role])[1];
