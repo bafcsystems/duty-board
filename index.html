@@ -273,7 +273,7 @@ async function start(session){
   $('#who').innerHTML=`Signed in as ${esc(me.name)}${me.is_officer?' (officer)':''} · <button class="lnk" id="out">Sign out</button>`;
   sb.rpc('my_roles').then(({data})=>{if((data||[]).length||me.is_officer){const o=$('#out');if(o&&!$('#admLink'))o.insertAdjacentHTML('beforebegin','<a id="admLink" href="admin.html" style="color:inherit">Admin</a> · ')}});
   $('#out').onclick=()=>sb.auth.signOut();
-  await load();subscribe();loadInbox();
+  await load();subscribe();loadInbox();renewPush();
   if(location.hash==='#messages')setView('msgs');
 }
 let started=false;
@@ -645,6 +645,19 @@ async function pushStatus(devices){
     t=sub?'Alerts are on for this device.':'Alerts are not on for this device yet.';$('#pushTest').classList.toggle('hide',!sub)}
   $('#pushState').textContent=t+(devices?` (${devices} device${devices===1?'':'s'} signed up in total)`:'');
   $('#pushOn').classList.toggle('hide',(isIOS&&!standalone)||!ok);
+}
+// Phones can silently drop a push sign-up (Android settings changes, browser updates). If alerts were
+// allowed on this device, quietly sign it up again on every visit so alerts keep working (Fred 2026-11-27).
+async function renewPush(){
+  try{
+    if(!('serviceWorker' in navigator)||!('PushManager' in window)||Notification.permission!=='granted')return;
+    const reg=await navigator.serviceWorker.register('sw.js');await navigator.serviceWorker.ready;
+    let sub=await reg.pushManager.getSubscription();
+    if(!sub){let {data:key}=await sb.rpc('vapid_public_key');if(!key)return;
+      sub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:keyBytes(key)})}
+    const j=sub.toJSON();
+    await sb.rpc('save_push_subscription',{p_endpoint:j.endpoint,p_p256dh:j.keys.p256dh,p_auth:j.keys.auth,p_agent:navigator.userAgent});
+  }catch(x){console.warn('push renew',x)}
 }
 const keyBytes=b=>{const p=b.replace(/-/g,'+').replace(/_/g,'/')+'==='.slice((b.length+3)%4);return Uint8Array.from(atob(p),c=>c.charCodeAt(0))};
 $('#pushOn').addEventListener('click',async()=>{
