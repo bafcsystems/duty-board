@@ -428,8 +428,9 @@ const LAT=40.1365,LON=-75.0638;               // Bryn Athyn
 const RADAR='https://radar.weather.gov/ridge/standard/KDIX_loop.gif';
 const TOWNS={BRYA:'Bryn Athyn',LMOR:'Lower Moreland Township',UMOR:'Upper Moreland Township',ABGN:'Abington Township',CHEL:'Cheltenham Township',UDUB:'Upper Dublin Township',HATB:'Hatboro',SHAM:'Upper Southampton Township',PHIL:'Philadelphia'};
 const DEMO=new URLSearchParams(location.search).has('demo');
+const HOLD=new URLSearchParams(location.search).has('hold'); // presentation mode: slides stay until clicked
 const MEMBER_COLS='id,eso_id,name,eso_name,title,ems_level,fire_quals,member_type,is_officer,active';
-const VERSION='2026-11-27b';
+const VERSION='2026-11-27c';
 const SLIDES={roster:'On duty',tomorrow:"Tomorrow's crew",calendar:'Upcoming events',apparatus:'Apparatus status',announce:'Announcements',calls:'Recent calls',turnout:'Turnout times',ops:'Operations (calls, towns, response)',weather:'Weather',news:'News & sports',traffic:'Traffic',deck:'Google Slides deck'};
 const DEF={screen:'',rot:20,run:90,vol:0.8,name:'Station 19-1',station:'2815 Buck Rd, Bryn Athyn, PA 19009',appCsv:'',annCsv:'',deckUrl:'',tzoom:15,theme:'auto',slides:{roster:true,tomorrow:true,calendar:true,news:true,apparatus:true,announce:true,calls:true,turnout:true,ops:true,weather:true,traffic:true,deck:false}};
 // Samples shown until a Google Sheet is connected (Settings > sheet links)
@@ -791,8 +792,8 @@ function showSlide(i){
   el.innerHTML=`<div class="slidehead"><h1>${esc(s.h)}</h1><span class="sub">${s.raw?s.sub:esc(s.sub)}</span><span class="dots">${order.map((_,j)=>`<i class="dot${j===idx?' on':''}"></i>`).join('')}</span></div><div class="prog" id="prog"></div><div class="body${s.flush?' flush':''}">${s.body}</div>`;
   const box=$('#slides');box.appendChild(el);if(s.fit)fitBody(el.querySelector('.body'));requestAnimationFrame(()=>el.classList.add('on'));
   [...box.children].slice(0,-1).forEach(o=>{o.classList.remove('on');setTimeout(()=>o.remove(),700)});
-  const pr=el.querySelector('#prog');pr.style.transition='none';pr.style.width='0';requestAnimationFrame(()=>{pr.style.transition=`width ${cfg.rot}s linear`;pr.style.width='100%'});
-  clearTimeout(rotT);rotT=setTimeout(()=>showSlide(idx+1),cfg.rot*1000);
+  const pr=el.querySelector('#prog');pr.style.transition='none';pr.style.width='0';if(!HOLD)requestAnimationFrame(()=>{pr.style.transition=`width ${cfg.rot}s linear`;pr.style.width='100%'});
+  clearTimeout(rotT);if(!HOLD)rotT=setTimeout(()=>showSlide(idx+1),cfg.rot*1000);
 }
 const isPhone=()=>matchMedia('(max-width:820px),(orientation:portrait)').matches;
 function fitBody(b){ // shrink the crew list until everyone fits on screen
@@ -972,15 +973,16 @@ function synthTone(kind){
 
 // ================= settings panel =================
 let mouseT;document.addEventListener('mousemove',()=>{document.body.classList.add('mouse');clearTimeout(mouseT);mouseT=setTimeout(()=>document.body.classList.remove('mouse'),3000)});
-document.addEventListener('keydown',e=>{if(e.target.matches('input'))return;if(e.key==='s'||e.key==='S')openSettings();if(e.key==='Escape'){$('#settings').classList.add('hide');closeRun()}if(e.key==='ArrowRight')showSlide(idx+1);if(e.key==='ArrowLeft')showSlide(idx-1)});
+document.addEventListener('keydown',e=>{if(e.target.matches('input'))return;if(e.key==='s'||e.key==='S')openSettings();if(e.key==='Escape'){$('#settings').classList.add('hide');closeRun()}if(e.key==='ArrowRight'||(HOLD&&(e.key==='PageDown'||e.key===' '||e.key==='Enter')))showSlide(idx+1);if(e.key==='ArrowLeft'||(HOLD&&e.key==='PageUp'))showSlide(idx-1)});
+if(HOLD)$('#slides').addEventListener('click',e=>{if(e.target.closest('a,button,input,.act'))return;showSlide(idx+1)});
 $('#gear').onclick=openSettings;
 // phones: swipe left/right to change slides; rotation pauses 60 s after you touch the screen
 let tx=null,ty=null;
 document.addEventListener('touchstart',e=>{tx=e.touches[0].clientX;ty=e.touches[0].clientY},{passive:true});
 document.addEventListener('touchend',e=>{if(tx==null)return;const dx=e.changedTouches[0].clientX-tx,dy=e.changedTouches[0].clientY-ty;tx=null;
   if(!$('#run').classList.contains('hide')||!$('#settings').classList.contains('hide'))return;
-  if(Math.abs(dx)>60&&Math.abs(dx)>Math.abs(dy)*1.5){showSlide(idx+(dx<0?1:-1));clearTimeout(rotT);rotT=setTimeout(()=>showSlide(idx+1),60000)}
-  else{clearTimeout(rotT);rotT=setTimeout(()=>showSlide(idx+1),60000)}},{passive:true});
+  if(Math.abs(dx)>60&&Math.abs(dx)>Math.abs(dy)*1.5){showSlide(idx+(dx<0?1:-1));clearTimeout(rotT);if(!HOLD)rotT=setTimeout(()=>showSlide(idx+1),60000)}
+  else if(!HOLD){clearTimeout(rotT);rotT=setTimeout(()=>showSlide(idx+1),60000)}},{passive:true});
 function openSettings(){
   $('#sApp').value=cfg.appCsv;$('#sAnn').value=cfg.annCsv;$('#sDeck').value=cfg.deckUrl;$('#sRot').value=cfg.rot;$('#sRun').value=cfg.run;$('#sVol').value=cfg.vol;$('#sName').value=cfg.name;$('#sStation').value=cfg.station;$('#sScreen').value=cfg.screen||'';$('#sTheme').value=cfg.theme||'auto';$('#sZoom').value=cfg.tzoom||15;
   $('#sSlides').innerHTML=Object.entries(SLIDES).map(([k,l])=>`<label><input type="checkbox" data-s="${k}"${cfg.slides[k]?' checked':''}${k==='calls'&&!canCalls&&!DEMO?' disabled':''}> ${esc(l)}${k==='calls'&&!canCalls&&!DEMO?' (no access)':''}</label>`).join('');
@@ -1025,7 +1027,7 @@ async function checkin(){
   try{const {data,error}=await sb.rpc('screen_checkin',{p_id:cfg.screen,p_name:cfg.name,p_version:VERSION,p_agent:navigator.userAgent});
     if(error){console.warn('checkin',error.message);return}
     if(data&&Object.keys(data).length){const before=JSON.stringify(cfg);const next={...cfg,...data,slides:{...cfg.slides,...(data.slides||{})}};LOCAL_ONLY.forEach(k=>next[k]=cfg[k]);
-      if(JSON.stringify(next)!==before){cfg=next;saveCfg();applyTheme();if(booted&&$('#run').classList.contains('hide'))loadSheets().then(()=>showSlide(0))}}
+      if(JSON.stringify(next)!==before){cfg=next;saveCfg();applyTheme();if(booted&&$('#run').classList.contains('hide'))loadSheets().then(()=>showSlide(HOLD?idx:0))}}
   }catch(e){console.warn('checkin',e)}
 }
 async function saveCentral(){
