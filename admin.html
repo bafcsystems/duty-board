@@ -613,7 +613,7 @@ async function rpRun(){const R=rpRange();if(!R)return;const g=$('#rpGroup').valu
     tile(mss(wavg('ems_resp_s','ems')),'EMS response (avg, dispatch to on scene)','ems'),tile(mss(wavg('fire_resp_s','fire')),'Fire response (avg)','fire'),
     tile(mss(tv('ems')),'EMS turnout (avg)','ems'),tile(mss(tv('fire')),'Fire turnout (avg)','fire'),
     tile(sum('ems_lmba'),'EMS in Lower Moreland & Bryn Athyn','ems'),tile(sum('disregarded'),'Disregarded'),
-    tile(B.times??'–','2nd ambulance needed'),tile(MA.calls??'–','Mutual aid received')].join('');
+    tile(B.times??'–','2nd ambulance needed'),tile(MA.calls??'–','Mutual aid received (CAD)'),tile(o.data.mutual_aid_given?.calls??'–','Mutual aid given')].join('');
   $('#rpSeriesHead').innerHTML='<tr><th>'+esc(g)+'</th><th class="n">EMS</th><th class="n">Fire</th><th class="n">Transports</th><th class="n">EMS resp</th><th class="n">Fire resp</th><th class="n">EMS turnout</th><th class="n">Fire turnout</th><th class="n hm">Disregarded</th></tr>';
   const mx=Math.max(1,...S.map(x=>x.ems));const lab=b=>g==='month'?new Date(b+'T12:00').toLocaleDateString(undefined,{month:'short',year:'numeric'}):g==='week'?'Week of '+b:new Date(b+'T12:00').toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric'});
   $('#rpSeries').innerHTML=S.map(x=>`<tr><td>${esc(lab(x.bucket))}</td><td class="n"><span class="bar" style="width:${Math.round(60*x.ems/mx)}px"></span>${x.ems}</td><td class="n">${x.fire}</td><td class="n">${x.transports}</td><td class="n">${mss(x.ems_resp_s)}</td><td class="n">${mss(x.fire_resp_s)}</td><td class="n">${mss(x.ems_turnout_s)}</td><td class="n">${mss(x.fire_turnout_s)}</td><td class="n hm">${x.disregarded}</td></tr>`).join('')
@@ -642,7 +642,8 @@ async function rpAdhoc(){const R=rpRange();if(!R)return;const type=$('#rpType').
     rows.push(['All EMS calls',E.ems_calls??'',''],['Transports',E.transports??'',''],['Avg committed per unit','',mss(E.committed_s)],['Avg time at hospital (all)','',mss(E.turnaround_s)])}
   else if(type==='cancel'){const C=O.cancels||{},B=O.both_committed||{},MA=O.mutual_aid||{};head=['Item','Count'];num=[1];
     rows=[['EMS disregarded',C.EMS?.disregarded??0],['EMS cancelled',C.EMS?.cancelled??0],['Fire disregarded',C.FIRE?.disregarded??0],['Fire cancelled',C.FIRE?.cancelled??0],
-      ['Mutual aid received (calls)',MA.calls??0],...Object.entries(MA.by_agency||{}).map(([a,n])=>['  covered by '+a,n]),
+      ['Mutual aid received (other agency ambulance on scene, no 319 ambulance, LM/BA EMS calls)',MA.calls??0],['  transported by the other agency (where CAD shows it)',(MA.transported??0)+' ('+pct(MA.transported||0,MA.calls||0)+')'],...Object.entries(MA.by_agency||{}).map(([a,n])=>['  covered by '+a,n]),
+      ['Mutual aid given (319 ambulance on scene, EMS calls outside LM/BA)',O.mutual_aid_given?.calls??0],['  transported by 319',(O.mutual_aid_given?.transported??0)+' ('+pct(O.mutual_aid_given?.transported||0,O.mutual_aid_given?.calls||0)+')'],
       ['2nd ambulance needed',B.times??0],['  went',B.went??0],['  cancelled',B.cancelled??0],['Calls needing 2 ambulances',B.same_call??0],['Both out (minutes)',B.minutes??0]]}
   $('#rpOut').innerHTML=rows.length?rpTable(head,rows,num):'<p class="note">Nothing in this period.</p>';RP.csv=[nm($('#rpType').selectedOptions[0].text),[head,...rows]]}
 
