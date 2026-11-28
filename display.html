@@ -212,6 +212,27 @@ body.day .tcol.ems{background:linear-gradient(180deg,#dce8f7 0%,#fff 55%)}body.d
 .hlab{display:flex;justify-content:space-between;font-size:1.3vh;opacity:.7}
 .big{font:800 5vh/1.05 Barlow,sans-serif}.big small{font-size:1.9vh;font-weight:600;opacity:.8}.sm{font-size:1.75vh;opacity:.85;margin-top:.3vh;line-height:1.3}
 .cx{display:grid;grid-template-columns:auto 1fr 1fr;gap:.6vh 1vw;font:800 3.6vh/1 Barlow,sans-serif;align-items:baseline}.cx .lb{font-size:1.6vh;font-weight:600;opacity:.75}
+/* Phones: Turnout and Operations stack into one column with fixed px sizes (Fred 2026-11-27) */
+@media (max-width:820px),(orientation:portrait){
+  .turn{grid-template-columns:1fr;gap:12px;height:auto}
+  .tcol{border-width:2px;border-radius:10px}
+  .th{font-size:22px;padding:8px 12px;gap:8px}.th .ic{font-size:20px}.th span{font-size:13px}
+  .tin{padding:10px 12px;gap:8px}
+  .tmain{flex-wrap:wrap;gap:8px}.tbig{font-size:52px}
+  .pill{font-size:12px;padding:5px 9px}
+  .tsub{font-size:13px}
+  .trow{gap:8px}.trow div{font-size:11px;line-height:1.25}.trow b{font-size:22px;border-bottom-width:3px}
+  .tps{gap:6px;margin-top:4px}.tp{padding:6px 2px;border-radius:8px}.tp img{height:38px}.tp .tpl{font-size:16px;line-height:38px}
+  .tpv{font-size:18px;border-bottom-width:3px}.tpn{font-size:10px}
+  .ops{grid-template-columns:1fr;grid-template-rows:none;gap:10px;height:auto}
+  .ob{padding:10px 12px;border-radius:10px}.ob.towns{grid-row:auto}
+  .ob h5{font-size:13px;white-space:normal;flex-wrap:wrap;gap:4px 8px;margin-bottom:6px}
+  .otown{font-size:15px}.otown th{font-size:11px;padding:4px}.otown td{padding:6px 4px}
+  .ops4{gap:6px}.op img{height:40px}.op b{font-size:18px;line-height:40px}.op div{font-size:15px}
+  .hbars{height:70px;flex:none}.hlab{font-size:10px}
+  .big{font-size:34px}.big small{font-size:13px}.sm{font-size:13px}
+  .cx{font-size:24px;gap:6px 14px}.cx .lb{font-size:11px}
+}
 /* No ambulance logged on: the whole box turns red and pulses (Fred 2026-11-26), day and night */
 .amb.alarm{background:#c62828;border-radius:1vh;padding:.8vh .7vw;animation:ambpulse 2s ease-in-out infinite}
 .amb.alarm h4{color:#fff}.amb.alarm .u.none,body.day .amb.alarm .u.none{background:transparent;color:#fff;padding:.4vh 0}
@@ -408,7 +429,7 @@ const RADAR='https://radar.weather.gov/ridge/standard/KDIX_loop.gif';
 const TOWNS={BRYA:'Bryn Athyn',LMOR:'Lower Moreland Township',UMOR:'Upper Moreland Township',ABGN:'Abington Township',CHEL:'Cheltenham Township',UDUB:'Upper Dublin Township',HATB:'Hatboro',SHAM:'Upper Southampton Township',PHIL:'Philadelphia'};
 const DEMO=new URLSearchParams(location.search).has('demo');
 const MEMBER_COLS='id,eso_id,name,eso_name,title,ems_level,fire_quals,member_type,is_officer,active';
-const VERSION='2026-11-26g';
+const VERSION='2026-11-27a';
 const SLIDES={roster:'On duty',tomorrow:"Tomorrow's crew",calendar:'Upcoming events',apparatus:'Apparatus status',announce:'Announcements',calls:'Recent calls',turnout:'Turnout times',ops:'Operations (calls, towns, response)',weather:'Weather',news:'News & sports',traffic:'Traffic',deck:'Google Slides deck'};
 const DEF={screen:'',rot:20,run:90,vol:0.8,name:'Station 19-1',station:'2815 Buck Rd, Bryn Athyn, PA 19009',appCsv:'',annCsv:'',deckUrl:'',tzoom:15,theme:'auto',slides:{roster:true,tomorrow:true,calendar:true,news:true,apparatus:true,announce:true,calls:true,turnout:true,ops:true,weather:true,traffic:true,deck:false}};
 // Samples shown until a Google Sheet is connected (Settings > sheet links)
@@ -519,8 +540,8 @@ function turnoutHtml(){
 let ops=null;
 async function loadOps(){if(DEMO){ops=demoOps();return}const {data,error}=await sb.rpc('ops_stats');if(!error)ops=data}
 function demoOps(){return {from:new Date(Date.UTC(2026,9,1,4)).toISOString(),calls:{EMS:412,FIRE:96},home_muns:['27','25'],
-  mun_names:{"27":"Bryn Athyn","25":"Lower Moreland","35":"Upper Moreland","29":"Abington","37":"Hatboro"},
-  towns:[{mun_code:'25',kind:'EMS',calls:221,resp_s:412},{mun_code:'27',kind:'EMS',calls:64,resp_s:318},{mun_code:'35',kind:'EMS',calls:58,resp_s:545},{mun_code:'29',kind:'EMS',calls:49,resp_s:590},{mun_code:'37',kind:'EMS',calls:12,resp_s:640},{mun_code:'26',kind:'EMS',calls:8,resp_s:700},
+  mun_names:{"27":"Bryn Athyn","25":"Lower Moreland","35":"Upper Moreland","29":"Abington","37":"Hatboro","26":"Cheltenham"},
+  towns:[{mun_code:'25',kind:'EMS',calls:221,resp_s:412},{mun_code:'27',kind:'EMS',calls:64,resp_s:318},{mun_code:'35',kind:'EMS',calls:58,resp_s:545},{mun_code:'29',kind:'EMS',calls:49,resp_s:590},{mun_code:'37',kind:'EMS',calls:12,resp_s:640},{mun_code:'26',kind:'EMS',calls:16,resp_s:700},{mun_code:'31',kind:'EMS',calls:5,resp_s:660},
          {mun_code:'25',kind:'FIRE',calls:52,resp_s:375},{mun_code:'27',kind:'FIRE',calls:29,resp_s:290},{mun_code:'35',kind:'FIRE',calls:9,resp_s:510},{mun_code:'29',kind:'FIRE',calls:6,resp_s:560}],
   platoons:[['A',101,22],['B',96,25],['C',108,24],['D',107,25]].flatMap(([p,e,f])=>[{platoon:p,kind:'EMS',calls:e},{platoon:p,kind:'FIRE',calls:f}]),
   hours:[...Array(24)].map((_,h)=>({h,calls:Math.round(6+14*Math.max(0,Math.sin((h-6)/24*Math.PI*1.6)))})),
@@ -535,8 +556,9 @@ function opsHtml(){
   const N=O.mun_names||{},HOSP=settings.hospital_codes||{AMH:'Abington',HRH:'Holy Redeemer'};
   // towns: named ones in order, everything else rolled into Other (call-weighted response)
   const named=Object.keys(N).filter(c=>(O.towns||[]).some(t=>t.mun_code===c));
-  const order=['27','25','35','29','37'].filter(c=>named.includes(c)).concat(named.filter(c=>!['27','25','35','29','37'].includes(c)));
-  const show=order.slice(0,5),cell=(codes,kind)=>{const L=(O.towns||[]).filter(t=>codes.includes(t.mun_code)&&t.kind===kind),n=L.reduce((a,t)=>a+t.calls,0);
+  const MAIN=['27','25','35','29','37','26'];   // Cheltenham (26) added, Fred 2026-11-26
+  const order=MAIN.filter(c=>named.includes(c)).concat(named.filter(c=>!MAIN.includes(c)));
+  const show=order.slice(0,6),cell=(codes,kind)=>{const L=(O.towns||[]).filter(t=>codes.includes(t.mun_code)&&t.kind===kind),n=L.reduce((a,t)=>a+t.calls,0);
     const w=L.filter(t=>t.resp_s!=null),r=w.length?Math.round(w.reduce((a,t)=>a+t.resp_s*t.calls,0)/w.reduce((a,t)=>a+t.calls,0)):null;return [n,r]};
   const others=[...new Set((O.towns||[]).map(t=>t.mun_code))].filter(c=>!show.includes(c));
   const trow=(label,codes,home)=>{const [en,er]=cell(codes,'EMS'),[fn,fr]=cell(codes,'FIRE');
