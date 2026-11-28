@@ -217,7 +217,7 @@ textarea{font:16px/1.4 Barlow,sans-serif;min-height:120px;padding:8px 10px;borde
 {
 const SUPABASE_URL='https://svdbmigojyttlqftuvxb.supabase.co';
 const SUPABASE_KEY='sb_publishable_skgMY3FbCCt5E_hN-ZzM6Q_q9dirLU5';
-const sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
+const sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,lock:async(n,t,fn)=>{if(!navigator.locks)return fn();const ac=new AbortController(),tm=setTimeout(()=>ac.abort(),3000);try{return await navigator.locks.request(n,{signal:ac.signal},async()=>{clearTimeout(tm);return await fn()})}catch(e){if(e&&e.name==='AbortError')return fn();throw e}}}});
 
 const MEMBER_COLS='id,eso_id,name,eso_name,title,ems_level,fire_quals,member_type,is_officer,active,is_screen';
 const $=s=>document.querySelector(s);

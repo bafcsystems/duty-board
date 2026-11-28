@@ -237,7 +237,7 @@ const ROLES=[['admin','Admin','Everything, including Personnel, Access and the a
   ['screen_manager','Screens','Station TVs, pre-plans, hospital codes'],['content_editor','Content','Announcements and apparatus status'],
   ['calendar_admin','Calendar','Reminder rules and per-event reminders'],['call_viewer','Call details','Call pages and call details while dispatch alerts are limited']];
 const QUALS=['INT','EXT','AO','FF','Fire Police'];
-const sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{persistSession:true,autoRefreshToken:true}});
+const sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{persistSession:true,autoRefreshToken:true,lock:async(n,t,fn)=>{if(!navigator.locks)return fn();const ac=new AbortController(),tm=setTimeout(()=>ac.abort(),3000);try{return await navigator.locks.request(n,{signal:ac.signal},async()=>{clearTimeout(tm);return await fn()})}catch(e){if(e&&e.name==='AbortError')return fn();throw e}}}});
 const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
 const esc=t=>String(t??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
 const when=d=>d?new Date(d).toLocaleString('en-US',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit',hour12:false}):'never';

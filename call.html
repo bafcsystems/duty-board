@@ -53,7 +53,7 @@ iframe{width:100%;height:min(55vh,420px);border:0;display:block;border-top:1px s
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
 {
-const sb=window.supabase.createClient('https://svdbmigojyttlqftuvxb.supabase.co','sb_publishable_skgMY3FbCCt5E_hN-ZzM6Q_q9dirLU5',{auth:{persistSession:true,autoRefreshToken:true}});
+const sb=window.supabase.createClient('https://svdbmigojyttlqftuvxb.supabase.co','sb_publishable_skgMY3FbCCt5E_hN-ZzM6Q_q9dirLU5',{auth:{persistSession:true,autoRefreshToken:true,lock:async(n,t,fn)=>{if(!navigator.locks)return fn();const ac=new AbortController(),tm=setTimeout(()=>ac.abort(),3000);try{return await navigator.locks.request(n,{signal:ac.signal},async()=>{clearTimeout(tm);return await fn()})}catch(e){if(e&&e.name==='AbortError')return fn();throw e}}}});
 const STATION='2815 Buck Rd, Bryn Athyn, PA 19009';
 const $=s=>document.querySelector(s);
 const esc=t=>String(t??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
