@@ -75,6 +75,19 @@ html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font-family
 .rotline span{font:700 2.2vh "Barlow Condensed";letter-spacing:.08em;text-transform:uppercase;color:var(--mute)}
 .rotline b{font:800 2.8vh "Barlow Condensed";background:#c62828;color:#fff;padding:.2vh .7vw;border-radius:.6vh}.rotline b.s{background:#455a64}
 .rotline em{font-style:normal;color:var(--mute);margin-left:auto}
+/* Board meeting countdown */
+.bod{height:100%;display:grid;grid-template-columns:auto 1fr auto;gap:3vw;align-items:center;padding:1vh 2vw;position:relative;overflow:hidden}
+.bodc{width:34vh;height:34vh;border-radius:50%;display:grid;place-content:center;text-align:center;background:radial-gradient(circle at 35% 30%,#ff7043,#c62828 60%,#7f1010);color:#fff;box-shadow:0 1.4vh 4vh #c6282855,inset 0 -1vh 2vh #0003;animation:bodp 3s ease-in-out infinite}
+.bodc.tn{background:radial-gradient(circle at 35% 30%,#ffe082,#f2b51a 60%,#a86f00);color:#1a1300}
+.bodc .bn{font:800 16vh/0.85 "Barlow Condensed"}.bodc.tn .bn{font-size:7.5vh;letter-spacing:.04em}
+.bodc .bu{font:700 3vh "Barlow Condensed";letter-spacing:.12em;text-transform:uppercase;margin-top:.6vh}
+@keyframes bodp{0%,100%{transform:scale(1)}50%{transform:scale(1.03)}}
+.bodt .bk{font:700 3vh "Barlow Condensed";letter-spacing:.14em;text-transform:uppercase;color:var(--gold)}
+.bodt .bh{font:800 8vh/1 "Barlow Condensed";margin:.8vh 0 2vh}
+.bodt .bw{display:flex;flex-wrap:wrap;gap:1vw;margin-bottom:2vh}
+.bodt .bw span{background:var(--panel);border-radius:1vh;padding:1vh 1.2vw;font:700 3.4vh "Barlow Condensed";box-shadow:0 .3vh 1vh #0002}
+.bodt .bp{font-size:2.7vh;line-height:1.35;color:var(--mute);max-width:52vw}
+.bodl{height:30vh;opacity:.9;filter:drop-shadow(0 .6vh 1.4vh #0005)}
 /* EMS unit rotation */
 .rot{height:100%;display:grid;grid-template-rows:auto 1fr auto;gap:2.2vh}
 .rothero{display:grid;grid-template-columns:1fr 1fr;gap:1.6vw}
@@ -469,9 +482,9 @@ const TOWNS={BRYA:'Bryn Athyn',LMOR:'Lower Moreland Township',UMOR:'Upper Morela
 const DEMO=new URLSearchParams(location.search).has('demo');
 const HOLD=new URLSearchParams(location.search).has('hold'); // presentation mode: slides stay until clicked
 const MEMBER_COLS='id,eso_id,name,eso_name,title,ems_level,fire_quals,member_type,is_officer,active';
-const VERSION='2026-11-28d';
-const SLIDES={roster:'On duty',tomorrow:"Tomorrow's crew",calendar:'Upcoming events',apparatus:'Apparatus status',rotation:'EMS unit rotation',announce:'Announcements',faces:'Faces of Station 19-1',calls:'Recent calls',turnout:'Turnout times',ops:'Operations (calls, towns, response)',weather:'Weather',news:'News & sports',traffic:'Traffic',deck:'Google Slides deck'};
-const DEF={screen:'',rot:20,run:90,vol:0.8,name:'Station 19-1',station:'2815 Buck Rd, Bryn Athyn, PA 19009',appCsv:'',annCsv:'',deckUrl:'',tzoom:15,theme:'auto',slides:{roster:true,tomorrow:true,calendar:true,news:true,apparatus:true,announce:true,calls:true,turnout:true,ops:true,weather:true,traffic:true,deck:false,rotation:true,faces:true}};
+const VERSION='2026-11-28e';
+const SLIDES={roster:'On duty',tomorrow:"Tomorrow's crew",calendar:'Upcoming events',apparatus:'Apparatus status',rotation:'EMS unit rotation',bod:'Board meeting countdown (7 days before)',announce:'Announcements',faces:'Faces of Station 19-1',calls:'Recent calls',turnout:'Turnout times',ops:'Operations (calls, towns, response)',weather:'Weather',news:'News & sports',traffic:'Traffic',deck:'Google Slides deck'};
+const DEF={screen:'',rot:20,run:90,vol:0.8,name:'Station 19-1',station:'2815 Buck Rd, Bryn Athyn, PA 19009',appCsv:'',annCsv:'',deckUrl:'',tzoom:15,theme:'auto',slides:{roster:true,tomorrow:true,calendar:true,news:true,apparatus:true,announce:true,calls:true,turnout:true,ops:true,weather:true,traffic:true,deck:false,rotation:true,faces:true,bod:true}};
 // Samples shown until a Google Sheet is connected (Settings > sheet links)
 const SAMPLE_APP=[
   {unit:'E19-1',type:'Engine',status:'In Service'},{unit:'SD19-1',type:'Squad',status:'In Service'},{unit:'SS19-1',type:'Support',status:'Out of Service',note:'Sample: body damage repair',ret:'Dec 2'},
@@ -779,6 +792,10 @@ function showWxAlert(a){ // full-screen takeover for 30 seconds
 
 // ================= slides =================
 let order=[],idx=-1,rotT=null,booted=false;
+function bodNext(now=new Date()){ // BOD = 1st Tuesday of the month, 19:00, Borough Hall
+  for(let i=0;i<3;i++){const f=new Date(now.getFullYear(),now.getMonth()+i,1);const d=new Date(f.getFullYear(),f.getMonth(),1+((2-f.getDay()+7)%7),19,0);
+    if(+d+2*3600e3>+now)return d}}
+function bodShow(now=new Date()){const d=bodNext(now);return d&&+d-now<=7*864e5+19*3600e3&&+now<+d+2*3600e3}
 function rotNow(now=new Date()){const d=now.getDate(),y=now.getFullYear(),m=now.getMonth(),last=new Date(y,m+1,0).getDate();
   const P=[{n:'Period 1',a:1,b:10,p:'319-1',s:'319-2',c:'ra'},{n:'Period 2',a:11,b:20,p:'319-2',s:'319-3',c:'rb'},{n:'Period 3',a:21,b:last,p:'319-3',s:'319-1',c:'rc'}];
   const cur=P.find(x=>d>=x.a&&d<=x.b),nxt=P[(P.indexOf(cur)+1)%3],nd=cur===P[2]?new Date(y,m+1,1):new Date(y,m,cur.b+1);
@@ -799,6 +816,16 @@ function slideHtml(k){
     const when=e=>{const d=D(e.starts_at);return `${esc(d.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'}))}<small>${e.all_day?'All day':esc(hm(d))}</small>`};
     return {h:'Upcoming Events',sub:(smp?'<span class="sample">SAMPLE</span> ':'')+'Company calendars',raw:true,
       body:`<div class="cal">${L.map(e=>`<div class="ev"><div class="when">${when(e)}</div><div><div class="tt">${e.tag?`<span class="evtag" style="background:${esc(tagColors[e.tag]||'#555')}">${esc(e.tag)}</span>`:''}${esc(e.title)}</div>${e.location?`<div class="lo">${esc(e.location)}</div>`:''}</div></div>`).join('')||'<div class="empty">No events on the station calendar yet.</div>'}</div>`}}
+  if(k==='bod'){const now=new Date(),m=bodNext(now),t0=new Date(now.getFullYear(),now.getMonth(),now.getDate()),t1=new Date(m.getFullYear(),m.getMonth(),m.getDate());
+    const days=Math.round((t1-t0)/864e5),live=+now>=+m;
+    const big=live?'NOW':days===0?'TONIGHT':days===1?'1':String(days),unit=live||days===0?'':days===1?'day to go':'days to go';
+    const when=m.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});
+    return {h:'Board of Directors Meeting',sub:'First Tuesday of every month',body:`<div class="bod">
+      <div class="bodc${days===0||live?' tn':''}"><div class="bn">${big}</div>${unit?`<div class="bu">${unit}</div>`:''}</div>
+      <div class="bodt"><div class="bk">Volunteer &amp; career members</div><div class="bh">Your voice shapes this company.</div>
+        <div class="bw"><span>📅 ${esc(when)}</span><span>🕖 ${live?'In session now':days===0?'Tonight at 19:00':'19:00'}</span><span>🏛️ Borough Hall</span></div>
+        <div class="bp">Come to the Board meeting. Hear what's planned, ask questions and help decide where we go next. Every member is welcome.</div></div>
+      <img class="bodl" src="logo.png" alt=""></div>`}}
   if(k==='rotation'){const now=new Date(),{P,cur,nxt,nd,d,last,y,left}=rotNow(now);
     const ord=n=>n+(n%100>10&&n%100<14?'th':['th','st','nd','rd'][n%10]||'th');
     const mon=now.toLocaleDateString('en-US',{month:'long'}),mo=now.toLocaleDateString('en-US',{month:'short'});
@@ -843,7 +870,7 @@ function slideHtml(k){
 }
 function slideKeys(){const g=(typeof settings!=='undefined'&&settings&&settings.display_slides)||{},o=(g.order||[]).filter(k=>k in SLIDES);return [...o,...Object.keys(SLIDES).filter(k=>!o.includes(k))]}
 function slideOffAll(k){const g=(typeof settings!=='undefined'&&settings&&settings.display_slides)||{};return (g.off||[]).includes(k)}
-function buildOrder(){order=[];for(const k of slideKeys()){if(!cfg.slides[k]||slideOffAll(k))continue;if(k==='calls'&&!canCalls&&!DEMO)continue;if(k==='deck'&&!cfg.deckUrl)continue;if(k==='calendar'&&!events.length&&!DEMO)continue;if(k==='turnout'&&!(turnout&&(turnout.rows||[]).length))continue;if(k==='ops'&&!(ops&&ops.calls&&(ops.calls.EMS+ops.calls.FIRE)))continue;
+function buildOrder(){order=[];for(const k of slideKeys()){if(!cfg.slides[k]||slideOffAll(k))continue;if(k==='calls'&&!canCalls&&!DEMO)continue;if(k==='deck'&&!cfg.deckUrl)continue;if(k==='bod'&&!bodShow())continue;if(k==='calendar'&&!events.length&&!DEMO)continue;if(k==='turnout'&&!(turnout&&(turnout.rows||[]).length))continue;if(k==='ops'&&!(ops&&ops.calls&&(ops.calls.EMS+ops.calls.FIRE)))continue;
   if(k==='announce')anns().forEach((_,i)=>order.push('ann:'+i));else order.push(k)}if(!order.length)order=['roster']}
 function showSlide(i){
   buildOrder();idx=(i+order.length)%order.length;const k=order[idx],s=slideHtml(k);

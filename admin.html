@@ -168,7 +168,7 @@ code{background:var(--alt);border:1px solid var(--line);border-radius:4px;paddin
         <p class="note">A screen appears here the first time it checks in. Open the display with <b>display.html?screen=bay</b> (or set "Screen ID" in its settings) and sign in once with the screen account. Offline = no check-in for 5 minutes. To cut off one TV, remove it here and use "Sign out all devices" on the screen account in Personnel if it was lost or stolen.</p>
       </div></div>
       <div class="card" id="slCard"><h2>Display slides <small>order and on/off for every TV</small></h2><div class="in">
-        <p class="note">Drag a slide (or use the arrows) to change the order. Untick to hide it on every screen. Changes save automatically. Some slides only appear when they have something to show (recent calls, events, turnout, operations, announcements). Screens pick up changes within 30 seconds.</p>
+        <p class="note">Drag a slide (or use the arrows) to change the order. Untick to hide it on every screen. Changes save automatically. Some slides only appear when they have something to show (recent calls, events, turnout, operations, announcements, and the Board meeting countdown during the 7 days before each meeting). Screens pick up changes within 30 seconds.</p>
         <div id="slList" class="sl"></div>
         <div class="acts"><button class="go" id="slSave">Save now</button><button id="slReset">Reset to default</button><a href="display.html" target="_blank" class="note">View live display</a><a href="display.html?hold=1" target="_blank" class="note">Present (live, click to advance)</a><span class="err" id="slErr"></span></div>
       </div></div>
@@ -528,7 +528,7 @@ async function loadScreens(){
   $$('[data-sd]').forEach(b=>b.onclick=async()=>{if(!sure(b))return;const {error}=await sb.from('screens').delete().eq('id',b.dataset.sd);if(error)$('#scNote').textContent=error.message;loadScreens()});
 }
 // ---- display slide order (settings.display_slides) ----
-const SL_DEF=[['roster','On duty'],['tomorrow',"Tomorrow's crew"],['calendar','Upcoming events'],['apparatus','Apparatus status'],['rotation','EMS unit rotation'],['announce','Announcements'],['faces','Faces of Station 19-1'],['calls','Recent calls'],['turnout','Turnout times'],['ops','Operations (calls, towns, response)'],['weather','Weather'],['news','News & sports'],['traffic','Traffic'],['deck','Google Slides deck (needs a deck link on the screen)']];
+const SL_DEF=[['roster','On duty'],['tomorrow',"Tomorrow's crew"],['calendar','Upcoming events'],['apparatus','Apparatus status'],['rotation','EMS unit rotation'],['bod','Board meeting countdown (shows 7 days before each meeting)'],['announce','Announcements'],['faces','Faces of Station 19-1'],['calls','Recent calls'],['turnout','Turnout times'],['ops','Operations (calls, towns, response)'],['weather','Weather'],['news','News & sports'],['traffic','Traffic'],['deck','Google Slides deck (needs a deck link on the screen)']];
 let slOrder=[],slOff=[];
 async function loadSlides(){const {data,error}=await sb.from('settings').select('value').eq('key','display_slides').maybeSingle();
   if(error||!data){$('#slErr').textContent=error?error.message:'Run sql/17_display_slides.sql first.';}
