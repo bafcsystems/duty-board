@@ -482,7 +482,7 @@ const TOWNS={BRYA:'Bryn Athyn',LMOR:'Lower Moreland Township',UMOR:'Upper Morela
 const DEMO=new URLSearchParams(location.search).has('demo');
 const HOLD=new URLSearchParams(location.search).has('hold'); // presentation mode: slides stay until clicked
 const MEMBER_COLS='id,eso_id,name,eso_name,title,ems_level,fire_quals,member_type,is_officer,active';
-const VERSION='2026-11-28e';
+const VERSION='2026-11-28f';
 const SLIDES={roster:'On duty',tomorrow:"Tomorrow's crew",calendar:'Upcoming events',apparatus:'Apparatus status',rotation:'EMS unit rotation',bod:'Board meeting countdown (7 days before)',announce:'Announcements',faces:'Faces of Station 19-1',calls:'Recent calls',turnout:'Turnout times',ops:'Operations (calls, towns, response)',weather:'Weather',news:'News & sports',traffic:'Traffic',deck:'Google Slides deck'};
 const DEF={screen:'',rot:20,run:90,vol:0.8,name:'Station 19-1',station:'2815 Buck Rd, Bryn Athyn, PA 19009',appCsv:'',annCsv:'',deckUrl:'',tzoom:15,theme:'auto',slides:{roster:true,tomorrow:true,calendar:true,news:true,apparatus:true,announce:true,calls:true,turnout:true,ops:true,weather:true,traffic:true,deck:false,rotation:true,faces:true,bod:true}};
 // Samples shown until a Google Sheet is connected (Settings > sheet links)
@@ -1144,6 +1144,9 @@ function boot(){
   setInterval(()=>renderSide(roster()),15*1000);
   setInterval(()=>{if(lastLoad&&Date.now()-lastLoad>5*60*1000)showStale('No data update since '+hm(lastLoad)+'. Check internet.')},60*1000);
   setTimeout(()=>location.reload(),6*H); // fresh start every 6 hours (keeps long-running screens healthy)
+  // self-update: when a newer display.html is published, reload (only while no run screen is up)
+  if(!DEMO)setInterval(async()=>{try{const t=await (await fetch('display.html?cb='+Date.now(),{cache:'no-store'})).text();const v=(t.match(/VERSION='([^']+)'/)||[])[1];
+    if(v&&v!==VERSION&&$('#run').classList.contains('hide'))location.reload()}catch(e){}},5*60*1000);
 }
 
 // ================= demo data =================
