@@ -75,6 +75,17 @@ html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font-family
 .rotline span{font:700 2.2vh "Barlow Condensed";letter-spacing:.08em;text-transform:uppercase;color:var(--mute)}
 .rotline b{font:800 2.8vh "Barlow Condensed";background:#c62828;color:#fff;padding:.2vh .7vw;border-radius:.6vh}.rotline b.s{background:#455a64}
 .rotline em{font-style:normal;color:var(--mute);margin-left:auto}
+/* quotes */
+.qt{height:100%;display:flex;flex-direction:column;justify-content:center;padding:2vh 7vw 2vh 9vw;position:relative;overflow:hidden}
+.qt .qm{position:absolute;left:2.5vw;top:-4vh;font:800 40vh/1 Georgia,serif;color:#c62828;opacity:.18}
+.qt.qt-ems .qm{color:#1f5fa8}.qt.qt-leadership .qm{color:var(--gold)}
+.qt blockquote{margin:0;font:700 6.4vh/1.18 "Barlow Condensed";letter-spacing:.01em;max-width:70vw;animation:qin .9s ease-out both}
+.qt .qa{margin-top:3.4vh;font:700 3.4vh "Barlow Condensed";color:#c62828;letter-spacing:.04em;animation:qin .9s .25s ease-out both}
+.qt.qt-ems .qa{color:#1f5fa8}.qt.qt-leadership .qa{color:var(--gold)}
+.qt .qa::before{content:"";display:inline-block;width:4vw;height:.5vh;background:currentColor;vertical-align:middle;margin-right:1.2vw}
+.qt .qa span{display:block;margin-left:5.2vw;font:500 2.3vh Barlow;color:var(--mute);letter-spacing:0}
+.qt .ql{position:absolute;right:2.5vw;bottom:2vh;height:16vh;opacity:.25}
+@keyframes qin{from{opacity:0;transform:translateY(2vh)}to{opacity:1;transform:none}}
 /* Board meeting countdown */
 .bod{height:100%;display:grid;grid-template-columns:auto 1fr auto;gap:3vw;align-items:center;padding:1vh 2vw;position:relative;overflow:hidden}
 .bodc{width:34vh;height:34vh;border-radius:50%;display:grid;place-content:center;text-align:center;background:radial-gradient(circle at 35% 30%,#ff7043,#c62828 60%,#7f1010);color:#fff;box-shadow:0 1.4vh 4vh #c6282855,inset 0 -1vh 2vh #0003;animation:bodp 3s ease-in-out infinite}
@@ -482,9 +493,9 @@ const TOWNS={BRYA:'Bryn Athyn',LMOR:'Lower Moreland Township',UMOR:'Upper Morela
 const DEMO=new URLSearchParams(location.search).has('demo');
 const HOLD=new URLSearchParams(location.search).has('hold'); // presentation mode: slides stay until clicked
 const MEMBER_COLS='id,eso_id,name,eso_name,title,ems_level,fire_quals,member_type,is_officer,active';
-const VERSION='2026-11-28h';
-const SLIDES={roster:'On duty',tomorrow:"Tomorrow's crew",calendar:'Upcoming events',apparatus:'Apparatus status',rotation:'EMS unit rotation',bod:'Board meeting countdown (7 days before)',announce:'Announcements',faces:'Faces of Station 19-1',calls:'Recent calls',turnout:'Turnout times',ops:'Operations (calls, towns, response)',weather:'Weather',news:'News & sports',traffic:'Traffic',deck:'Google Slides deck'};
-const DEF={screen:'',rot:20,run:90,vol:0.8,name:'Station 19-1',station:'2815 Buck Rd, Bryn Athyn, PA 19009',appCsv:'',annCsv:'',deckUrl:'',tzoom:15,theme:'auto',slides:{roster:true,tomorrow:true,calendar:true,news:true,apparatus:true,announce:true,calls:true,turnout:true,ops:true,weather:true,traffic:true,deck:false,rotation:true,faces:true,bod:true}};
+const VERSION='2026-11-28i';
+const SLIDES={roster:'On duty',tomorrow:"Tomorrow's crew",calendar:'Upcoming events',apparatus:'Apparatus status',rotation:'EMS unit rotation',bod:'Board meeting countdown (7 days before)',quote:'Words to lead by (quotes)',announce:'Announcements',faces:'Faces of Station 19-1',calls:'Recent calls',turnout:'Turnout times',ops:'Operations (calls, towns, response)',weather:'Weather',news:'News & sports',traffic:'Traffic',deck:'Google Slides deck'};
+const DEF={screen:'',rot:20,run:90,vol:0.8,name:'Station 19-1',station:'2815 Buck Rd, Bryn Athyn, PA 19009',appCsv:'',annCsv:'',deckUrl:'',tzoom:15,theme:'auto',slides:{roster:true,tomorrow:true,calendar:true,news:true,apparatus:true,announce:true,calls:true,turnout:true,ops:true,weather:true,traffic:true,deck:false,rotation:true,faces:true,bod:true,quote:true}};
 // Samples shown until a Google Sheet is connected (Settings > sheet links)
 const SAMPLE_APP=[
   {unit:'E19-1',type:'Engine',status:'In Service'},{unit:'SD19-1',type:'Squad',status:'In Service'},{unit:'SS19-1',type:'Support',status:'Out of Service',note:'Sample: body damage repair',ret:'Dec 2'},
@@ -794,6 +805,40 @@ function showWxAlert(a){ // full-screen takeover for 30 seconds
 
 // ================= slides =================
 let order=[],idx=-1,rotT=null,booted=false;
+// Fire, EMS and leadership quotes (Fred 11/28). Short quotes with checked attributions.
+const QUOTES=[
+ ['I have no ambition in this world but one, and that is to be a fireman.','Chief Edward F. Croker','FDNY Chief of Department, 1899-1911','Fire'],
+ ['When a man becomes a fireman his greatest act of bravery has been accomplished. What he does after that is all in the line of work.','Chief Edward F. Croker','FDNY, 1908','Fire'],
+ ['Firefighters do not regard themselves as heroes because they do what the business requires.','Chief Edward F. Croker','FDNY','Fire'],
+ ['Prevent harm. Survive. Be nice.','Chief Alan Brunacini','Phoenix Fire Department','Fire'],
+ ['The most common injury in the fire service is hurt feelings.','Chief Alan Brunacini','Phoenix Fire Department','Leadership'],
+ ["Don't do anything that feels good when you are mad.",'Chief Alan Brunacini','Phoenix Fire Department','Leadership'],
+ ["If it's predictable, it's preventable.",'Gordon Graham','Public safety risk management','Fire'],
+ ['The building is your enemy. Know your enemy.','Francis L. Brannigan','Building Construction for the Fire Service','Fire'],
+ ['An ounce of prevention is worth a pound of cure.','Benjamin Franklin','Writing on fire safety in Philadelphia, 1735','Fire'],
+ ['Everyone Goes Home.','National Fallen Firefighters Foundation','Firefighter life safety initiative','Fire'],
+ ['There is a golden hour between life and death.','Dr. R Adams Cowley','Founder, Maryland Shock Trauma','EMS'],
+ ['At a cardiac arrest, the first procedure is to take your own pulse.','Samuel Shem','The House of God','EMS'],
+ ['Look for the helpers. You will always find people who are helping.','Fred Rogers','Advice from his mother','EMS'],
+ ['I attribute my success to this: I never gave or took any excuse.','Florence Nightingale','','EMS'],
+ ["Be quick, but don't hurry.",'John Wooden','','EMS'],
+ ['Slow is smooth, and smooth is fast.','Military and EMS saying','','EMS'],
+ ['Leadership is not about being in charge. It is about taking care of those in your charge.','Simon Sinek','','Leadership'],
+ ['Management is doing things right; leadership is doing the right things.','Peter Drucker','','Leadership'],
+ ['A leader is one who knows the way, goes the way, and shows the way.','John C. Maxwell','','Leadership'],
+ ['Leadership and learning are indispensable to each other.','John F. Kennedy','','Leadership'],
+ ['Plans are worthless, but planning is everything.','Dwight D. Eisenhower','','Leadership'],
+ ['The day soldiers stop bringing you their problems is the day you have stopped leading them.','General Colin Powell','','Leadership'],
+ ['Never tell people how to do things. Tell them what to do and they will surprise you with their ingenuity.','General George S. Patton','War As I Knew It','Leadership'],
+ ['Failing to prepare is preparing to fail.','John Wooden','','Leadership'],
+ ['We are what we repeatedly do. Excellence, then, is not an act, but a habit.','Will Durant','on Aristotle','Leadership'],
+ ['Discipline equals freedom.','Jocko Willink','Retired Navy SEAL commander','Leadership'],
+ ['Leaders aren\'t born, they are made. And they are made just like anything else, through hard work.','Vince Lombardi','','Leadership'],
+ ['Waste no more time arguing about what a good man should be. Be one.','Marcus Aurelius','Meditations','Leadership'],
+ ['Try and leave this world a little better than you found it.','Robert Baden-Powell','Founder of Scouting','Leadership'],
+];
+let quoteLast=-1;
+const pickQuote=()=>{let i;do{i=Math.floor(Math.random()*QUOTES.length)}while(QUOTES.length>1&&i===quoteLast);quoteLast=i;return QUOTES[i]};
 function bodNext(now=new Date()){ // BOD = 1st Tuesday of the month, 19:00, Borough Hall
   for(let i=0;i<3;i++){const f=new Date(now.getFullYear(),now.getMonth()+i,1);const d=new Date(f.getFullYear(),f.getMonth(),1+((2-f.getDay()+7)%7),19,0);
     if(+d+2*3600e3>+now)return d}}
@@ -838,6 +883,9 @@ function slideHtml(k){
       <div class="rotgrid">${P.map(x=>`<div class="rp${x===cur?' now':''}">${x===cur?'<span class="tag">NOW</span>':''}<div class="pn">${x.n}</div><div class="pd">${ord(x.a)} – ${x===P[2]?'End of month':ord(x.b)}</div>
         <div class="pu"><div class="p"><small>Primary</small><b>${x.p}</b></div><div><small>Secondary</small><b>${x.s}</b></div></div></div>`).join('')}</div>
       <div><div class="rmonth" style="--n:${last}">${days}</div><div class="rleg"><span style="--c:#b71c1c">319-1 primary</span><span style="--c:#2f5f93">319-2 primary</span><span style="--c:#2e7d4a">319-3 primary</span></div></div></div>`}}
+  if(k==='quote'){const [q,a,r,c]=pickQuote();
+    return {h:'Words to Lead By',sub:c==='Fire'?'Fire service':c==='EMS'?'EMS':'Leadership',body:`<div class="qt qt-${c.toLowerCase()}"><div class="qm">“</div>
+      <blockquote>${esc(q)}</blockquote><div class="qa">${esc(a)}${r?`<span>${esc(r)}</span>`:''}</div><img class="ql" src="logo.png" alt=""></div>`}}
   if(k==='faces') return {h:'The Faces of Station 19-1',sub:'Fetters Mill Fire Rescue · A, B, C and D Platoons and the back office',flush:true,
     body:`<div class="faces"><div class="bg" style="background-image:url(slides/faces-19-1.jpg)"></div><img src="slides/faces-19-1.jpg" alt="The Faces of FMFR Station 19-1"></div>`};
   if(k==='weather'){

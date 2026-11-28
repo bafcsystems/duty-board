@@ -528,7 +528,7 @@ async function loadScreens(){
   $$('[data-sd]').forEach(b=>b.onclick=async()=>{if(!sure(b))return;const {error}=await sb.from('screens').delete().eq('id',b.dataset.sd);if(error)$('#scNote').textContent=error.message;loadScreens()});
 }
 // ---- display slide order (settings.display_slides) ----
-const SL_DEF=[['roster','On duty'],['tomorrow',"Tomorrow's crew"],['calendar','Upcoming events'],['apparatus','Apparatus status'],['rotation','EMS unit rotation'],['bod','Board meeting countdown (shows 7 days before each meeting)'],['announce','Announcements'],['faces','Faces of Station 19-1'],['calls','Recent calls'],['turnout','Turnout times'],['ops','Operations (calls, towns, response)'],['weather','Weather'],['news','News & sports'],['traffic','Traffic'],['deck','Google Slides deck (needs a deck link on the screen)']];
+const SL_DEF=[['roster','On duty'],['tomorrow',"Tomorrow's crew"],['calendar','Upcoming events'],['apparatus','Apparatus status'],['rotation','EMS unit rotation'],['bod','Board meeting countdown (shows 7 days before each meeting)'],['quote','Words to lead by (a different fire, EMS or leadership quote each time)'],['announce','Announcements'],['faces','Faces of Station 19-1'],['calls','Recent calls'],['turnout','Turnout times'],['ops','Operations (calls, towns, response)'],['weather','Weather'],['news','News & sports'],['traffic','Traffic'],['deck','Google Slides deck (needs a deck link on the screen)']];
 let slOrder=[],slOff=[];
 async function loadSlides(){const {data,error}=await sb.from('settings').select('value').eq('key','display_slides').maybeSingle();
   if(error||!data){$('#slErr').textContent=error?error.message:'Run sql/17_display_slides.sql first.';}
