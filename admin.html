@@ -629,7 +629,7 @@ async function rpAdhoc(){const R=rpRange();if(!R)return;const type=$('#rpType').
     head=['Incident','Date','Time','Type','Nature','Town','Location','Platoon','Units','Response','Transport','Hospital','Notes'];num=[9];
     rows=data.map(c=>{const ours=c.units;
       const hosp=[...new Set(c.units.filter(u=>u.hosp).map(u=>u.hosp))].join('/');const d=new Date(c.received);
-      return [c.incident,d.toLocaleDateString(),tf(c.received),c.kind,(c.code||'')+' '+(c.nature||''),TN(c.town),c.location||'',c.platoon||'',ours.map(u=>u.unit).join(' '),c.response_s!=null&&c.response_s>=0&&c.response_s<2700?mss(c.response_s):'',c.transported?'Yes':'',hosp,[c.disregarded?'Disregarded':'',(c.other_amb||[]).length?'Other amb: '+c.other_amb.join(' '):''].filter(Boolean).join('; ')]});
+      return [c.incident,d.toLocaleDateString(),tf(c.received),c.kind,(c.code||'')+' '+(c.nature||''),(TOWNS[c.town]||c.town||'').replace(' Township',''),c.location||'',c.platoon||'',ours.map(u=>u.unit).join(' '),c.response_s!=null&&c.response_s>=0&&c.response_s<2700?mss(c.response_s):'',c.transported?'Yes':'',hosp,[c.disregarded?'Disregarded':'',(c.other_amb||[]).length?'Other amb: '+c.other_amb.join(' '):''].filter(Boolean).join('; ')]});
     $('#rpNote').textContent=rows.length+' calls'+(rows.length>=3000?' (first 3000)':'')}
   else if(type==='units'){const {data}=await sb.rpc('report_units',{p_from:R.from,p_to:R.to});head=['Unit','Type','Dispatched','En route','On scene','Transports','Hours committed','Avg turnout'];num=[2,3,4,5,6,7];
     rows=(data||[]).filter(u=>!unit||u.unit===unit).map(u=>[u.unit,u.kind,u.dispatched,u.enroute,u.onscene,u.transports,u.committed_h??'',mss(u.turnout_avg_s)])}
