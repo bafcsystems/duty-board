@@ -429,7 +429,7 @@ const RADAR='https://radar.weather.gov/ridge/standard/KDIX_loop.gif';
 const TOWNS={BRYA:'Bryn Athyn',LMOR:'Lower Moreland Township',UMOR:'Upper Moreland Township',ABGN:'Abington Township',CHEL:'Cheltenham Township',UDUB:'Upper Dublin Township',HATB:'Hatboro',SHAM:'Upper Southampton Township',PHIL:'Philadelphia'};
 const DEMO=new URLSearchParams(location.search).has('demo');
 const MEMBER_COLS='id,eso_id,name,eso_name,title,ems_level,fire_quals,member_type,is_officer,active';
-const VERSION='2026-11-27a';
+const VERSION='2026-11-27b';
 const SLIDES={roster:'On duty',tomorrow:"Tomorrow's crew",calendar:'Upcoming events',apparatus:'Apparatus status',announce:'Announcements',calls:'Recent calls',turnout:'Turnout times',ops:'Operations (calls, towns, response)',weather:'Weather',news:'News & sports',traffic:'Traffic',deck:'Google Slides deck'};
 const DEF={screen:'',rot:20,run:90,vol:0.8,name:'Station 19-1',station:'2815 Buck Rd, Bryn Athyn, PA 19009',appCsv:'',annCsv:'',deckUrl:'',tzoom:15,theme:'auto',slides:{roster:true,tomorrow:true,calendar:true,news:true,apparatus:true,announce:true,calls:true,turnout:true,ops:true,weather:true,traffic:true,deck:false}};
 // Samples shown until a Google Sheet is connected (Settings > sheet links)
@@ -546,7 +546,7 @@ function demoOps(){return {from:new Date(Date.UTC(2026,9,1,4)).toISOString(),cal
   platoons:[['A',101,22],['B',96,25],['C',108,24],['D',107,25]].flatMap(([p,e,f])=>[{platoon:p,kind:'EMS',calls:e},{platoon:p,kind:'FIRE',calls:f}]),
   hours:[...Array(24)].map((_,h)=>({h,calls:Math.round(6+14*Math.max(0,Math.sin((h-6)/24*Math.PI*1.6)))})),
   days:[1,2,3,4,5,6,7].map(d=>({d,calls:[70,74,69,77,81,70,67][d-1]})),
-  both_committed:{times:38,minutes:1290,longest_min:96},ems:{ems_calls:412,transports:268,committed_s:3480,turnaround_s:1320},
+  both_committed:{times:75,went:69,cancelled:6,same_call:18,amb_dispatches:476,minutes:1370,longest_min:62},ems:{ems_calls:412,transports:268,committed_s:3480,turnaround_s:1320},
   hospitals:[{hosp:'AMH',n:171,turnaround_s:1380},{hosp:'HRH',n:88,turnaround_s:1210},{hosp:'EINM',n:9,turnaround_s:1500}],
   cancels:{ems:{disregarded:9,cancelled:41},fire:{disregarded:2,cancelled:36}},mutual_aid:{calls:7,by_agency:{"381":4,"384":2,"382":1}}}}
 function opsHtml(){
@@ -577,7 +577,7 @@ function opsHtml(){
     <div class="ob towns">${towns}</div>
     <div class="ob"><h5>By platoon <span><span class="e">EMS</span> · <span class="f">Fire</span></span></h5><div class="ops4">${['A','B','C','D'].map(P).join('')}</div>
       <h5 style="margin-top:1vh">By hour <span>busiest ${String(peak).padStart(2,'0')}00${bd?' · '+DAYS[bd.d]:''}</span></h5><div class="hbars">${bars}</div><div class="hlab"><span>00</span><span>06</span><span>12</span><span>18</span><span>23</span></div></div>
-    <div class="ob"><h5 class="e">Both ambulances out</h5><div class="big">${B.times||0}<small> times · ${hm2(B.minutes||0)}</small></div><div class="sm">longest ${hm2(B.longest_min||0)}</div>
+    <div class="ob"><h5 class="e">2nd ambulance needed</h5><div class="big">${B.times||0}<small> times${B.amb_dispatches?' · '+Math.round(100*B.times/B.amb_dispatches)+'% of runs':''}</small></div><div class="sm">${B.went!=null?`${B.went} went, ${B.cancelled} cancelled · `:''}both out ${hm2(B.minutes||0)}</div>
       <h5 class="e" style="margin-top:1vh">Mutual aid received</h5><div class="big">${MA.calls||0}<small> calls</small></div><div class="sm">our towns, handled by another agency</div>${ag?`<div class="sm">${ag}</div>`:''}</div>
     <div class="ob"><h5 class="e">Transports <span>${E.transports||0} of ${E.ems_calls||0} EMS calls</span></h5><div class="big">${tr!=null?tr+'%':'--'}</div>
       <div class="sm">${(O.hospitals||[]).slice(0,3).map(h=>`${esc(HOSP[h.hosp]||h.hosp||'Unknown')} <b>${h.n}</b>${h.turnaround_s?` · ${dur(h.turnaround_s)} at hospital`:''}`).join('<br>')}</div>
