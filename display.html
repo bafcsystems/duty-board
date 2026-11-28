@@ -482,7 +482,7 @@ const TOWNS={BRYA:'Bryn Athyn',LMOR:'Lower Moreland Township',UMOR:'Upper Morela
 const DEMO=new URLSearchParams(location.search).has('demo');
 const HOLD=new URLSearchParams(location.search).has('hold'); // presentation mode: slides stay until clicked
 const MEMBER_COLS='id,eso_id,name,eso_name,title,ems_level,fire_quals,member_type,is_officer,active';
-const VERSION='2026-11-28g';
+const VERSION='2026-11-28h';
 const SLIDES={roster:'On duty',tomorrow:"Tomorrow's crew",calendar:'Upcoming events',apparatus:'Apparatus status',rotation:'EMS unit rotation',bod:'Board meeting countdown (7 days before)',announce:'Announcements',faces:'Faces of Station 19-1',calls:'Recent calls',turnout:'Turnout times',ops:'Operations (calls, towns, response)',weather:'Weather',news:'News & sports',traffic:'Traffic',deck:'Google Slides deck'};
 const DEF={screen:'',rot:20,run:90,vol:0.8,name:'Station 19-1',station:'2815 Buck Rd, Bryn Athyn, PA 19009',appCsv:'',annCsv:'',deckUrl:'',tzoom:15,theme:'auto',slides:{roster:true,tomorrow:true,calendar:true,news:true,apparatus:true,announce:true,calls:true,turnout:true,ops:true,weather:true,traffic:true,deck:false,rotation:true,faces:true,bod:true}};
 // Samples shown until a Google Sheet is connected (Settings > sheet links)
@@ -563,9 +563,11 @@ async function load(){
   if(rs&&rs.data){resps=rs.data;renderResp()}
   lastLoad=new Date();showStale('');renderAll();renderActive();renderAmb();renderAlertBar();
 }
-// ================= turnout times (dispatch to en route), this quarter =================
+// Fred 11/28: every stat on the display is rolling year to date (Jan 1 to now)
+const ytdFrom=()=>new Date(new Date().getFullYear(),0,1).toISOString();
+// ================= turnout times (dispatch to en route), year to date =================
 let turnout=null;
-async function loadTurnout(){if(DEMO){turnout=demoTurnout();return}const {data,error}=await sb.rpc('turnout_stats');if(!error)turnout=data}
+async function loadTurnout(){if(DEMO){turnout=demoTurnout();return}const {data,error}=await sb.rpc('turnout_stats',{p_from:ytdFrom()});if(!error)turnout=data}
 function demoTurnout(){const R=[],add=(kind,grp,k,a,n,p)=>R.push({kind,grp,k,avg_s:a,n,pct_target:p,excluded:1});
   add('ems','all','all',58,212,64);add('ems','first','all',52,180,71);add('ems','period','day',49,120,78);add('ems','period','night',69,92,45);
   [['A',55],['B',61],['C',57],['D',60]].forEach(([k,a])=>add('ems','platoon',k,a,53,60));
@@ -573,7 +575,7 @@ function demoTurnout(){const R=[],add=(kind,grp,k,a,n,p)=>R.push({kind,grp,k,avg
   [['A',80],['B',88],['C',83],['D',85]].forEach(([k,a])=>add('fire','platoon',k,a,24,50));
   return {from:new Date(Date.UTC(2026,9,1,4)).toISOString(),targets:{ems:60,fire:80},rows:R}}
 function turnoutHtml(){
-  const T=turnout;if(!T||!(T.rows||[]).length)return '<div class="empty">No turnout times yet this quarter.</div>';
+  const T=turnout;if(!T||!(T.rows||[]).length)return '<div class="empty">No turnout times yet this year.</div>';
   const get=(kind,grp,k)=>(T.rows||[]).find(r=>r.kind===kind&&r.grp===grp&&r.k===k);
   const ms=s=>s==null?'--':Math.floor(s/60)+':'+String(s%60).padStart(2,'0');
   const st=(s,t)=>s==null?'':s<=t?'ok':s<=t+20?'warn':'bad';
@@ -589,9 +591,9 @@ function turnoutHtml(){
       <div class="tps">${pl}</div></div></div>`};
   return `<div class="turn">${col('ems','EMS','🚑')}${col('fire','FIRE','🚒')}</div>`;
 }
-// ================= operations (this quarter): towns, response, volume, both ambulances out, transports, cancels, mutual aid =================
+// ================= operations (year to date): towns, response, volume, both ambulances out, transports, cancels, mutual aid =================
 let ops=null;
-async function loadOps(){if(DEMO){ops=demoOps();return}const {data,error}=await sb.rpc('ops_stats');if(!error)ops=data}
+async function loadOps(){if(DEMO){ops=demoOps();return}const {data,error}=await sb.rpc('ops_stats',{p_from:ytdFrom()});if(!error)ops=data}
 function demoOps(){return {from:new Date(Date.UTC(2026,9,1,4)).toISOString(),calls:{EMS:412,FIRE:96},home_muns:['27','25'],
   mun_names:{"27":"Bryn Athyn","25":"Lower Moreland","35":"Upper Moreland","29":"Abington","37":"Hatboro","26":"Cheltenham"},
   towns:[{mun_code:'25',kind:'EMS',calls:221,resp_s:412},{mun_code:'27',kind:'EMS',calls:64,resp_s:318},{mun_code:'35',kind:'EMS',calls:58,resp_s:545},{mun_code:'29',kind:'EMS',calls:49,resp_s:590},{mun_code:'37',kind:'EMS',calls:12,resp_s:640},{mun_code:'26',kind:'EMS',calls:16,resp_s:700},{mun_code:'31',kind:'EMS',calls:5,resp_s:660},
@@ -603,7 +605,7 @@ function demoOps(){return {from:new Date(Date.UTC(2026,9,1,4)).toISOString(),cal
   hospitals:[{hosp:'AMH',n:171,turnaround_s:1380},{hosp:'HRH',n:88,turnaround_s:1210},{hosp:'EINM',n:9,turnaround_s:1500}],
   cancels:{ems:{disregarded:9,cancelled:41},fire:{disregarded:2,cancelled:36}},mutual_aid:{calls:7,by_agency:{"381":4,"384":2,"382":1}}}}
 function opsHtml(){
-  const O=ops;if(!O)return '<div class="empty">No call data yet this quarter.</div>';
+  const O=ops;if(!O)return '<div class="empty">No call data yet this year.</div>';
   const ms=s=>s==null?'--':Math.floor(s/60)+':'+String(s%60).padStart(2,'0');
   const hm2=m=>m>=60?Math.floor(m/60)+' hr '+(m%60)+' min':m+' min',dur=s=>s==null?'--':s<600?ms(s):Math.round(s/60)+' min';
   const N=O.mun_names||{},HOSP=settings.hospital_codes||{AMH:'Abington',HRH:'Holy Redeemer'};
@@ -856,9 +858,9 @@ function slideHtml(k){
   if(k==='deck'){const u=cfg.deckUrl.replace(/\/(edit|pub|embed).*$/,'');
     return {h:'Slides',sub:'',flush:true,body:u?`<iframe class="fill" src="${esc(u)}/embed?start=true&loop=true&delayms=10000&rm=minimal" title="Slides"></iframe>`:'<div class="empty">No Google Slides deck linked yet.</div>'}}
   if(k==='turnout'){const f=turnout&&turnout.from?D(turnout.from).toLocaleDateString('en-US',{month:'short',day:'numeric'}):'';
-    return {h:'Turnout Times',sub:(DEMO?'<span class="sample">SAMPLE</span> ':'')+'Dispatch to en route · this quarter'+(f?' ('+esc(f)+' to today)':''),raw:true,body:turnoutHtml()}}
+    return {h:'Turnout Times',sub:(DEMO?'<span class="sample">SAMPLE</span> ':'')+'Dispatch to en route · year to date'+(f?' ('+esc(f)+' to today)':''),raw:true,body:turnoutHtml()}}
   if(k==='ops'){const f=ops&&ops.from?D(ops.from).toLocaleDateString('en-US',{month:'short',day:'numeric'}):'';
-    return {h:'Operations',sub:(DEMO?'<span class="sample">SAMPLE</span> ':'')+'BAFC calls this quarter'+(f?' ('+esc(f)+' to today)':'')+' · response = dispatch to first unit on scene',raw:true,body:opsHtml()}}
+    return {h:'Operations',sub:(DEMO?'<span class="sample">SAMPLE</span> ':'')+'BAFC calls year to date'+(f?' ('+esc(f)+' to today)':'')+' · response = dispatch to first unit on scene',raw:true,body:opsHtml()}}
   if(k==='calls'){
     const L=calls.filter(c=>c.first_dispatch_email).slice(0,9);
     return {h:'Recent Calls',sub:'Last 24 hours · BAFC units highlighted',body:`<div class="calls">${L.map(c=>{const ours=[...(c.ems_units||[]),...(c.fire_units||[])];
