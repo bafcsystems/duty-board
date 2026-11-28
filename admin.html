@@ -146,6 +146,11 @@ code{background:var(--alt);border:1px solid var(--line);border-radius:4px;paddin
 
     <!-- ============ SCREENS ============ -->
     <section data-tab="screens" class="hide">
+      <div class="card" id="tcCard"><h2>Test call <small>for demos and checks</small></h2><div class="in">
+        <p class="note">Sends a clearly labeled <b>BAFC SYSTEM TEST</b> call (2815 Buck Rd) that works like a real dispatch: phone alerts, run screen and tone on every open display, and the call page with Responding and ETA. It is removed automatically after 30 minutes and never counts in turnout or call numbers.</p>
+        <label style="display:flex;gap:8px;align-items:center;font-weight:600"><input type="checkbox" id="tcOnlyMe" checked style="width:auto"> Phone alert to me only (displays still show it). Untick to alert everyone who has dispatch alerts on.</label>
+        <div class="acts"><button class="go" id="tcEms" style="background:#1f5aa6;border-color:#1f5aa6">Send EMS test call</button><button class="go" id="tcFire" style="background:#c62828;border-color:#c62828">Send Fire test call</button><button id="tcClear">Remove test calls now</button><span class="err" id="tcErr"></span></div>
+      </div></div>
       <div class="card"><h2>Screens <small id="scNote"></small></h2><div class="in">
         <table><thead><tr><th>Screen</th><th>Status</th><th>Last check-in</th><th class="hm">Version</th><th></th></tr></thead><tbody id="scBody"></tbody></table>
         <p class="note">A screen appears here the first time it checks in. Open the display with <b>display.html?screen=bay</b> (or set "Screen ID" in its settings) and sign in once with the screen account. Offline = no check-in for 5 minutes. To cut off one TV, remove it here and use "Sign out all devices" on the screen account in Personnel if it was lost or stolen.</p>
@@ -448,6 +453,20 @@ function editEvent(e){const p=e.plan||{};
 // SCREENS + HOSPITAL CODES
 // =====================================================================
 loaders.screens=()=>{loadScreens();loadHosp();setInterval(loadScreens,60e3)};
+// Test call (sql/14)
+async function testCall(kind){
+  const only=$('#tcOnlyMe').checked;
+  if(!only&&!confirm('Send a TEST call alert to everyone who has dispatch alerts turned on?'))return;
+  $('#tcEms').disabled=$('#tcFire').disabled=true;
+  const {data,error}=await sb.rpc('admin_test_call',{p_kind:kind,p_only_me:only});
+  $('#tcEms').disabled=$('#tcFire').disabled=false;
+  if(error){flash($('#tcErr'),error.message,false);return}
+  sb.functions.invoke('send-messages',{body:{}});   // send the phone alert right away
+  flash($('#tcErr'),`Test call ${data} sent. Alerts arrive in a few seconds; the call page is open for 30 minutes.`,true);
+}
+$('#tcEms').onclick=()=>testCall('ems');
+$('#tcFire').onclick=()=>testCall('fire');
+$('#tcClear').onclick=async()=>{const {data,error}=await sb.rpc('admin_clear_test_calls');flash($('#tcErr'),error?error.message:`Removed ${data||0} test call${data===1?'':'s'}.`,!error)};
 async function loadScreens(){
   const {data,error}=await sb.from('screens').select('id,name,last_seen,version').order('id');
   if(error){$('#scBody').innerHTML=`<tr><td colspan="5" class="err">${esc(error.message)}</td></tr>`;return}
